@@ -29,3 +29,17 @@
 - **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
 - **Availability:** per session
 - **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
+
+## Kin
+- **Name:** Kin
+- **Role:** desktop and backend
+- **Capability:** Tauri desktop shell and local git (`src-tauri/`, `src/lib/git.ts`), API routes and services (`src/lib/`, `src/app/api/`)
+- **Availability:** through the project
+- **Write scope:** anything
+
+## Claude-Kin
+- **Name:** Claude Opus 5.5, Kin's agent (runs on Kin's machine and answers to Kin)
+- **Role:** implementation, review, reporting
+- **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
+- **Availability:** per session
+- **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
