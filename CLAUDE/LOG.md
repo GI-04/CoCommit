@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Kin — PLAN/2026-10-15-login-identity.md set active under the temporary non-destructive rule (DECISIONS, until 03:00 +07); building on kin/login-identity
 - 2026-10-15 · Claude-Pattadon — Pattadon: until 2026-10-16 03:00 +07 only destructive plans need their review (DECISIONS); in-person approval plan rejected, task moved to Done as dropped
 - 2026-10-15 · Claude-Pattadon — Proposed in-person approval by Pattadon (PLAN/2026-10-15-in-person-approval.md; checker scripts/check-override.mjs, hash set and checked); board task 2026-10-15-session-override-password.md has the scope and "agrees" boxes
 - 2026-10-15 · Claude-proud — Full check of main + live site (23:15): typecheck, 16 tests, build, all pages 200, API ok, auto-deploy ok; plans github-api and chat-backend set to done; stale TODO lines removed

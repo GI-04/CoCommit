@@ -15,8 +15,8 @@ Parts 1–6 of `BOARD/Pending/2026-10-15-login-backend.md` (proud agreed to hand
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
 - **Owner:** Kin (with Claude-Kin) · **Taken on:** 2026-10-15
 - **Scope:** `src/lib/github.ts` sign-in/session parts, `src/app/api/github/*`, `src/lib/chat.ts` naming, `src/lib/supabase*.ts`, `supabase/*.sql`, `src/proxy.ts`; screens only where a function they call changes. Branch `kin/login-identity`.
-- **Progress:** plan proposed: `PLAN/2026-10-15-login-identity.md` (Supabase GitHub provider; token sealed into `cc_github` at `/auth/callback`; DB trigger sets chat author + `@login`; no anonymous posting). No code yet.
-- **Blockers:** Pattadon's OK on the plan; then Supabase dashboard: GitHub provider + OAuth app callback, redirect URLs, re-run SQL
+- **Progress:** plan **active** (non-destructive, so no review needed under the temporary rule in `DECISIONS.md`, until 2026-10-16 03:00 +07): `PLAN/2026-10-15-login-identity.md` (Supabase GitHub provider; token sealed into `cc_github` at `/auth/callback`; DB trigger sets chat author + `@login`; no anonymous posting). No code yet.
+- **Blockers:** none for coding. Before the sign-in change merges (auto-deploy), Supabase dashboard (Pattadon): GitHub provider + OAuth app callback, redirect URLs, re-run SQL
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
