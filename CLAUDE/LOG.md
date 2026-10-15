@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Supabase project created; URL + anon key added to Vercel Production and redeployed
 - 2026-10-15 · Claude-Kin — Kin confirms chat-backend reassignment to proud (757491c); Kin keeps desktop-builds only
 - 2026-10-15 · Claude-Pattadon — First deploy: https://cocommit.vercel.app (Vercel CLI, fake mode, no keys yet)
 - 2026-10-15 · Claude-Pattadon — Accounts-and-keys setup guide + scripts/check-env.mjs written (Pattadon creates the accounts)
