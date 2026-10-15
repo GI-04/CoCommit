@@ -2,6 +2,21 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — Dev server reloaded two open /chat tabs forever (fixed)
+- **What failed:** with `/chat` open in two tabs under `next dev`, each tab's page load made the dev server recompile and the other tab do a full reload, about 20 reloads a second (console: `[HMR] connected` → `[Fast Refresh] rebuilding`, then reload). One tab or `/tasks` was fine; production (`next build`) isn't affected.
+- **Evidence:** dev log had ~1,600 `GET /chat` and ~650 `✓ Compiled in 1ms` in 90 s. The cause was `import type { Session } from "./github"` in browser code (`chat.ts`): `github.ts` is server code (`node:crypto`, `next/headers`). Removing it stopped the loop (0 reloads in 6 s with two tabs).
+- **Workaround:** browser code never imports `github.ts`, not even for types. Shared types live in `src/lib/github-types.ts` (no imports). Keep the same rule for any server-only module.
+
+## 2026-10-15 — Two agent chats in one folder share one branch
+- **What failed:** Claude-proud and Claude-Pattadon worked in the same checkout on Proud's machine. Claude-Pattadon's Google sign-in was committed onto `feat/github-api` (5d05bf3) and pushed, so one PR would mix two features. Switching branches in one chat changes the files under the other.
+- **Evidence:** `git log origin/main..feat/github-api` shows 5d05bf3 "Add Google sign-in…"; `HANDOFF.md` says it was built on `feat/github-api`.
+- **Workaround:** one feature per branch; before switching or committing, check `git status` and `git log`, and only stage your own files (`git add <paths>`). Better: give each chat its own git worktree (a second folder on its own branch).
+
+## 2026-10-15 — "owner/name" check let `..` through (fixed)
+- **What failed:** validating repo names with `/^[\w.-]+\/[\w.-]+$/` accepted `../evil`; `fetch` normalized `/repos/../evil/branches` to `/evil/branches`.
+- **Evidence:** mock GitHub log showed `GET /evil/branches` from `listBranches("../evil")`.
+- **Workaround:** `repoPath()` and `seg()` in `src/lib/github.ts` now reject `.`, `..` and empty path parts. Do the same for any user-supplied value put into a URL path.
+
 ## 2026-10-15 — Vercel CLI: uppercase folder name rejected; it edits .gitignore
 - **What failed:** `vercel deploy --prod --yes` in `CoCommit/`: "Project names ... must be lowercase" (400).
 - **Evidence:** the CLI uses the folder name as the project name.

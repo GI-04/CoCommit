@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { comingSoon, sections } from "@/lib/sections";
+import { UserChip } from "@/components/UserChip";
 
 export function Nav() {
   const path = usePathname();
@@ -25,6 +26,7 @@ export function Nav() {
           {s.label}
         </Link>
       ))}
+      <UserChip />
     </nav>
   );
 }
