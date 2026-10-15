@@ -67,7 +67,9 @@ export const changes: Change[] = [
   },
 ];
 
-const t = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
+// Fixed times, so the server and the browser render the same text.
+const base = Date.parse("2026-10-15T07:00:00Z");
+const t = (min: number) => new Date(base - min * 60_000).toISOString();
 
 export const messages: ChatMessage[] = [
   { id: "1", repo: "GI-04/CoCommit", author: "Kin", text: "Chat table is up on Supabase 🎉", kind: "text", pinned: false, createdAt: t(42) },
