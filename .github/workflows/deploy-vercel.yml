@@ -1,0 +1,124 @@
+# Deploys main to Vercel production (https://cocommit.vercel.app) with Pattadon's Vercel token: the same
+# `vercel deploy --prod` that used to be run by hand. Vercel's own Git connection can't deploy teammates'
+# commits on the Hobby plan, hence this workflow. Plan: CLAUDE/PLAN/2026-10-15-auto-deploy.md.
+# Run it by hand: Actions → "Deploy to Vercel" → Run workflow (tick "force" after changing env vars in Vercel).
+# Pause push deploys: set the repo variable AUTO_DEPLOY to "off" (Settings → Secrets and variables → Actions).
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+    # Notes, docs and desktop-only changes don't change the site.
+    paths-ignore:
+      - "CLAUDE/**"
+      - "COCOMMIT/**"
+      - "docs/**"
+      - "src-tauri/**"
+      - "**/*.md"
+      - ".github/workflows/desktop-*.yml"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Skip Vercel's build cache (needed after changing env vars)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# One deploy at a time, in push order.
+concurrency:
+  group: vercel-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || vars.AUTO_DEPLOY != 'off'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # VERCEL_TOKEN is a secret of this GitHub environment, which only main may use.
+    environment:
+      name: production
+      url: https://cocommit.vercel.app
+    env:
+      # IDs from .vercel/project.json (not secrets); the CLI needs them since the checkout has no .vercel/.
+      VERCEL_ORG_ID: team_vwz7Ym9BGEBJsJ61qEoJy5bl
+      VERCEL_PROJECT_ID: prj_eMe0JkEGZKA2NCRY4PSk4bBzLesU
+      VERCEL_CLI: vercel@64.2.0
+      SITE: cocommit.vercel.app
+    steps:
+      - name: Check the Vercel token is set
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::No VERCEL_TOKEN secret in the GitHub environment 'production'. Setup: CLAUDE/PLAN/2026-10-15-auto-deploy.md, step 2."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # Nothing is deployed unless these pass.
+      - run: npm run typecheck
+      - run: npm test
+
+      # The build runs on Vercel, as with a deploy by hand, so env vars stay in Vercel. stdout is the deployment URL.
+      - name: Deploy to production
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args=(deploy --prod --yes --token "$VERCEL_TOKEN")
+          if [ "$FORCE" = "true" ]; then args+=(--force); fi
+          url=$(npx --yes "$VERCEL_CLI" "${args[@]}")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed: $url"
+
+      # After `vercel rollback`, Vercel stops moving the domain to new deploys until someone runs `vercel promote`.
+      - name: Check the domain points to this deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          inspect=$(npx --yes "$VERCEL_CLI" inspect "$SITE" --token "$VERCEL_TOKEN" 2>&1)
+          if ! grep -qF "${URL#https://}" <<<"$inspect"; then
+            echo "$inspect"
+            echo "::error::$SITE still points to an older deploy (after a rollback?). Run: vercel promote $URL"
+            exit 1
+          fi
+
+      # Deployment URLs sit behind Vercel's login, so this checks the public domain.
+      # "fake":false means the GitHub keys reached the build (GOTCHAS: new env vars need a fresh build).
+      - name: Check the live site
+        run: |
+          for path in / /home; do
+            curl -fsS -o /dev/null --retry 5 --retry-delay 5 --retry-all-errors "https://$SITE$path"
+          done
+          session=$(curl -fsS --retry 5 --retry-delay 5 --retry-all-errors -X POST \
+            -H 'content-type: application/json' -d '[]' "https://$SITE/api/github/getSession")
+          echo "getSession: $session"
+          if ! grep -qF '"fake":false' <<<"$session"; then
+            echo "::error::The live site is in fake GitHub mode. Run this workflow by hand with 'force' ticked."
+            exit 1
+          fi
+
+      - name: Summary
+        if: always() && steps.deploy.outputs.url != ''
+        env:
+          URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          {
+            echo "### Deployed to production"
+            echo "- Site: https://$SITE"
+            echo "- Deployment: $URL"
+            echo "- Commit: ${GITHUB_SHA::7}"
+            echo "- Undo: \`vercel rollback\`, then \`vercel promote <url>\` to turn auto-deploy back on"
+          } >> "$GITHUB_STEP_SUMMARY"

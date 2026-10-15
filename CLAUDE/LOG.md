@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Auto-deploy plan approved; wrote `.github/workflows/deploy-vercel.yml` (gate: typecheck + tests; checks: token present, domain points to new deploy, live `"fake":false`); dry-run checks and gate pass; not committed, deploy step untested until the token exists
+- 2026-10-15 · Claude-Pattadon — Proposed `PLAN/2026-10-15-auto-deploy.md`: GitHub Actions deploys `main` to Vercel with Pattadon's token (Vercel Git connection blocked on Hobby for a private org repo)
 - 2026-10-15 · Claude-proud — Fixed the next dev /repo reload loop (dynamic Tauri imports in local-git.ts → static); ran npm ci (plugin-dialog was missing locally)
 - 2026-10-15 · Claude-Kin — Kin took login-backend parts 1–6 (proud agreed); plan proposed: PLAN/2026-10-15-login-identity.md
 - 2026-10-15 · Claude-proud — Fixed new-branch base: `commitFiles(..., from)` + Repo screen starts on main (branch fix/new-branch-base); found a dev-only /repo reload loop (GOTCHAS)
