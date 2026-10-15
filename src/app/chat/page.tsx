@@ -11,7 +11,10 @@ export default function ChatPage() {
   const [text, setText] = useState("");
   const end = useRef<HTMLDivElement>(null);
 
-  useEffect(() => end.current?.scrollIntoView({ behavior: "smooth" }), [messages]);
+  // Braces matter: newer browsers return a Promise from scrollIntoView, and an effect may only return a cleanup function.
+  useEffect(() => {
+    end.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const send = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +37,12 @@ export default function ChatPage() {
             {messages.map((m) =>
               m.kind === "git_event" ? (
                 <p key={m.id} className="rounded-md border border-line bg-bg px-3 py-2 text-sm text-muted">
-                  <span className="font-medium text-fg">{m.author}</span> {m.text} · {time(m.createdAt)}
+                  <span className="font-medium text-fg">{m.author}</span> {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                 </p>
               ) : (
                 <div key={m.id} className="group">
                   <p className="text-xs text-muted">
-                    <span className="font-semibold text-fg">{m.author}</span> · {time(m.createdAt)}
+                    <span className="font-semibold text-fg">{m.author}</span> · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                     {m.pinned && " · 📌 pinned"}
                     <button onClick={() => togglePin(m.id)} className="ml-2 opacity-0 group-hover:opacity-100 focus:opacity-100">
                       {m.pinned ? "Unpin" : "Pin"}

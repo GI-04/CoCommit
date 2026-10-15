@@ -12,7 +12,12 @@
 - **Evidence:** mock GitHub log showed `GET /evil/branches` from `listBranches("../evil")`.
 - **Workaround:** `repoPath()` and `seg()` in `src/lib/github.ts` now reject `.`, `..` and empty path parts. Do the same for any user-supplied value put into a URL path.
 
-## 2026-10-15 — Tauri static export vs. API routes (expected, not hit yet)
+## 2026-10-15 — Vercel CLI: uppercase folder name rejected; it edits .gitignore
+- **What failed:** `vercel deploy --prod --yes` in `CoCommit/`: "Project names ... must be lowercase" (400).
+- **Evidence:** the CLI uses the folder name as the project name.
+- **Workaround:** `vercel link --yes --project cocommit` first. The link step also writes `.env.local` (with a `VERCEL_OIDC_TOKEN`) and adds `.vercel` and `.env*` to `.gitignore`. We kept `.vercel` and removed `.env*`, because it would also hide `.env.example`.
+
+## 2026-10-15 — Tauri static export vs. API routes (FIXED: no static export; the desktop app loads a URL via `build.frontendDist`, see `src-tauri/BUILDING.md`)
 - **What failed:** not yet run. `next.config.ts` switches to `output: "export"` when Tauri builds (`TAURI_ENV_PLATFORM` set); Next.js static export can't build POST route handlers like `src/app/api/livekit-token/route.ts`.
 - **Evidence:** Next.js static export docs (route handlers must be static GET).
 - **Workaround:** have the desktop app call the deployed web API (or Supabase Edge Functions) for secrets, and exclude `src/app/api/` from the desktop build.
