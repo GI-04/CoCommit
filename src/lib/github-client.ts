@@ -8,7 +8,7 @@
 import { postGitEvent } from "./chat";
 import type { GitHubActions as Actions } from "./github-types";
 
-export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
+export type { Activity, Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
 
 export class GitHubRequestError extends Error {
   status: number;
@@ -40,6 +40,8 @@ export const getChanges = action("getChanges");
 export const readFile = action("readFile");
 export const listFiles = action("listFiles");
 export const readContext = action("readContext");
+/** Latest commits on the default branch as COCOMMIT.md "Recent activity" items (see context.ts addRecentActivity). */
+export const listCommits = action("listCommits");
 
 // These three also post a git event into the repo's chat. If posting fails, the commit still counts.
 const announce = (repo: string, summary: string) => void postGitEvent(repo, summary).catch(() => {});

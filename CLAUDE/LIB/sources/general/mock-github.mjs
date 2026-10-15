@@ -66,6 +66,14 @@ createServer(async (req, res) => {
     const ok = url.searchParams.get("head") === "acme:feature/x" && url.searchParams.get("base") === "main";
     return send(res, 200, ok ? [pr] : []);
   }
+  if (m === "GET" && p === `${R}/commits`) {
+    const all = [
+      { author: { login: "mock-user" }, commit: { message: "Add chat\n\nLonger body that should be dropped", author: { name: "Mock User", date: "2026-10-15T07:30:00Z" } } },
+      { author: null, commit: { message: "Fix typo", author: { name: "Someone Without Account", date: "2026-10-15T06:00:00Z" } } },
+      { author: { login: "mock-user" }, commit: { message: "Initial commit", author: { name: "Mock User", date: "2026-10-14T23:00:00Z" } } },
+    ];
+    return send(res, 200, all.slice(0, Number(url.searchParams.get("per_page") ?? 30)));
+  }
   if (m === "GET" && p === `${R}/contents/COCOMMIT.md`) return send(res, 200, { type: "file", content: Buffer.from("# COCOMMIT.md\nสวัสดี ✓\n").toString("base64") });
   if (m === "GET" && p.startsWith(`${R}/contents/`)) return send(res, 404, { message: "Not Found" });
   if (m === "GET" && p.startsWith(`${R}/git/trees/`))

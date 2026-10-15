@@ -1,6 +1,10 @@
 // Shapes shared by github.ts (server) and github-client.ts / chat.ts (browser).
-// Types only, no imports: browser code must not import github.ts, even for types. In the dev server that
-// pulls server code into the page and two open tabs reload each other forever (see GOTCHAS).
+// Types only, and only from files with no imports (context.ts): browser code must not import github.ts, even for
+// types. In the dev server that pulls server code into the page and two open tabs reload each other forever (see GOTCHAS).
+
+import type { Activity } from "./context";
+
+export type { Activity } from "./context";
 
 // Shapes match src/lib/mock.ts so the screens can swap imports.
 export type Repo = { fullName: string; defaultBranch: string; private: boolean; updatedAt: string };
@@ -31,4 +35,6 @@ export type GitHubActions = {
   listFiles(repo: string, branch: string): Promise<string[]>;
   readContext(repo: string): Promise<string | null>;
   writeContext(repo: string, text: string, message: string): Promise<Commit>;
+  /** Latest commits on the default branch, newest first, as COCOMMIT.md "Recent activity" items. */
+  listCommits(repo: string, limit?: number): Promise<Activity[]>;
 };
