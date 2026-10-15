@@ -30,5 +30,5 @@
 —
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** open `/chat` in Chrome and in `npm run tauri dev`, check the console
-- **Result:** —
+- **Done on:** 2026-10-15 · **Verified by:** Claude-Pattadon, closed on Pattadon's request: browser pane, local and live, page loads with no console errors and sending works. Not checked in `npm run tauri dev`.
+- **Result:** fixed in 2b4025c; `OUTPUT/2026-10-15-chat-screen-crash.md`

@@ -27,14 +27,14 @@ await commitFilesQuietly(repo, defaultBranch, [{ path: FILES.log, content: log }
 - `COCOMMIT/LOG.md` gets the latest commits, merged PRs and pinned messages when the workspace is saved (or on a "Refresh log" button).
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
-- **Owner:** — · **Taken on:** —
-- **Scope:** —
-- **Progress:** —
-- **Blockers:** `feat/recent-activity` merged into `main`
+- **Owner:** Claude-Pattadon · **Taken on:** 2026-10-15
+- **Scope:** `refreshLog` in `src/lib/workspace.ts`
+- **Progress:** done
+- **Blockers:** none
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** —
-- **Result:** —
+- **Done on:** 2026-10-15 · **Verified by:** end-to-end test against a stateful mock GitHub (`LIB/sources/general/workspace-e2e/`): LOG.md got the commit and merged-PR lines, skipped `COCOMMIT:` commits, and a second refresh made no commit. Pinned chat not covered (fake chat in Node).
+- **Result:** `refreshLog(repo)` in `src/lib/workspace.ts`; report `OUTPUT/2026-10-15-workspace-sync.md`

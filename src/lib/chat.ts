@@ -44,34 +44,18 @@ export function mergeMessage(list: ChatMessage[], m: ChatMessage): ChatMessage[]
   return next.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-let nameOnce: Promise<string> | null = null;
 const NAME_KEY = "cocommit-chat-my-name";
 
 /**
- * The name shown in chat: the name you picked (setMyName), else the GitHub account, else a Google login,
+ * The name shown in chat, resolved on each call so profile edits and sign-in changes affect future messages:
+ * a signed-in CoCommit account's name, else the name picked with setMyName, else the GitHub account,
  * else a guest name for this tab (so two tabs look like two people).
  */
-export function myName(): Promise<string> {
-  nameOnce ??= resolveName();
-  return nameOnce;
-}
-
-/** Picks the name shown in chat, saved in this browser. `null` or "" goes back to the automatic name. Returns the name now in use. */
-export function setMyName(name: string | null): Promise<string> {
-  const clean = (name ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
-  try {
-    if (clean) localStorage.setItem(NAME_KEY, clean);
-    else localStorage.removeItem(NAME_KEY);
-  } catch {
-    // Storage blocked: the name lasts until the page reloads.
-    nameOnce = Promise.resolve(clean || fake.name());
-    return nameOnce;
+export async function myName(): Promise<string> {
+  const { data } = (await getSupabase()?.auth.getUser()) ?? { data: { user: null } };
+  if (data.user && !data.user.is_anonymous) {
+    return data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "You";
   }
-  nameOnce = null;
-  return myName();
-}
-
-async function resolveName(): Promise<string> {
   try {
     const picked = localStorage.getItem(NAME_KEY);
     if (picked) return picked;
@@ -85,9 +69,22 @@ async function resolveName(): Promise<string> {
   } catch {
     // Not signed in to GitHub, or offline: fall through.
   }
-  const { data } = (await getSupabase()?.auth.getUser()) ?? { data: { user: null } };
-  const google = data.user && !data.user.is_anonymous ? (data.user.user_metadata?.full_name ?? data.user.email) : null;
-  return google ?? fake.name();
+  return fake.name();
+}
+
+/**
+ * Picks the name shown in chat when not signed in to a CoCommit account, saved in this browser.
+ * `null` or "" goes back to the automatic name. Returns the name now in use.
+ */
+export function setMyName(name: string | null): Promise<string> {
+  const clean = (name ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
+  try {
+    if (clean) localStorage.setItem(NAME_KEY, clean);
+    else localStorage.removeItem(NAME_KEY);
+  } catch {
+    // Storage blocked: nothing is saved, so the automatic name stays.
+  }
+  return myName();
 }
 
 let sessionOnce: Promise<void> | null = null;

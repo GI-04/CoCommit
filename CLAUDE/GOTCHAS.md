@@ -2,6 +2,16 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — Turbopack build blocked by local port restriction
+- **What failed:** `npm run build` failed while evaluating globals.css, including after retrying outside the sandbox.
+- **Evidence:** creating new process → binding to a port → Operation not permitted (os error 1).
+- **Workaround:** `npm run build -- --webpack` passed, including TypeScript and all page generation. This is an environment workaround; default build configuration was not changed.
+
+## 2026-10-15 — New Vercel env vars ignored until a fresh build
+- **What failed:** after adding `GITHUB_CLIENT_ID`/`SECRET` to Vercel Production, `vercel deploy --prod` still served fake mode (`getSession` → `"fake":true`).
+- **Evidence:** the values were correct in Vercel (`Ov23…`, 20 chars), but the deploy reused the build cache.
+- **Workaround:** after changing env vars, deploy with `vercel deploy --prod --force` (skips the build cache). Then `getSession` returned `"fake":false`.
+
 ## 2026-10-15 — Dev server reloaded two open /chat tabs forever (fixed)
 - **What failed:** with `/chat` open in two tabs under `next dev`, each tab's page load made the dev server recompile and the other tab do a full reload, about 20 reloads a second (console: `[HMR] connected` → `[Fast Refresh] rebuilding`, then reload). One tab or `/tasks` was fine; production (`next build`) isn't affected.
 - **Evidence:** dev log had ~1,600 `GET /chat` and ~650 `✓ Compiled in 1ms` in 90 s. The cause was `import type { Session } from "./github"` in browser code (`chat.ts`): `github.ts` is server code (`node:crypto`, `next/headers`). Removing it stopped the loop (0 reloads in 6 s with two tabs).

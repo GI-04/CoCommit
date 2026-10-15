@@ -9,11 +9,51 @@ The desktop app is a thin Tauri window that loads the CoCommit web app. It has n
 
 Each OS builds its own installer: build the `.msi` on Windows and the `.dmg` on a Mac.
 
+## Links that open a new window
+
+Links with `target="_blank"` (like "View on GitHub") and `window.open` open in the system browser, not in the app. That's `on_new_window` in `src-tauri/src/lib.rs`, with `tauri-plugin-opener`. Only `http`/`https` links are opened; anything else is blocked.
+
+## Local git (Repo page, "Local folder")
+
+The page can run the user's own `git` on a folder they pick, through 12 commands in `src-tauri/src/git.rs` (no shell, every path and branch checked). `capabilities/remote.json` lets only https://cocommit.vercel.app call them; `http://localhost:3000` is allowed in dev builds only (`lib.rs`). Git never asks for a password here: without a working git login, push and pull return an error.
+
 ## Which site the installed app shows
 
 The installed app loads https://cocommit.vercel.app, so it shows whatever is deployed there, not your local code. Pushing to GitHub does not redeploy it yet: Pattadon deploys with `vercel deploy --prod`. A web change shows up in the desktop app after that deploy, with no rebuild needed. Rebuild only when `src-tauri/` changes or the URL moves.
 
-## macOS (`.dmg`)
+## Windows installers from GitHub (no Rust needed)
+
+`.github/workflows/desktop-windows.yml` builds the `.msi` and the setup `.exe` on a GitHub-hosted Windows machine:
+
+1. On GitHub, open **Actions** → **Desktop app (Windows)** → **Run workflow** (branch `main`) → **Run workflow**.
+2. Wait for the green check (about 10 minutes the first time, faster once the Rust cache is warm).
+3. Open the run and download **CoCommit-windows-installers** under **Artifacts**. It's a `.zip` with both installers; artifacts are kept 14 days.
+
+The setup `.exe` is the easiest to give people: double-click → installs for that Windows user, with Start menu and Desktop shortcuts. It isn't code-signed, so Windows says "unknown publisher": **More info** → **Run anyway**. Like the macOS build, it also runs on pull requests that change `src-tauri/`.
+
+## macOS `.dmg` without a Mac (GitHub)
+
+`.github/workflows/desktop-macos.yml` builds a universal `.dmg` (Apple Silicon and Intel) on a GitHub-hosted Mac:
+
+1. On GitHub, open **Actions** → **Desktop app (macOS)** → **Run workflow** (branch `main`) → **Run workflow**.
+2. Wait about 10–15 minutes for the green check.
+3. Open the run and download **CoCommit-macos-dmg** under **Artifacts**. It's a `.zip` with the `.dmg` inside; artifacts are kept 14 days.
+
+It also runs by itself on pull requests that change `src-tauri/`. The repo is private, so each run uses the team's GitHub Actions minutes (Mac minutes count 10×).
+
+### Installing it on a Mac (for testers)
+
+The app is signed ad hoc, not with an Apple developer account, so macOS warns the first time:
+
+1. Open the `.dmg` and drag **CoCommit** into **Applications**.
+2. Open it. If macOS says it "can't be opened" or "is damaged", run this once in Terminal, then open it again:
+   ```zsh
+   xattr -cr /Applications/CoCommit.app
+   ```
+   (It removes the "downloaded from the internet" flag that blocks unsigned apps.)
+3. Or right-click `CoCommit.app` → **Open** → **Open**.
+
+## macOS (`.dmg`) on your own Mac
 
 1. Install the Xcode command line tools (skip if `xcode-select -p` prints a path):
    ```zsh

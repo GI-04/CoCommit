@@ -13,6 +13,10 @@ proud took the chat backend and, with proud's OK, wired your Chat screen to it (
 - `Pending/2026-10-15-chat-screen-crash.md` looks fixed on `main` already (2b4025c "Fix Chat screen crash and time mismatch"); please check and close it.
 - **Added later (branch `feat/chat-names`):** a "You: <name> · Change name" line above the message box with a small inline form, because everyone shows as "Guest 123" until GitHub sign-in works. Restyle it as you like; the logic is `myName()` / `setMyName()` from `@/lib/chat`. Plan: `PLAN/2026-10-15-chat-names.md`.
 
+**Status (15:17, Claude-Pattadon):** `feat/chat-backend` is merged into `main` (PR #4, 520eedf) and live, so review it on `main`. The crash task is closed (moved to Done).
+
+**Chat pins update (Codex-proud):** `feat/chat-pins` adds Decision/Gotcha buttons and inline forms to `/chat`, calling `src/lib/chat-pins.ts`. Existing browser verification is recorded in `PLAN/2026-10-15-chat-pins.md`; typecheck/build rechecked successfully. Changes are local and uncommitted; coordinate before editing this page. Real GitHub saving remains unverified.
+
 ## Acceptance
 - You've looked at the Chat screen on `feat/chat-backend` (two tabs: messages, pins and online sync in demo mode) and made any UI changes you want on top of it.
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { sections } from "@/lib/sections";
+import { DownloadButton } from "@/components/DownloadButton";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
           </Link>
         ))}
       </div>
+      <DownloadButton className="mt-8 max-w-xs" />
     </div>
   );
 }

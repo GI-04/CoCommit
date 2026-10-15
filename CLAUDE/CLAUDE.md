@@ -6,15 +6,18 @@
 @HANDOFF.md
 
 ## Commands
-Stack is approved (`PLAN/2026-10-15-stack.md`). Skeleton exists; dependencies are not installed yet.
+Stack is approved (`PLAN/2026-10-15-stack.md`); the app is live at https://cocommit.vercel.app. Keys go in `.env.local` (`node scripts/check-env.mjs` shows which are set, without printing them).
 
 | Task | Command |
 |------|---------|
-| Install | `npm install` (ask first) |
+| Install | `npm ci` (exact versions from `package-lock.json`; adding a new package: ask first) |
 | Dev (web) | `npm run dev` → http://localhost:3000 |
-| Dev (desktop) | `npm run tauri dev` (needs Rust + icons) |
+| Dev (desktop) | `npm run tauri dev` (needs Rust; window loads localhost:3000) |
 | Typecheck | `npm run typecheck` |
-| Test | none yet — ask |
+| Test | `npm test` (Node's built-in runner, `tests/*.test.mjs`) · desktop: `cargo test` in `src-tauri/` |
+| Build (web) | `npm run build` |
+| Build (desktop) | `npm run tauri build` on Windows; macOS `.dmg` via GitHub Actions (`src-tauri/BUILDING.md`) |
+| Deploy | `vercel deploy --prod` from a clean `main` (Pattadon; pushes don't auto-deploy) |
 | Lint/format | none yet — ask |
 
 ## What lives where (`CLAUDE/`)
@@ -56,7 +59,7 @@ Stack is approved (`PLAN/2026-10-15-stack.md`). Skeleton exists; dependencies ar
 
 ## Conventions
 - Language/style: TypeScript (strict), React function components, Tailwind classes; `@/` imports from `src/`.
-- Tests: unknown — ask.
+- Tests: `node:test` files in `tests/` (`*.test.mjs`), run with `npm test`; Rust unit tests in `src-tauri/src/` (`cargo test`).
 - Layout: Next.js App Router in `src/app/`, shared UI in `src/components/`, service helpers in `src/lib/`, desktop shell in `src-tauri/`.
 
 ## Off-limits / ask first
