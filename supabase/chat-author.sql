@@ -1,19 +1,24 @@
 -- Chat: nobody can post under someone else's name. Run once in the Supabase SQL editor, after
 -- profiles.sql and schema.sql. Safe to run again.
 --
--- Before each new message is saved:
--- - If the poster has a profile name (Google or email login), the author becomes that name,
---   whatever the browser sent.
--- - If they don't (anonymous chat users, e.g. people signed in with GitHub only), they can't
+-- Before each new message is saved (whatever the browser sent):
+-- - author becomes the poster's profile name (GitHub, Google or email login), or their GitHub login;
+-- - author_login becomes their verified GitHub login (profiles.github_login), or null.
+-- - Anyone without a profile name (only possible if anonymous posting is ever allowed again) can't
 --   take a registered member's name: " (guest)" is added to it.
--- Full identity linking (GitHub ↔ Supabase user) is part of the login-backend task.
+-- Anonymous visitors can't post at all: see the insert policy in schema.sql.
+-- Run after profiles.sql and schema.sql (it needs profiles.github_login and messages.author_login).
 
 create or replace function public.messages_set_author() returns trigger
 language plpgsql security definer set search_path = public as $$
 declare
   mine text;
+  login text;
 begin
-  select nullif(trim(p.name), '') into mine from public.profiles p where p.id = auth.uid();
+  select coalesce(nullif(trim(p.name), ''), p.github_login), p.github_login
+    into mine, login
+    from public.profiles p where p.id = auth.uid();
+  new.author_login := login;
   if mine is not null then
     new.author := mine;
   elsif exists (

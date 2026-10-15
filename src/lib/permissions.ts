@@ -48,5 +48,7 @@ async function supabaseAccount(): Promise<LoginMethod | null> {
   const { data } = await supabase.auth.getUser();
   const user = data.user;
   if (!user || user.is_anonymous) return null;
-  return user.app_metadata?.provider === "email" ? "email" : "google";
+  // GitHub sign-ins are Supabase users too (PLAN/2026-10-15-login-identity.md).
+  const provider = user.app_metadata?.provider;
+  return provider === "email" ? "email" : provider === "github" ? "github" : "google";
 }
