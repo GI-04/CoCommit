@@ -8,6 +8,9 @@ Stack plan approved (`PLAN/2026-10-15-stack.md`, active). Project skeleton is **
 ## Exact next step
 Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends 2026-10-16 11:30) and tasks are in `BOARD/Pending/`. Pattadon: accounts and keys. Frontend (layout and screens) is reassigned to Trin; Claude-Pattadon's partial screens are merged into `main` (typecheck passes, not yet browser-checked). Fill in the empty files, starting with `src/app/layout.tsx` and `src/app/page.tsx`. `npm run dev` errors until both have a default export. Commit and push with Pattadon's OK.
 
+## Google sign-in (added 2026-10-15)
+Built on branch `feat/github-api` (not committed): `src/lib/supabase.ts`, `supabase-server.ts`, `src/proxy.ts`, `src/app/login`, `src/app/auth/{callback,signout}`, `src/components/UserChip.tsx` (added to `Nav`), `supabase/profiles.sql`. Plan: `PLAN/2026-10-15-google-signin.md` (active). Typecheck passes; demo mode checked in browser (no keys: no redirect). **Not tested with real keys.** Next: Pattadon follows `OUTPUT/google-signin-setup.md`, then test login end to end. Still open: replace `me` in `mock.ts` with the real user.
+
 ## Watch out
 - Ask before commit, push, package installs or deleting files.
 - Give shell commands in both zsh and PowerShell 7.
