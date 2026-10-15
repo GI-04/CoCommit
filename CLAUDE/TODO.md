@@ -10,7 +10,7 @@
 - [ ] Sign-in screen copy: say that GitHub's `repo` scope gives full access to your repos (needed for private repos). (Trin)
 
 ## Open questions
-- Review `PLAN/2026-10-16-demo-polish-kin.md` once (chat follows the picked repo, keep file modes on commit, demo cleanup SQL: destructive). (Pattadon)
+- Quick re-review of `PLAN/2026-10-16-demo-polish-kin.md`, revision 1 (#general + repo chat, keep file modes on commit; cleanup SQL dropped). (Pattadon)
 - Run `supabase/profiles.sql`, `schema.sql`, `chat-author.sql` (login identity, PR #24 is live). (Pattadon)
 - Which hackathon and submission format? Deadline: 2026-10-16 11:30 (24 h from 2026-10-15 11:30). (Pattadon)
 - What are the non-goals for v1? (Pattadon)

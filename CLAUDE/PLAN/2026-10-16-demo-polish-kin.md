@@ -1,45 +1,54 @@
-# Plan: Demo polish batch (Kin): chat follows your repo, keep file modes, clean test messages
+# Plan: Demo polish batch (Kin): #general + repo chat, keep file modes on commit
 
-**Status:** proposed: changes requested by Pattadon, 2026-10-16 (see Review below) <!-- proposed | active | done | rejected | superseded -->
+**Status:** active: revision 1 approved by Pattadon (2026-10-16) <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
-**Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon (**one review for the whole batch**; item 3 is destructive, so the temporary rule in `DECISIONS.md` still requires it)
+**Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon (one more quick review)
+
+## What changed in revision 1
+- **Item 1 rewritten:** a fixed **#general** chat plus the repo chat, with a switcher; the message list clears on switch; online re-subscribes; the repo is saved only from a real repo list; no custom event; pin forms hidden on #general; Trin told first.
+- **Item 2 corrected:** a new `git/trees?recursive=1` request; `truncated` falls back; symlinks and submodules refused; deletions keep the right mode; tests as asked.
+- **Item 3 removed:** the database wipe is Pattadon's separate plan.
+- Not destructive any more: no data or files deleted.
 
 ## Why
-Three loose ends before the 11:30 demo, batched so Pattadon reviews once instead of three times:
-1. **Chat ignores the repo you picked.** `/chat` always uses `repos[0]` from `mock.ts` (`GI-04/CoCommit`), while `/repo` lets you pick any repo. In the demo, picking a repo and opening Chat shows the wrong channel. (TODO backlog item, listed for Trin; Trin hasn't picked it up, and this is mostly a small shared helper.)
-2. **Committing an executable script drops its +x bit.** `commitFiles` writes every file as mode `100644` (`src/lib/github.ts` around line 276; TODO backlog). Editing `scripts/deploy.sh` from the app silently makes it non-executable.
-3. **Test messages are still in the team chat:** "Guest 330" (Claude-Pattadon's) and "[test by Claude-proud] …" (HANDOFF says delete before the demo). Chat has no delete button, so this needs SQL.
+Two loose ends before the 11:30 demo:
+1. **Chat ignores the repo you picked**, and every chat belongs to a repo. `/chat` always uses `repos[0]` from `mock.ts` (`GI-04/CoCommit`, `src/app/chat/page.tsx` line 38), while `/repo` lets you pick any repo. Pattadon also wants a team chat that isn't about one repo.
+2. **Committing drops file modes.** `commitFiles` sends every file as `100644` (`src/lib/github.ts`, the `git/trees` POST around line 270), so an edited script loses its +x bit, and a symlink or submodule would be overwritten as a plain file.
 
 ## Approach
-1. **Chat follows the picked repo:**
-   - New `src/lib/current-repo.ts`: `getCurrentRepo()` / `setCurrentRepo(fullName)`, saved in `localStorage` (`cocommit-current-repo`), plus a `cocommit:repo-changed` event so open pages update.
-   - `/repo` calls `setCurrentRepo` when you pick a repo (one line).
-   - `/chat` reads it, falling back to `GI-04/CoCommit` (the demo repo), and shows it in the header as today (`# owner/name`). Switching repos re-subscribes to that channel.
-   - No server or database change: chat channels are already per repo (`messages.repo`).
-2. **Keep file modes on commit:** in `commitFiles`, for files that already exist on the branch, reuse their mode from the base tree (`100755` stays executable); new files stay `100644`. One extra lookup in the tree request the function already makes. Test with the local fake GitHub (`CLAUDE/LIB/sources/general/mock-github.mjs`).
-3. **Demo cleanup SQL** (`supabase/demo-cleanup.sql`, **destructive**):
-   - Step 1 **lists** the rows it would delete: exact matches only, `author = 'Guest 330'` with its known text, and `text like '[test by Claude-proud]%'`.
-   - Step 2 deletes exactly those rows, in a transaction that aborts if the count isn't what step 1 showed.
-   - Run by Pattadon in the SQL editor (only he has dashboard access). Nothing else is touched.
+1. **#general + repo chat** (no database change; `messages.repo` already scopes chats):
+   - **Two chats** in a switcher at the top of `/chat`: **#general** (`messages.repo = 'general'`) and **# owner/name** (the picked repo, falling back to `GI-04/CoCommit`). The header shows which one is open.
+   - **Picked repo:** new `src/lib/current-repo.ts` with `getCurrentRepo()` / `setCurrentRepo(fullName)`, kept in `localStorage` (`cocommit-current-repo`). `/repo` calls `setCurrentRepo` when a repo is chosen, **only when the list is real** (`fake` is false on `/repo`), so the signed-out sample list can't move chat to an empty channel. `/chat` reads it when the page opens. No custom event: the two pages are never open in the same tab together.
+   - **Switching chats:** clear the message list, then `loadMessages` + `subscribe` for the new chat (the effect now depends on the chat id; today it runs once and merges into the current list, lines 56–59). `onlineUsers` re-subscribes too (line 63, which today depends only on `name`).
+   - **Pin forms:** Decision and Gotcha save to the chat's repo (`saveAsDecision(repo, …)`, line 94). On #general there's no repo, so those two buttons are hidden there. Pin/unpin itself still works.
+   - **Trin is told before** `/repo` and `/chat` change (Pattadon/Kin message, with this plan's link). Chats people create themselves (a `channels` table, a create button, a list) are a **separate plan after the demo**.
+2. **Keep file modes on commit** (`commitFiles` in `src/lib/github.ts`):
+   - A **new** request after reading `baseTree`: `GET git/trees/<baseTree>?recursive=1` → a map `path → mode` for blobs, symlinks and submodules.
+   - Edited existing files reuse their mode (`100755` stays executable); new files are `100644`; **deletions** send the existing file's mode with `sha: null`.
+   - Existing **symlinks (`120000`) and submodules (`160000`)** are refused with a clear message ("… is a symlink/submodule: edit it with git"), never overwritten as plain files.
+   - If GitHub returns `truncated: true`, files it didn't list fall back to `100644` (today's behavior, so nothing gets worse).
+   - `commitFilesQuietly` uses the same path, so it's covered.
 
 ## Files touched
-- `src/lib/current-repo.ts` (new), `src/app/repo/page.tsx` (one line), `src/app/chat/page.tsx` (repo source + re-subscribe)
-- `src/lib/github.ts` (`commitFiles` modes only)
-- `supabase/demo-cleanup.sql` (new)
-- `tests/`: `current-repo.test.mjs`, and a `commitFiles` mode test against the fake GitHub
-- `CLAUDE/LIB` chat + github-api notes, TODO (remove the two backlog items)
+- `src/lib/current-repo.ts` (new); `src/app/repo/page.tsx` (save on real pick); `src/app/chat/page.tsx` (switcher, reload on switch, online re-subscribe, pin forms hidden on #general)
+- `src/lib/github.ts` (`commitFiles` only)
+- `tests/current-repo.test.mjs`; a `commitFiles` mode test against the fake GitHub (`CLAUDE/LIB/sources/general/mock-github.mjs`)
+- `CLAUDE/LIB` chat + github-api notes; TODO (remove the two backlog items)
 
 ## Risks / needs OK
-- **Item 3 deletes data** (two or three chat rows). The SQL shows them first and deletes nothing else; Pattadon runs it, and can skip it.
-- Item 1 touches Trin's screens (`/repo`, `/chat`) with small changes. If Trin is already on it, I'll drop item 1.
-- Merging auto-deploys. Items 1–2 are small and covered by tests; merge before ~09:00 (`AUTO_DEPLOY=off` for the demo).
-- About 1.5–2 h. Login identity's live checks and SQL stay open separately (skipped for now; see its task).
+- Touches Trin's screens (`/repo`, `/chat`): small, and Trin is told first. If Trin is already changing them, item 1 waits.
+- Merging auto-deploys: merge before ~09:00 (`AUTO_DEPLOY=off` for the demo). Both items are covered by tests and a local browser check.
+- One extra GitHub request per commit (the recursive tree). Large repos may be truncated; that falls back safely.
+- About 1.5–2 h.
 
 ## How we'll verify
-- `npm run typecheck`, `npm run build`, `npm test` (new tests for the repo helper and file modes).
-- Local browser: pick a repo on `/repo` → `/chat` shows that channel; switching repos updates it.
-- Fake GitHub: editing a `100755` file keeps `100755`; a new file is `100644`.
-- SQL: step 1 lists exactly the expected test rows (checked by Pattadon before step 2).
+- `npm run typecheck`, `npm run build`, `npm test`. New tests:
+  - repo helper: save, read and fallback;
+  - modes: an existing `100755` stays `100755`; a new file is `100644`; deleting an executable works; a symlink or submodule is refused; truncated → `100644`.
+- Local browser (fake mode):
+  - `/chat` opens on the repo chat; switch to #general → the list clears and only #general messages show; switch back → the repo's messages;
+  - the online list follows the open chat; Decision/Gotcha are hidden on #general;
+  - pick a repo on `/repo` → `/chat` opens that repo's chat; the signed-out demo list doesn't change it.
 
 ## Review (Pattadon with Claude-Pattadon, 2026-10-16): changes requested, please re-evaluate
 **Item 1: chat follows the picked repo. OK in principle, with changes:**
@@ -59,3 +68,8 @@ Three loose ends before the 11:30 demo, batched so Pattadon reviews once instead
 - Pattadon plans to wipe the whole database later (to stage clean data for the pitch deck), so this script isn't needed. That wipe is destructive and will be its own plan with Pattadon's OK. Open questions for it: the timing (before or after the 11:30 demo; the test messages stay visible until then) and the scope (chat messages only, or also profiles and accounts).
 
 **Next:** update this plan (item 1 rewritten, item 2 corrected, item 3 removed) and set it back to `proposed` for one more quick review.
+
+## Approval (Pattadon with Claude-Pattadon, 2026-10-16): revision 1 approved
+Revision 1 covers every review note above; build it as written. Two small points, no further review needed:
+- `'general'` can't collide with a repo, because repo names always contain a `/`. Keep that check if `current-repo.ts` validates names.
+- Anything beyond this plan (chats people create themselves, any database change) needs a new plan. Merge before about 09:00, or with `AUTO_DEPLOY=off`.
