@@ -6,7 +6,7 @@
 **Under:** Kin: desktop and backend
 
 ## What
-Frontend half of `PLAN/2026-10-15-email-password-login.md` (status: proposed, **start only once Pattadon sets it to `active`**). Kin builds the backend helpers in `src/lib/auth-email.ts`; this task is the screens that call them.
+Frontend half of `PLAN/2026-10-15-email-password-login.md` (status: **active**, so you can start; Supabase's Email provider is on with Confirm email off). Kin builds the backend helpers in `src/lib/auth-email.ts`; this task is the screens that call them.
 
 1. **`/login`**: add an email/password option below "Continue with GitHub" and "Continue with Google". Two modes:
    - **Log in:** email, password, "Log in"
