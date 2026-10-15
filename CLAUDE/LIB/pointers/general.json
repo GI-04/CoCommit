@@ -48,6 +48,31 @@
       "path": "knowledge/general/chat.md",
       "sources": [],
       "added": "2026-10-15"
+    },
+    {
+      "id": "context-workspace",
+      "title": "AI context workspace (COCOMMIT/ folder: context.ts + workspace.ts)",
+      "kind": "reference",
+      "tags": [
+        "context",
+        "cocommit",
+        "workspace",
+        "handoff",
+        "log",
+        "decisions",
+        "gotchas",
+        "collab",
+        "agents",
+        "activity",
+        "testing",
+        "mock"
+      ],
+      "summary": "The COCOMMIT/ team-context folder each repo gets: file layout, the load/save functions screens call, how LOG.md fills itself from commits/PRs/pinned chat, and the end-to-end test against a stateful fake GitHub.",
+      "path": "knowledge/general/context-workspace.md",
+      "sources": [
+        "sources/general/workspace-e2e/"
+      ],
+      "added": "2026-10-15"
     }
   ]
 }

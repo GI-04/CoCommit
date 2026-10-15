@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — src/lib/workspace.ts (load/save COCOMMIT/ through GitHub + refreshLog) built and tested end to end on branch workspace-sync
 - 2026-10-15 · Claude-Pattadon — Pattadon approved Kin's email/password login plan (PLAN/2026-10-15-email-password-login.md is active)
 - 2026-10-15 · Claude-proud — Rename task Done: tiramisucake0127 → proud / Claude-proud (COLLAB, local inbox)
 - 2026-10-15 · Claude-proud — PR #5 merged: activity feed for COCOMMIT/LOG.md (`listCommits`, `listMergedPulls`, `listPinned`)

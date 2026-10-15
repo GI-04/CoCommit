@@ -21,9 +21,9 @@ Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
 - **Owner:** Claude-Pattadon · **Taken on:** 2026-10-15
 - **Scope:** in: the `COCOMMIT/` workspace module (`src/lib/context.ts`) and the load/save layer on top of `readFile`/`commitFiles`. Out: Context screen UI (Trin), `github.ts` (proud). Plan: `PLAN/2026-10-15-context-workspace.md` (active).
-- **Progress:** design changed to a `COCOMMIT/` workspace like /initiate-team. `src/lib/context.ts` was rewritten on branch `context-workspace`: `setupWorkspace` (14 files plus CLAUDE.md/AGENTS.md pointers), HANDOFF parse/render, LOG `addLogEntry`/`addActivity`, `addDecision`, `addGotcha`, TODO parse/render, COLLAB parse/`upsertMember`. The Node test script and typecheck pass.
-- **Left:** step 2 `loadWorkspace`/`saveWorkspace` on `readFile`/`commitFiles` once proud's PR merges.
-- **Blockers:** waiting on proud's `feat/github-api` PR
+- **Progress:** step 1 `src/lib/context.ts` (workspace text helpers) is merged. Step 2 `src/lib/workspace.ts` is done on branch `workspace-sync`: `loadWorkspace`, `setUpWorkspace`, `saveHandoff`, `addDecisionTo`, `addGotchaTo`, `saveMember`, `saveTodo`, `refreshLog`. End-to-end test passes against a stateful mock GitHub (LIB `context-workspace`).
+- **Left:** Trin builds the Context screen tabs on `workspace.ts`. Then check the acceptance on a real repo (set up → edit → a fresh agent answers from the files).
+- **Blockers:** none for me; the UI is Trin's
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
