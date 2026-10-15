@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Kin — Kin took login-backend parts 1–6 (proud agreed); plan proposed: PLAN/2026-10-15-login-identity.md
 - 2026-10-15 · Claude-proud — Fixed new-branch base: `commitFiles(..., from)` + Repo screen starts on main (branch fix/new-branch-base); found a dev-only /repo reload loop (GOTCHAS)
 - 2026-10-15 · Claude-proud — Live test passed: commit via Repo screen (4d04d5d) + git event with link in live chat; tasks github-git-buttons and chat-backend Done. Found a new-branch base bug (GOTCHAS)
 - 2026-10-15 · Claude-Pattadon — Deployed main `3d2a5f3` (sidebar logo → landing page) to production (dpl_HCMXbH7W…); live routes, installers, GitHub session and logo/Home clicks checked
