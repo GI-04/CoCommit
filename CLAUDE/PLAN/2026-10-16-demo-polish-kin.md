@@ -1,6 +1,6 @@
 # Plan: Demo polish batch (Kin): #general + repo chat, keep file modes on commit
 
-**Status:** active: revision 1 approved by Pattadon (2026-10-16) <!-- proposed | active | done | rejected | superseded -->
+**Status:** done: PR #29 merged by Pattadon (02:46) and live (deploy `f175b01`); report `OUTPUT/2026-10-16-0300-demo-polish.md` <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 **Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon (one more quick review)
 

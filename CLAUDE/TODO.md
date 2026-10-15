@@ -3,7 +3,6 @@
 <!-- Backlog and open questions. Not claimed work: when someone commits to an item, it becomes a task on BOARD/. Prune done items. -->
 
 ## Backlog
-- [ ] Landing page (live): check in the real desktop app that it opens on `/home` (Tauri redirect). Consider route groups after the demo if the AppShell check gets in the way. (Pattadon)
 - [ ] Profile QA with a real signed-in account: save/reload name/photo, sidebar/future chat, email confirmation and password update. Implementation tested with fixtures; no live credentials changed. (Pattadon)
 - [ ] Sign-in screen copy: say that GitHub's `repo` scope gives full access to your repos (needed for private repos). (Trin)
 
@@ -13,7 +12,6 @@
 - [ ] Tasks board, later: links to branches/PRs, live updates (Realtime or polling), drag and drop, editing a task's text.
 
 ## Open questions
-- Run `supabase/profiles.sql`, `schema.sql`, `chat-author.sql` (login identity, PR #24 is live). (Pattadon)
 - Which hackathon and submission format? Deadline: 2026-10-16 11:30 (24 h from 2026-10-15 11:30). (Pattadon)
 - What are the non-goals for v1? (Pattadon)
 - A GitHub OAuth app may allow only one callback URL. Do we need two apps (localhost dev keys and Vercel prod keys)? Callback path: `/api/github/callback`. (Pattadon, accounts-and-keys)
