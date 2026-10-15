@@ -167,6 +167,29 @@
       "path": "knowledge/general/email-login.md",
       "sources": [],
       "added": "2026-10-15"
+    },
+    {
+      "id": "landing-page",
+      "title": "Landing page and app routes (/ vs /home)",
+      "kind": "reference",
+      "tags": [
+        "landing",
+        "marketing",
+        "routes",
+        "home",
+        "AppShell",
+        "layout",
+        "desktop redirect",
+        "downloads",
+        "fonts"
+      ],
+      "summary": "/ is the marketing landing page (no sidebar); the app home is /home. How AppShell hides the sidebar, the landing components (commit-graph rail, hero demo, downloads), the desktop-app redirect, and every place that defaults to /home.",
+      "path": "knowledge/general/landing-page.md",
+      "sources": [
+        "PLAN/2026-10-15-landing-page.md",
+        "OUTPUT/2026-10-15-2145-landing-page.md"
+      ],
+      "added": "2026-10-15"
     }
   ]
 }
