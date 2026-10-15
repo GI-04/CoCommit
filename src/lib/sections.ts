@@ -3,9 +3,9 @@ export const sections = [
   { href: "/chat", label: "Chat", blurb: "Talk with the team; git events show up here." },
   { href: "/context", label: "Context", blurb: "One shared COCOMMIT.md for every teammate's AI agent." },
   { href: "/calls", label: "Calls", blurb: "Voice, video and screen sharing without leaving CoCommit." },
+  { href: "/tasks", label: "Tasks", blurb: "Assign and track tasks; every move is a commit." },
 ];
 
 export const comingSoon = [
-  { href: "/tasks", label: "Tasks" },
   { href: "/files", label: "Files" },
 ];
