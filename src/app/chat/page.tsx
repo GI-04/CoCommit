@@ -2,7 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Card, PageHeader } from "@/components/ui";
-import { chatFake, loadMessages, mergeMessage, onlineUsers, pinMessage, sendMessage, subscribe, type ChatMessage } from "@/lib/chat";
+import {
+  chatFake,
+  loadMessages,
+  mergeMessage,
+  myName,
+  onlineUsers,
+  pinMessage,
+  sendMessage,
+  setMyName,
+  subscribe,
+  type ChatMessage,
+} from "@/lib/chat";
 import {
   decisionFields,
   gotchaFields,
@@ -30,23 +41,30 @@ export default function ChatPage() {
   const [online, setOnline] = useState<string[]>([]);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
+  const [nameDraft, setNameDraft] = useState<string | null>(null); // non-null while editing
   const [pinForm, setPinForm] = useState<PinForm | null>(null);
   const [pinNote, setPinNote] = useState<PinNote | null>(null);
   const [saving, setSaving] = useState(false);
   const end = useRef<HTMLDivElement>(null);
 
-  // Load the history, then keep listening for new messages, pin changes and who's online.
+  // Load the history, then keep listening for new messages and pin changes.
   useEffect(() => {
+    myName().then(setName);
     loadMessages(repo)
       .then((list) => setMessages((now) => list.reduce(mergeMessage, now)))
       .catch((e: Error) => setError(e.message));
-    const stopMessages = subscribe(repo, (m) => setMessages((now) => mergeMessage(now, m)));
-    const stopOnline = onlineUsers(repo, setOnline);
-    return () => {
-      stopMessages();
-      stopOnline();
-    };
+    return subscribe(repo, (m) => setMessages((now) => mergeMessage(now, m)));
   }, []);
+
+  // Who's online; joins again under the new name after a rename.
+  useEffect(() => (name ? onlineUsers(repo, setOnline) : undefined), [name]);
+
+  const saveName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setName(await setMyName(nameDraft));
+    setNameDraft(null);
+  };
 
   // Braces matter: newer browsers return a Promise from scrollIntoView, and an effect may only return a cleanup function.
   useEffect(() => {
@@ -179,7 +197,30 @@ export default function ChatPage() {
               </button>
             </p>
           )}
-          <form onSubmit={send} className="mt-3 flex gap-2">
+          {nameDraft === null ? (
+            <p className="mt-3 text-xs text-muted">
+              You: <span className="font-medium text-fg">{name ?? "…"}</span>
+              <button onClick={() => setNameDraft(name ?? "")} className="ml-2 underline">
+                Change name
+              </button>
+            </p>
+          ) : (
+            <form onSubmit={saveName} className="mt-3 flex gap-2 text-xs">
+              <input
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                placeholder="Your name (empty = automatic)"
+                maxLength={40}
+                autoFocus
+                className="min-w-0 flex-1 rounded-md border border-line bg-bg px-2 py-1"
+              />
+              <Button type="submit">Save</Button>
+              <Button type="button" variant="ghost" onClick={() => setNameDraft(null)}>
+                Cancel
+              </Button>
+            </form>
+          )}
+          <form onSubmit={send} className="mt-2 flex gap-2">
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}

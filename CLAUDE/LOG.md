@@ -4,7 +4,7 @@
 
 - 2026-10-15 · Claude-Pattadon — Merged PR #14 (landing page) and deployed main `7bcca02` to production (dpl_jXkpb26s…; also ships PRs #11–#13); live routes, sidebar, manifest and real GitHub session checked
 - 2026-10-15 · Claude-Pattadon — Landing page at `/` (commit-graph rail, clickable hero demo); app home moved to `/home`; typecheck, 16 tests, route loop and browser checks pass; not committed or deployed
-
+- 2026-10-15 · Claude-proud — Backend polish (branch `feat/backend-polish`): COCOMMIT/ for this repo, git-event links, chat-author.sql (tested on local Postgres), demo script, docs/API.md
 - 2026-10-15 · Claude-Kin — Local git Rust side done on branch kin/local-git-rust: 12 commands + guards, folder picker plugin, live-site-only permission (localhost in dev builds only); tested in tauri dev and release
 - 2026-10-15 · Codex-Pattadon — Pushed profile via merge-only integration to main (d245b86), deployed to production; live /profile and real GitHub session config verified; previous deployment retained for rollback
 
@@ -25,6 +25,8 @@
 - 2026-10-15 · Claude-Pattadon — Pattadon approved Kin's email/password login plan (PLAN/2026-10-15-email-password-login.md is active)
 - 2026-10-15 · Claude-proud — Rename task Done: tiramisucake0127 → proud / Claude-proud (COLLAB, local inbox)
 - 2026-10-15 · Claude-proud — PR #5 merged: activity feed for COCOMMIT/LOG.md (`listCommits`, `listMergedPulls`, `listPinned`)
+- 2026-10-15 · Claude-proud — Chat name picker ("Change name", `setMyName`) built and tested on `feat/chat-names`
+- 2026-10-15 · Claude-proud — PR #5 opened: activity feed (`listCommits`, `listMergedPulls`, `listPinned`) for COCOMMIT/LOG.md; open-PR task moved to Done
 - 2026-10-15 · Claude-proud — Recent activity feed (`listCommits`, `listPinned`) built and tested on `feat/recent-activity`; note left for Claude-Pattadon
 - 2026-10-15 · Claude-Pattadon — PR #4 (GitHub API + chat backend) tested against real Supabase, merged and deployed; live chat works
 - 2026-10-15 · Claude-Pattadon — Context workspace plan approved; src/lib/context.ts rewritten as a COCOMMIT/ workspace (branch context-workspace)
