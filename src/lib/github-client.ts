@@ -5,6 +5,7 @@
 //   try { setRepos(await listRepos()); }
 //   catch (e) { if (e instanceof GitHubRequestError && e.status === 401) location.href = signInHref(); }
 
+import { postGitEvent } from "./chat";
 import type { actions } from "./github";
 
 export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github";
@@ -38,12 +39,33 @@ export const getSession = action("getSession");
 export const listRepos = action("listRepos");
 export const listBranches = action("listBranches");
 export const getChanges = action("getChanges");
-export const commitFiles = action("commitFiles");
-export const openPullRequest = action("openPullRequest");
 export const readFile = action("readFile");
 export const listFiles = action("listFiles");
 export const readContext = action("readContext");
-export const writeContext = action("writeContext");
+
+// These three also post a git event into the repo's chat. If posting fails, the commit still counts.
+const announce = (repo: string, summary: string) => void postGitEvent(repo, summary).catch(() => {});
+
+const commit = action("commitFiles");
+export async function commitFiles(...args: Parameters<typeof commit>) {
+  const result = await commit(...args);
+  announce(args[0], `committed “${args[3]}” to ${result.branch}`);
+  return result;
+}
+
+const pull = action("openPullRequest");
+export async function openPullRequest(...args: Parameters<typeof pull>) {
+  const pr = await pull(...args);
+  announce(args[0], `opened pull request #${pr.number} “${pr.title}” (${pr.head} → ${pr.base})`);
+  return pr;
+}
+
+const saveContext = action("writeContext");
+export async function writeContext(...args: Parameters<typeof saveContext>) {
+  const result = await saveContext(...args);
+  announce(args[0], `updated COCOMMIT.md: “${args[2]}”`);
+  return result;
+}
 
 /** Link for a "Sign in with GitHub" button; comes back to `returnTo` afterwards. */
 export function signInHref(returnTo = typeof location === "undefined" ? "/repo" : location.pathname): string {

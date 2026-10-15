@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-proud — Chat backend built on `feat/chat-backend` (schema.sql, chat.ts, /chat wired); two-tab fake mode tested; real Supabase waits for keys
 - 2026-10-15 · Claude-proud — Took chat-backend (reassigned from Kin at proud's request); plan active on branch `feat/chat-backend`
 - 2026-10-15 · Claude-proud — GitHub sign-in + git-button API built on `feat/github-api` (fake mode + mock-GitHub tested; commit 7858f94, pushed; real test waits for OAuth keys)
 - 2026-10-15 · Claude-Pattadon — Google sign-in (Supabase Auth) built in demo-safe mode; needs Supabase/Google keys to go live
