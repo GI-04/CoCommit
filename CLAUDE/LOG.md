@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Kin — local-git-rust Done (PR #11 merged); hosted installers rebuilt from main so downloads include Local folder mode
 - 2026-10-15 · Claude-Kin — Local git Rust side done on branch kin/local-git-rust: 12 commands + guards, folder picker plugin, live-site-only permission (localhost in dev builds only); tested in tauri dev and release
 - 2026-10-15 · Codex-Pattadon — Pushed profile via merge-only integration to main (d245b86), deployed to production; live /profile and real GitHub session config verified; previous deployment retained for rollback
 

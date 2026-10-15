@@ -94,7 +94,7 @@
         "bridge",
         "testing"
       ],
-      "summary": "How the desktop app's Repo page works on a local clone: the 12 Tauri git commands (Rust side in PR #11: guards, dialog plugin, live-site-only permission), status parsing, the screen, safety rules, and testing in a normal browser with the Node git bridge.",
+      "summary": "How the desktop app's Repo page works on a local clone: the 12 Tauri git commands (Rust side merged: guards, dialog plugin, live-site-only permission), status parsing, the screen, safety rules, and testing in a normal browser with the Node git bridge.",
       "path": "knowledge/general/local-git.md",
       "sources": [
         "sources/general/local-git-bridge.mjs"

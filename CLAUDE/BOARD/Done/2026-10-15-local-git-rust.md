@@ -61,5 +61,5 @@ and permissions for `dialog:allow-open` plus the 12 commands above. In Tauri 2, 
 —
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** —
-- **Result:** —
+- **Done on:** 2026-10-15 · **Verified by:** cargo test; every command and guard via `__TAURI_INTERNALS__.invoke` in tauri dev and the release app; folder picker by Kin; macOS CI build on PR #11
+- **Result:** `OUTPUT/2026-10-15-2142-local-git-rust.md` (PR #11 merged)
