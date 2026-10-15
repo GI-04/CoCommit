@@ -13,7 +13,29 @@ Each OS builds its own installer: build the `.msi` on Windows and the `.dmg` on 
 
 The installed app loads https://cocommit.vercel.app, so it shows whatever is deployed there, not your local code. Pushing to GitHub does not redeploy it yet: Pattadon deploys with `vercel deploy --prod`. A web change shows up in the desktop app after that deploy, with no rebuild needed. Rebuild only when `src-tauri/` changes or the URL moves.
 
-## macOS (`.dmg`)
+## macOS `.dmg` without a Mac (GitHub)
+
+`.github/workflows/desktop-macos.yml` builds a universal `.dmg` (Apple Silicon and Intel) on a GitHub-hosted Mac:
+
+1. On GitHub, open **Actions** → **Desktop app (macOS)** → **Run workflow** (branch `main`) → **Run workflow**.
+2. Wait about 10–15 minutes for the green check.
+3. Open the run and download **CoCommit-macos-dmg** under **Artifacts**. It's a `.zip` with the `.dmg` inside; artifacts are kept 14 days.
+
+It also runs by itself on pull requests that change `src-tauri/`. The repo is private, so each run uses the team's GitHub Actions minutes (Mac minutes count 10×).
+
+### Installing it on a Mac (for testers)
+
+The app is signed ad hoc, not with an Apple developer account, so macOS warns the first time:
+
+1. Open the `.dmg` and drag **CoCommit** into **Applications**.
+2. Open it. If macOS says it "can't be opened" or "is damaged", run this once in Terminal, then open it again:
+   ```zsh
+   xattr -cr /Applications/CoCommit.app
+   ```
+   (It removes the "downloaded from the internet" flag that blocks unsigned apps.)
+3. Or right-click `CoCommit.app` → **Open** → **Open**.
+
+## macOS (`.dmg`) on your own Mac
 
 1. Install the Xcode command line tools (skip if `xcode-select -p` prints a path):
    ```zsh

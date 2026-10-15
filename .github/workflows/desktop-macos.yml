@@ -1,0 +1,55 @@
+# Builds the macOS desktop app (.dmg) on a GitHub-hosted Mac, since a .dmg can only be built on macOS.
+# Run it from GitHub: Actions → "Desktop app (macOS)" → Run workflow. The .dmg is attached to the run
+# as an artifact. It also runs on pull requests that change the desktop app. See src-tauri/BUILDING.md.
+name: Desktop app (macOS)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src-tauri/**"
+      - ".github/workflows/desktop-macos.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dmg:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # One universal app for Apple Silicon and Intel Macs.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      # The window loads the deployed site (build.frontendDist), so there is no web build here.
+      # "-" signs ad hoc: there's no Apple developer account, but Apple Silicon needs a signature to run.
+      - name: Build .dmg
+        run: npm run tauri build -- --target universal-apple-darwin --bundles dmg
+        env:
+          APPLE_SIGNING_IDENTITY: "-"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CoCommit-macos-dmg
+          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          if-no-files-found: error
+          retention-days: 14
