@@ -17,6 +17,7 @@ Git without the terminal, plus team chat and one shared context for everyone's A
 | **Desktop app** | ✅ Windows, 🟡 macOS | A Tauri window that loads the live site. Links open in your browser. Windows installer builds; the macOS `.dmg` builds on GitHub Actions. |
 | **Calls** | ✅ live | `/calls` → **Join call**: voice, video and screen sharing inside CoCommit (LiveKit), one room per repo, signed-in people only. Needs the three `LIVEKIT_*` keys locally. |
 | **Tasks** | 🟡 built, not on `main` yet | `/tasks`: a Pending / Taken / Done board over the repo's `COCOMMIT/BOARD/` task files, the same ones AI agents use. **New task**, **Take**, **Done** (also adds a `LOG.md` line) and **Release** each make one commit, which shows in chat. Needs GitHub login and a set-up `COCOMMIT/`. |
+| **Heat map** | 🟡 built, PR open | `/home` shows a grid of commits per day for the picked repo (last 13 weeks), with a per-person filter. Reads the default branch's commit history; needs GitHub login. |
 | Files | ⏳ coming soon | Placeholder page. |
 
 ## Stack

@@ -3,6 +3,7 @@
 // types. In the dev server that pulls server code into the page and two open tabs reload each other forever (see GOTCHAS).
 
 import type { Activity } from "./context";
+import type { CommitDate } from "./heatmap";
 
 export type { Activity } from "./context";
 
@@ -41,4 +42,6 @@ export type GitHubActions = {
   listCommits(repo: string, limit?: number): Promise<Activity[]>;
   /** Recently merged pull requests, newest first, as COCOMMIT/LOG.md activity items. */
   listMergedPulls(repo: string, limit?: number): Promise<Activity[]>;
+  /** Who committed and when on the default branch since an ISO date (up to 500), for the home heat map. */
+  listCommitDates(repo: string, since: string): Promise<CommitDate[]>;
 };
