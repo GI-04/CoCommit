@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — Commit to a new branch overwrote newer files with an old copy (open)
+- **What failed:** on the live Repo screen, proud opened README.md (the screen had picked the old branch `kin/desktop-builds`), typed the new branch `test-cocommit` and committed. `commitFiles` creates a missing branch from the **default branch**, so the old README replaced main's newer one on the new branch (4d04d5d: +17 −105). Not merged.
+- **Evidence:** `gh api repos/GI-04/CoCommit/commits/4d04d5d`; `kin/desktop-builds:README.md` matches the new content.
+- **Workaround:** until fixed, pick `main` (or the branch you want to build on) in the branch box before opening a file. Fix: `commitFiles(..., from)` creates the new branch from the branch the file was read from, and the Repo screen starts on the default branch.
+
 ## 2026-10-15 — Deploying from the repo folder would upload `.claude/worktrees/`
 - **What failed:** nothing yet, but the risk is real. `.claude/worktrees/` (other sessions' git worktrees, 418 MB, possibly with their own `.env.local`) is git-ignored, but there's no `.vercelignore`, so a plain `vercel deploy --prod` from the repo folder may upload it.
 - **Evidence:** `du -sh .claude/worktrees` → 418M; `ls -a` shows no `.vercelignore`.

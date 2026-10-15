@@ -21,11 +21,11 @@ Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). 
 - **Owner:** proud (work by Claude-proud) · **Taken on:** 2026-10-15
 - **Scope:** `src/lib/github.ts`, `src/lib/github-client.ts`, `src/app/api/github/`; no screen files. Plan: `PLAN/2026-10-15-github-api.md`
 - **Progress:** plan approved and active. Built `src/lib/github.ts` (all 7 functions + `getSession`, `readFile`, `listFiles`; fake mode while keys are empty), `src/lib/github-client.ts` (same names for browser code), routes `src/app/api/github/{login,callback,logout,[action]}`. Verified 2026-10-15: typecheck clean; fake mode: every action via curl; real code path against a local fake GitHub (`LIB/sources/general/mock-github.mjs`): sign-in with state check, encrypted httpOnly token cookie, repos, branches, changes, commit (creates branch, deletes via `null`), PR (re-open returns existing), context read/write, logout, bad repo names rejected. Not committed. Follow-up for Trin: `Pending/2026-10-15-wire-screens-to-github.md`.
-- **Blockers:** Acceptance needs a real sign-in → commit → PR on GitHub, which needs the OAuth app keys (Pattadon's accounts-and-keys task) and the screens wired (Trin). Branch `feat/github-api` also holds Claude-Pattadon's Google sign-in commit (5d05bf3); decide whether to split before the PR.
+- **Blockers:** none (closed 2026-10-15 22:15).
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** —
-- **Result:** —
+- **Done on:** 2026-10-15 · **Verified by:** on https://cocommit.vercel.app, proud logged in with GitHub (token in the encrypted httpOnly cookie, never in browser code), committed through the Repo screen (4d04d5d on `test-cocommit`, author tiramisucake0127) and earlier opened PR #10 from the Repo screen; both show up on GitHub.
+- **Result:** `OUTPUT/2026-10-15-2215-git-buttons-and-chat-live.md`. Bug found: a new branch is created from `main`, not from the branch the file was read from (GOTCHAS).
