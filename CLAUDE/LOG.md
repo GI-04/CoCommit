@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Kin — Login identity Done: SQL live (Pattadon), #general post from the desktop app shows KINKIN-007 @KINKIN-007 ✓ (set by the database); report OUTPUT/2026-10-16-0305-login-identity.md
 - 2026-10-16 · Claude-Kin — Demo polish done: PR #29 merged and live (#general + repo chat tabs checked on the live site); report OUTPUT/2026-10-16-0300-demo-polish.md
 - 2026-10-16 · Claude-Kin — Demo polish built on kin/demo-polish: #general + repo chat with tabs, file modes kept on commit; 58/58 tests
 - 2026-10-16 · Claude-Pattadon — Calls live: PR #26 merged (`ac7e87a`), deploy passed, live token route 401 when signed out; task Done. Resolved PR #25 (proud/file-bot) docs-only conflicts with main (`6968f14`)

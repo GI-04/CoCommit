@@ -1,6 +1,6 @@
 # Plan: One login identity (GitHub = the Supabase user; chat names enforced by the database)
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done (PR #24 merged and live; SQL run by Pattadon; verified 2026-10-16, `OUTPUT/2026-10-16-0305-login-identity.md`) <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-15 · **Superseded by:** —
 **Proposed by:** Kin (with Claude-Kin) · **Approval:** not needed under the temporary rule in `DECISIONS.md` (2026-10-15, Pattadon: only destructive plans need review until 2026-10-16 03:00 +07); this plan is non-destructive (no deletions, no history rewrite, no secret changes, all reversible). Set active 2026-10-15 23:37 +07 · **Task:** `BOARD/Taken/2026-10-15-login-identity.md` (login-backend parts 1–6; proud handed them over)
 

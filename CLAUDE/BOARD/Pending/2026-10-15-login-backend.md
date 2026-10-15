@@ -25,7 +25,7 @@ Suggested split: proud → 1–6, Kin → 7, Pattadon → 8–9. Claim the parts
 
 **Part 7 is done** (Kin, 2026-10-16): `BOARD/Done/2026-10-15-login-desktop.md`.
 
-**Parts 1–6 are taken by Kin** (2026-10-15, with proud's OK): tracked in `BOARD/Taken/2026-10-15-login-identity.md`. This task stays open for parts 8–9 (Pattadon).
+**Parts 1–6 are done** (Kin, 2026-10-16, PR #24): `BOARD/Done/2026-10-15-login-identity.md`. This task stays open for parts 8–9 (Pattadon).
 
 ## Acceptance
 - On https://cocommit.vercel.app: sign in with GitHub, close the browser, reopen it, and you're still signed in as yourself.
