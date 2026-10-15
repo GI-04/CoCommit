@@ -63,6 +63,8 @@ Production is deployed by hand with `vercel deploy --prod` from Pattadon's machi
 
 The deploy step itself hasn't run yet: it needs the token. Next: Pattadon does step 2, then merge, then the first run (see "How we'll verify"). Docs (step 3) come after the first green run.
 
+**Results 2026-10-15 (Claude-Pattadon):** Pattadon merged PR #18 (`ef48941`), and the first run (38763372141, push) passed every step: typecheck, 16 tests, deploy `https://cocommit-8igqdiwz1-gi-04.vercel.app` (`dpl_EAXDsUyazHKEn6oNUd7BqwQM5Lym`, by `thor1006`), domain check and live check. Afterwards, `/`, `/home`, `/repo`, `/chat`, `/login`, `/profile` and `/context` return 200 and `getSession` returns `"fake":false`. Docs updated (step 3): README, CLAUDE.md/AGENTS.md, PROJECT.md, LIB `deploy`. Still open: (1) the first teammate-authored merge (Hobby risk); (2) the pause switch hasn't been tried; (3) GitHub shows no main-only branch rule on environment `Production`.
+
 ## Risks / needs OK
 - **Hobby may block these deploys too.** Vercel checks commit authors on Hobby. Our deploys come from the owner's token via the CLI, which isn't the Git connection, but community reports are mixed. If the first teammate-authored merge is blocked, the run goes red and the site stays as it was. The fallback is deploying by hand, or option A/B. The first test below uses a commit by Pattadon, so it won't prove this either way.
 - **The demo (2026-10-16 11:30).** Every merge goes live, in the desktop app too. Merging this before the demo is fine if we either set `AUTO_DEPLOY=off` from about 09:00 until after the demo, or agree on "no merges to `main` during the demo".

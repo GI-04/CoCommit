@@ -1,10 +1,10 @@
 # Handoff
 
-**Last updated:** 2026-10-15 22:45 · **By:** Claude-Pattadon (auto-deploy workflow written; earlier notes kept)
+**Last updated:** 2026-10-15 23:00 · **By:** Claude-Pattadon (auto-deploy live; earlier notes kept)
 
 ## Current state
 Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud); rename task Done.
-- **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It's deployed with the CLI, so pushes do NOT auto-deploy: run `vercel deploy --prod` (add `--force` after changing env vars; see GOTCHAS) from a clean checkout of `main`.
+- **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). Every push to `main` auto-deploys (GitHub Actions; see "Auto-deploy" below and LIB `deploy`).
 - **On `main`:** PR #4 (git API, Google sign-in switched off, real chat; Supabase set up with anonymous sign-ins and both SQL files) and PR #5 (activity feed `listCommits` / `listMergedPulls` / `listPinned` for `COCOMMIT/LOG.md`, plus `commitFilesQuietly`). **GitHub OAuth keys are live** (`getSession` → `"fake":false`). The sidebar has a "Log in" button → `/login` (GitHub recommended; Google availability is read from Supabase). Google setup was reported complete in `OUTPUT/2026-10-15-1530-google-login.md`; live settings were not rechecked in this reading pass.
 - **AI context = `COCOMMIT/` team workspace** (`PLAN/2026-10-15-context-workspace.md`). The load/save layer and activity refresh already exist in `src/lib/workspace.ts`; the feed task is in `BOARD/Done/`. The Context screen still uses mock data and needs wiring.
 - Desktop (Kin): the Tauri app loads the live site; new-window links open in the system browser (PR #9); GitHub sign-in and commit work in the installed Windows app. Local folder mode works in the desktop app (Rust side merged, PR #11). Installers build on GitHub Actions for macOS and Windows (PR #7, #12), and the site's download button hosts both, rebuilt from `main` after PR #11 (PR #15, live since the `af8f164` deploy). Details: LIB `desktop-app`, `local-git`.
@@ -14,12 +14,12 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 ## Landing page (2026-10-15, Claude-Pattadon): merged and live
 `/` is the landing page (no sidebar); the app home is `/home` (LIB `landing-page`). PR #14 merged (`7bcca02`) and deployed to production: `dpl_jXkpb26snya48KinrcfpW1obxHD9` (`https://cocommit-3nxhnank1-gi-04.vercel.app`). This deploy also put PRs #11–#13 live (Windows installer download, desktop local-git support). Live checks: `/`, `/home`, `/repo`, `/chat`, `/login`, the manifest and the Windows installer all return 200; `/home` has the sidebar; `getSession` → `"fake":false`; no console errors on `/`. Rollback target: `https://cocommit-p0yrxcans-gi-04.vercel.app` (`dpl_3HHFkzN1jVRQrTSABXhFVYuozeCy`). Deployed from a `git archive` export of `main` because `.claude/worktrees/` (418 MB) sits in the repo folder and there's no `.vercelignore`. **Next:** open the installed desktop app once to confirm it lands on `/home`. Any new "go home" link should use `/home`.
 
-## Auto-deploy (2026-10-15, Claude-Pattadon): PR #18, merging
-`PLAN/2026-10-15-auto-deploy.md` (active): `.github/workflows/deploy-vercel.yml` deploys every push to `main` to Vercel production with Pattadon's token. Vercel's own Git connection is blocked on the Hobby plan for a private org repo. PR #18 (branch `claude/vercel-auto-deploy-53b5dd`); token secret set in GitHub environment `Production`, locked to `main`. The check steps were dry-run locally and the gate passes; the deploy step itself is untested until the token exists. **Next:**
-1. Pattadon creates the Vercel token and the GitHub environment `production` with secret `VERCEL_TOKEN` (plan, step 2).
-2. Commit, open a PR and merge it. The merge itself triggers the first deploy.
-3. Watch that first run, then update the docs (plan, step 3).
-For the demo, set `AUTO_DEPLOY=off` from about 09:00, or don't merge to `main` during it. Until this is merged, deploys stay manual.
+## Auto-deploy (2026-10-15, Claude-Pattadon): live
+Every push to `main` now deploys automatically (`.github/workflows/deploy-vercel.yml`, LIB `deploy`). PR #18 was merged as `ef48941`. Its first run passed and deployed `https://cocommit-8igqdiwz1-gi-04.vercel.app` (`dpl_EAXDsUyazHKEn6oNUd7BqwQM5Lym`); the live routes and `getSession` (`"fake":false`) were checked. Rollback target: `https://cocommit-fs44ytgrn-gi-04.vercel.app`. **Next:**
+1. Watch the first teammate-authored merge to `main`: does Hobby block it?
+2. **Demo:** set `AUTO_DEPLOY=off` before about 09:00 on 2026-10-16, or don't merge to `main` during the demo.
+3. Pattadon: the `Production` environment shows no main-only branch rule in GitHub's API; recheck it, or revoke the token after the hackathon.
+4. The docs update (README, CLAUDE.md/AGENTS.md, PROJECT.md, LIB, GOTCHAS) is on branch `claude/vercel-auto-deploy-53b5dd`, not committed yet.
 
 ## Latest deploy (2026-10-15 22:03, Claude-Pattadon)
 `main` at `3d2a5f3` is live: `dpl_HCMXbH7WtTZnL5RMCSPGWMYMSPLn` (`https://cocommit-fs44ytgrn-gi-04.vercel.app`), deployed from a `git archive` export. New in it: the sidebar CoCommit logo links to the landing page `/`, and a sidebar **Home** item links to `/home`. Before that, `af8f164` (PRs #10, #15, #16) went live at 21:56. Live checks: `/`, `/home`, `/repo`, `/chat`, `/login`, `/profile`, `/context`, the manifest and both installers return 200; `getSession` → `"fake":false`; on the live site, logo from `/repo` → landing page, Home from `/chat` → `/home`, no console errors. Rollback target: `https://cocommit-gqdlwx4yn-gi-04.vercel.app` (`dpl_BRCuARDXcBX77uzmbEoS3QfkAcww`).

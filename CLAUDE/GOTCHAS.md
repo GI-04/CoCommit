@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — After `vercel rollback`, auto-deploys build but don't go live
+- **What failed:** nothing yet. A rollback turns off Vercel's automatic production-domain assignment, so later deploys from `deploy-vercel.yml` finish "Ready" but `cocommit.vercel.app` stays on the old one.
+- **Evidence:** Vercel instant-rollback behaviour. The workflow's "Check the domain points to this deploy" step fails in this case (dry-run tested with an older deploy URL).
+- **Workaround:** `vercel promote <deployment-url>` turns assignment back on. The failed run's error message prints the exact command.
+
 ## 2026-10-15 — next dev kept reloading /repo (fixed)
 - **What failed:** with only /repo open under `next dev`, the page reloaded itself about 15 times a second (console: `[HMR] connected` → reload). Production (`next start`, Vercel) was fine.
 - **Evidence:** dev log ~137 `GET /repo` in 8 s, also on plain `main`. Stubbing `LocalRepo`/`local-git` stopped it; then stubbing only the two `await import("@tauri-apps/…")` lines in `src/lib/local-git.ts` stopped it too (0 reloads).
@@ -15,7 +20,7 @@
 ## 2026-10-15 — Deploying from the repo folder would upload `.claude/worktrees/`
 - **What failed:** nothing yet, but the risk is real. `.claude/worktrees/` (other sessions' git worktrees, 418 MB, possibly with their own `.env.local`) is git-ignored, but there's no `.vercelignore`, so a plain `vercel deploy --prod` from the repo folder may upload it.
 - **Evidence:** `du -sh .claude/worktrees` → 418M; `ls -a` shows no `.vercelignore`.
-- **Workaround:** deploy from a clean export: `git archive HEAD | tar -x -C <dir>`, copy `.vercel/project.json` into `<dir>/.vercel/`, run `vercel deploy --prod --yes` there. Env vars come from Vercel, not `.env.local`. Longer-term fix: add a `.vercelignore` (ask first).
+- **Workaround:** deploy from a clean export: `git archive HEAD | tar -x -C <dir>`, copy `.vercel/project.json` into `<dir>/.vercel/`, run `vercel deploy --prod --yes` there. Env vars come from Vercel, not `.env.local`. Longer-term fix: add a `.vercelignore` (ask first). Since 2026-10-15, deploys normally run in GitHub Actions from a clean checkout, so this only matters for a deploy by hand.
 
 ## 2026-10-15 — Turbopack build blocked by local port restriction
 - **What failed:** `npm run build` failed while evaluating globals.css, including after retrying outside the sandbox.

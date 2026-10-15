@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Auto-deploy live: PR #18 merged (`ef48941`); first GitHub Actions run passed and deployed dpl_EAXDsUya… to production; live routes and real GitHub session checked; docs and LIB `deploy` updated
 - 2026-10-15 · Claude-Pattadon — Auto-deploy plan approved; wrote `.github/workflows/deploy-vercel.yml` (gate: typecheck + tests; checks: token present, domain points to new deploy, live `"fake":false`); dry-run checks and gate pass; not committed, deploy step untested until the token exists
 - 2026-10-15 · Claude-Pattadon — Proposed `PLAN/2026-10-15-auto-deploy.md`: GitHub Actions deploys `main` to Vercel with Pattadon's token (Vercel Git connection blocked on Hobby for a private org repo)
 - 2026-10-15 · Claude-proud — Fixed the next dev /repo reload loop (dynamic Tauri imports in local-git.ts → static); ran npm ci (plugin-dialog was missing locally)

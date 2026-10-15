@@ -17,7 +17,7 @@ Stack is approved (`PLAN/2026-10-15-stack.md`); the app is live at https://cocom
 | Test | `npm test` (Node's built-in runner, `tests/*.test.mjs`) · desktop: `cargo test` in `src-tauri/` |
 | Build (web) | `npm run build` |
 | Build (desktop) | `npm run tauri build` on Windows; macOS `.dmg` via GitHub Actions (`src-tauri/BUILDING.md`) |
-| Deploy | `vercel deploy --prod` from a clean `main` (Pattadon; pushes don't auto-deploy) |
+| Deploy | automatic on every push to `main` (`.github/workflows/deploy-vercel.yml`; pause with repo variable `AUTO_DEPLOY=off`). By hand: Actions → "Deploy to Vercel" → Run workflow |
 | Lint/format | none yet — ask |
 
 ## What lives where (`CLAUDE/`)

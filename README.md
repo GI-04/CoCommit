@@ -74,11 +74,13 @@ npm run tauri dev
 The installed app shows whatever is deployed at https://cocommit.vercel.app, so web changes reach it after a deploy, with no rebuild.
 
 ## Deploying
-The site is deployed with the Vercel CLI from Pattadon's machine. **Pushing to GitHub does not deploy.** From a clean, up-to-date checkout of `main`:
-```bash
-vercel deploy --prod
-```
-After changing environment variables in Vercel, add `--force` so the build doesn't reuse old values.
+**Every push to `main` deploys automatically** (GitHub Actions, `.github/workflows/deploy-vercel.yml`). The workflow runs typecheck and tests, deploys with `vercel deploy --prod`, then checks that the live site works. A run takes about 2 minutes. Pushes that only change `CLAUDE/`, `COCOMMIT/`, `docs/`, `src-tauri/` or `*.md` files don't deploy.
+- **Run it by hand:** GitHub → Actions → "Deploy to Vercel" → Run workflow. Tick **force** after changing env vars in Vercel, so the build doesn't reuse old values.
+- **Pause** (for example during a demo): set the repo variable `AUTO_DEPLOY` to `off` (Settings → Secrets and variables → Actions → Variables). Set it back to `on` (or delete it) to resume.
+- **Undo a bad deploy:** `vercel rollback`. Vercel then stops moving the site to new deploys until you run `vercel promote <deployment-url>`, and the workflow fails with that hint until you do.
+- **Fallback by hand** (Pattadon, from a clean checkout of `main`): `vercel deploy --prod`.
+
+Why not Vercel's own Git connection? On the Hobby plan it can't deploy a private organization repo. The workflow uses Pattadon's token, stored as the secret `VERCEL_TOKEN` in the GitHub environment `Production`.
 
 **One-time Supabase setup** (already done for the team project): run `supabase/profiles.sql`, then `supabase/schema.sql` in the SQL editor, turn on anonymous sign-ins (chat) and the Email and Google providers, and set the Site URL and redirect URLs (`/auth/*`).
 
