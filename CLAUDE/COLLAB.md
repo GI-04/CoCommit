@@ -15,3 +15,17 @@
 - **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
 - **Availability:** per session
 - **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
+
+## tiramisucake0127
+- **Name:** tiramisucake0127
+- **Role:** backend
+- **Capability:** API routes, GitHub API, Supabase, LiveKit (`src/lib/`, `src/app/api/`)
+- **Availability:** through the project
+- **Write scope:** anything
+
+## Claude-tiramisucake0127
+- **Name:** Claude Opus 5.5, tiramisucake0127's agent (runs on tiramisucake0127's machine and answers to tiramisucake0127)
+- **Role:** implementation, review, reporting
+- **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
+- **Availability:** per session
+- **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
