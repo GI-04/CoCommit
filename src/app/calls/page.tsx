@@ -48,6 +48,7 @@ export default function CallsPage() {
 
       {joined ? (
         <CallRoom
+          repo={repo}
           url={joined.url}
           token={joined.token}
           onLeave={() => setJoined(null)}

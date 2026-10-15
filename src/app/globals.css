@@ -42,3 +42,8 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* Calls: hide LiveKit's built-in chat button; the CoCommit chat panel sits beside the call (src/components/CallRoom.tsx). */
+.cc-call .lk-control-bar .lk-chat-toggle {
+  display: none;
+}

@@ -15,6 +15,7 @@
 - **Screen:**
   - `src/components/CallRoom.tsx` wraps `LiveKitRoom` + `VideoConference` from `@livekit/components-react` with `@livekit/components-styles`. The page loads it with `next/dynamic` and `ssr: false`.
   - You join with the mic on and the camera off.
+  - **Chat in the call** is CoCommit's repo chat (`src/components/CallChat.tsx`, using `src/lib/chat.ts`), not LiveKit's: messages are saved, show up in `/chat`, and git events show up beside the call. LiveKit's Chat button is hidden by `.cc-call .lk-control-bar .lk-chat-toggle` in `globals.css`. Pinning, decisions and @cocommit stay on `/chat`.
   - A failed connection (`onError` with a `ConnectionError`) returns to the Join button with the error message. Any other `onError` (for example a refused mic) keeps you in the call, listening only, with a note.
   - The size sits on a wrapper `div`, because LiveKit's CSS overrides Tailwind classes on the room (GOTCHAS 2026-10-16).
 - **Tested 2026-10-16** against the real LiveKit Cloud project (region India South): two tabs in room `cocommit-gi-04-cocommit` saw each other, and Leave works. Real mic/camera audio and video are not tested yet (the in-app browser blocks devices).
