@@ -28,9 +28,13 @@ function readChat(value: unknown): ChatLine[] {
 }
 
 async function callClaude(key: string, messages: Message[], lastRound: boolean): Promise<ClaudeResponse> {
+  const headers: Record<string, string> = { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" };
+  // Keys that aren't scoped to a workspace (sk-ant-usr-…) must name one on every request.
+  const workspace = process.env.ANTHROPIC_WORKSPACE_ID;
+  if (workspace) headers["anthropic-workspace-id"] = workspace;
   const res = await fetch(API_URL, {
     method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    headers,
     body: JSON.stringify({
       model: BOT_MODEL,
       max_tokens: 4000,

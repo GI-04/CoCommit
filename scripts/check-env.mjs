@@ -18,6 +18,7 @@ const checks = [
   ["NEXT_PUBLIC_SUPABASE_URL", "Chat, Google sign-in", (v) => /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(v)],
   ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "Chat, Google sign-in", (v) => v.startsWith("eyJ") || v.startsWith("sb_publishable_")],
   ["ANTHROPIC_API_KEY", "@cocommit chat bot", (v) => v.startsWith("sk-ant-"), "optional"],
+  ["ANTHROPIC_WORKSPACE_ID", "@cocommit bot, keys without a workspace", (v) => v.startsWith("wrkspc_"), "optional"],
 ];
 
 let missing = 0;

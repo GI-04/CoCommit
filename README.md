@@ -53,6 +53,7 @@ Then open http://localhost:3000. **With an empty `.env.local` everything runs on
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | GitHub login and git buttons | A GitHub OAuth app with callback `http://localhost:3000/api/github/callback` (the **dev** app; the live site has its own) |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chat, Google/email login, profiles | Supabase project → Project Settings → API |
 | `ANTHROPIC_API_KEY` | The `@cocommit` chat bot (server only) | Claude Console → API keys. Without it the bot replies "not set up" and chat still works |
+| `ANTHROPIC_WORKSPACE_ID` | Only with a key not scoped to a workspace (`sk-ant-usr-…`) | Claude Console → the workspace's ID (`wrkspc_…`) |
 | `REQUIRE_GOOGLE_LOGIN` | Optional | `true` forces a login wall; off for the demo |
 
 Ask Pattadon for the team's values one-to-one. **Never commit `.env.local`** or paste keys into chat or the board. Step-by-step setup: `CLAUDE/OUTPUT/accounts-and-keys-setup.md`.
