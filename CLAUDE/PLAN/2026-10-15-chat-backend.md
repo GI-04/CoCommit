@@ -43,4 +43,4 @@ Messages are kept in the browser (`localStorage`) and shared live between tabs (
 ## Risks
 - If `schema.sql` isn't run, or Realtime isn't on for the table, messages only show after a refresh.
 - Which repo the chat is for: the screen uses the first repo for now; a shared "current repo" between Repo and Chat is a screen decision (Trin).
-- Kin hasn't confirmed giving this task to proud.
+- ~~Kin hasn't confirmed giving this task to proud.~~ Confirmed by Kin (dcc7463).

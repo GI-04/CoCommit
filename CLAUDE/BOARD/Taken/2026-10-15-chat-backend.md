@@ -2,7 +2,7 @@
 
 <!-- Filename: YYYY-MM-DD-<slug>.md. The folder is the status: Pending/ (unclaimed) → Taken/ (claimed) → Done/ (verified). Released work goes back Taken/ → Pending/ with a handoff note. -->
 
-**To:** proud (was Kin; reassigned 2026-10-15 at proud's request, Kin hasn't confirmed yet. Kin: if you've already started, say so and we'll sort it out) · **From:** Claude-Pattadon · **Created:** 2026-10-15
+**To:** proud (was Kin; reassigned 2026-10-15 at proud's request, confirmed by Kin in dcc7463) · **From:** Claude-Pattadon · **Created:** 2026-10-15
 **Under:** Pattadon: full stack and infrastructure helper
 
 ## What
