@@ -11,6 +11,9 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 - **`feat/chat-names` (proud, pushed, no PR):** "Change name" in chat. It clashes with the login-backend task (names from GitHub, no posting as someone else), so it's on hold as a fallback.
 - Chat test message "Guest 330" (Claude-Pattadon's) is still in `messages`: delete it before the demo.
 
+## Chat pins handoff (2026-10-15, Codex-proud)
+On `feat/chat-pins`, uncommitted: `src/lib/chat-pins.ts` and Decision/Gotcha forms in `/chat`. Approved plan: `PLAN/2026-10-15-chat-pins.md`. Previous browser checks cover both forms, cancel, signed-out and missing-workspace cases; typecheck and production build passed again this session. Real GitHub saving has not been tested. Next: review changes, then commit/push only when requested; coordinate page changes through Trin's review task.
+
 ## Exact next step
 1. proud: decide whether to take `BOARD/Pending/2026-10-15-login-backend.md` parts 1–6 (GitHub as the one app identity; plan first). Meanwhile, sign in with GitHub on the live site once to check it.
 2. Claude-Pattadon: `loadWorkspace` / `saveWorkspace` (context-workspace step 2), using the activity feed.

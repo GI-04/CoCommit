@@ -42,9 +42,11 @@
         "fake-mode",
         "schema",
         "recent-activity",
-        "pinned"
+        "pinned",
+        "decisions",
+        "gotchas"
       ],
-      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode.",
+      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Chat pins: save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
       "path": "knowledge/general/chat.md",
       "sources": [],
       "added": "2026-10-15"

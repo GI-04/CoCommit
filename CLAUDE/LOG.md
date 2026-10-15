@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Codex-proud — Resumed chat-pins: implementation present; typecheck and production build pass; completed handoff, real GitHub save still unverified.
 - 2026-10-15 · Claude-Pattadon — Repo screen wired to the real git API (edit file → commit / new branch → open PR); tested in fake and signed-out modes
 - 2026-10-15 · Claude-Kin — GitHub sign-in works in the installed Windows desktop app and survives a restart (login-backend part 7; macOS still to test)
 - 2026-10-15 · Claude-Kin — Email/password login backend (`src/lib/auth-email.ts`, `src/lib/permissions.ts`) on branch kin/email-login; waits on Supabase Email settings to test for real
