@@ -1,6 +1,6 @@
 # Handoff
 
-**Last updated:** 2026-10-16 02:20 · **By:** Claude-Pattadon (LiveKit calls merged and live; earlier notes kept)
+**Last updated:** 2026-10-16 02:20 · **By:** Claude-Pattadon (LiveKit calls merged and live) and Claude-proud (@cocommit bot, merged in PR #25); earlier notes kept
 
 ## Current state
 > **Notice from Pattadon (until 2026-10-16 03:00 UTC+7):** only destructive plans need Pattadon's review. Everything else, including your ask-first list with your own user, is unchanged. Details: `DECISIONS.md`, top entry.
@@ -36,6 +36,9 @@ Every push to `main` now deploys automatically (`.github/workflows/deploy-vercel
 
 ## Chat pins handoff (2026-10-15, Codex-proud)
 Merged into main and live (`af8f164` deploy): `src/lib/chat-pins.ts` and Decision/Gotcha forms in `/chat`. Approved plan: `PLAN/2026-10-15-chat-pins.md`. Previous browser checks cover both forms, cancel, signed-out and missing-workspace cases; typecheck and production build passed again this session. Real GitHub saving has not been tested. Next: production deploy by the teammate with Vercel access, then verify real GitHub saving; coordinate page changes through Trin's review task.
+
+## @cocommit bot (2026-10-16, Claude-proud): built, not committed
+Plan `PLAN/2026-10-15-file-bot.md` (active, approved by proud). In chat, `@cocommit <question>` asks Claude (`claude-haiku-5-5`, plain fetch) to search and summarize `COCOMMIT/`; the reply is private until **Share to chat**. New: `src/lib/bot.ts`, `bot-tools.ts`, `bot-client.ts`, `src/app/api/bot/route.ts`, `tests/bot*.test.mjs`; changed: `src/lib/github.ts` (+`listFolderFiles`, `listFileCommits`), `src/app/chat/page.tsx` (Trin's area: bot replies, multi-line messages), `.env.example`, `README.md`, `scripts/check-env.mjs`. Verified: typecheck, `npm test` (all pass, incl. an offline route test with a fake Claude), `npm run build`, and in the browser the "not set up" reply and empty-question hint. **Not verified:** a real answer (no `ANTHROPIC_API_KEY` locally). **Next:** proud decides on commit/branch/PR; add `ANTHROPIC_API_KEY` to `.env.local` and Vercel (Pattadon); ask a real question; Trin to glance at the chat change. Demo code freeze 09:30: keep it off `main` if not tested by then. LIB `file-bot`.
 
 ## Exact next step
 0. Profile is live at `https://cocommit.vercel.app/profile`: source commit `d245b86` (profile commit `c0c7b94`, merged with desktop and chat-actions updates; no rebase/force push). Vercel deployment `dpl_5Zp6oE1uLzTTtErQykPJkPgNuvVK`, `https://cocommit-4frfib617-gi-04.vercel.app`. Production Turbopack build passed; live signed-out page loads with no console errors; GitHub session API returns `fake:false`. Next: verify profile edits with a real signed-in test account. Rollback target before this release: `https://cocommit-l66vm0d6k-gi-04.vercel.app`. See `OUTPUT/2026-10-15-account-profile.md`.

@@ -9,6 +9,9 @@
 - [ ] `commitFiles` writes every file as mode `100644`, so committing an executable script drops its +x bit. Fine for the demo.
 - [ ] Sign-in screen copy: say that GitHub's `repo` scope gives full access to your repos (needed for private repos). (Trin)
 
+- [ ] `@cocommit` bot: add `ANTHROPIC_API_KEY` to `.env.local` and Vercel, then try a real question on `GI-04/CoCommit` (team status, a decision, today's chat). (Pattadon for Vercel; proud to test)
+- [ ] `@cocommit` bot: no per-user rate limit yet; add one if the key is shared beyond the team.
+
 ## Open questions
 - Quick re-review of `PLAN/2026-10-16-demo-polish-kin.md`, revision 1 (#general + repo chat, keep file modes on commit; cleanup SQL dropped). (Pattadon)
 - Run `supabase/profiles.sql`, `schema.sql`, `chat-author.sql` (login identity, PR #24 is live). (Pattadon)
