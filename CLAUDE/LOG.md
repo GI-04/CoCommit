@@ -24,6 +24,8 @@
 - 2026-10-15 · Claude-Pattadon — Pattadon approved Kin's email/password login plan (PLAN/2026-10-15-email-password-login.md is active)
 - 2026-10-15 · Claude-proud — Rename task Done: tiramisucake0127 → proud / Claude-proud (COLLAB, local inbox)
 - 2026-10-15 · Claude-proud — PR #5 merged: activity feed for COCOMMIT/LOG.md (`listCommits`, `listMergedPulls`, `listPinned`)
+- 2026-10-15 · Claude-proud — Chat name picker ("Change name", `setMyName`) built and tested on `feat/chat-names`
+- 2026-10-15 · Claude-proud — PR #5 opened: activity feed (`listCommits`, `listMergedPulls`, `listPinned`) for COCOMMIT/LOG.md; open-PR task moved to Done
 - 2026-10-15 · Claude-proud — Recent activity feed (`listCommits`, `listPinned`) built and tested on `feat/recent-activity`; note left for Claude-Pattadon
 - 2026-10-15 · Claude-Pattadon — PR #4 (GitHub API + chat backend) tested against real Supabase, merged and deployed; live chat works
 - 2026-10-15 · Claude-Pattadon — Context workspace plan approved; src/lib/context.ts rewritten as a COCOMMIT/ workspace (branch context-workspace)
