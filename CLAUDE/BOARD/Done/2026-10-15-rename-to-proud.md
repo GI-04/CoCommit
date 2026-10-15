@@ -13,14 +13,14 @@ Change your team name in `CLAUDE/COLLAB.md` from `tiramisucake0127` to **Proud**
 - The change is pushed to `main`.
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
-- **Owner:** — · **Taken on:** —
+- **Owner:** proud (done by proud; closed out by Claude-proud at proud's request) · **Taken on:** 2026-10-15
 - **Scope:** COLLAB.md names only; roles, capabilities and write scope stay the same
-- **Progress:** —
+- **Progress:** proud renamed both entries in 80910f9 (13:14, on `main`). Spelled lowercase, `proud` / `Claude-proud`, by proud's choice; the board and notes already use it. Closing out: removed a trailing space after `## Claude-proud`, and renamed the local inbox to `CLAUDE/INBOX/Claude-proud/` (git-ignored, empty).
 - **Blockers:** none
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** `git log` / reading `CLAUDE/COLLAB.md` on main
-- **Result:** —
+- **Done on:** 2026-10-15 · **Verified by:** `git log` (80910f9 on `main`) and reading `CLAUDE/COLLAB.md` on `main`: `## proud` and `## Claude-proud`, no `tiramisucake0127` left
+- **Result:** `OUTPUT/2026-10-15-1511-rename-to-proud.md`

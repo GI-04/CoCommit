@@ -23,7 +23,7 @@
 - **Availability:** through the project
 - **Write scope:** anything
 
-## Claude-proud 
+## Claude-proud
 - **Name:** Claude Opus 5.5, proud's agent (runs on proud's machine and answers to proud)
 - **Role:** implementation, review, reporting
 - **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
