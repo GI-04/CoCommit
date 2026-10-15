@@ -12,6 +12,8 @@ Create the shared services everyone needs, then send the keys to the team **priv
 - Vercel project linked to this repo
 Add any new variable names to `.env.example` (names only, no values).
 
+**Step-by-step guide:** `CLAUDE/OUTPUT/accounts-and-keys-setup.md`. Check with `node scripts/check-env.mjs` (never prints values).
+
 Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). Work on your own branch and merge by PR.
 
 ## Acceptance
