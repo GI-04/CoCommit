@@ -12,14 +12,24 @@ CoCommit replaces the messy Discord-to-GitHub workflow with one platform. It mak
 - unknown — ask (e.g. replacing GitHub itself, a full IDE).
 
 ## Stack
-- **Approved 2026-10-15:** see `PLAN/2026-10-15-stack.md` (Next.js PWA + Tauri 2 desktop, GitHub API, Supabase, LiveKit).
+- **Approved 2026-10-15** (`PLAN/2026-10-15-stack.md`), as built: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind 4 · GitHub REST API (no Octokit) · Supabase (auth, Postgres, Realtime) · Tauri 2 (desktop) · Vercel (hosting).
+- **Not in the demo** (`PLAN/2026-10-15-demo-scope.md`): LiveKit calls, file sharing, task board (coming-soon pages), and phone install.
 
 ## Architecture
-Skeleton only. Three parts: the web/PWA client, a Tauri desktop shell that can run local git, and hosted services for auth, realtime data, storage and calls.
+Three parts:
+- **Web app** on Vercel: https://cocommit.vercel.app. Deployed by hand with `vercel deploy --prod`; pushes don't auto-deploy.
+- **Desktop app** (Tauri): a window that loads the live site. Links that open a new window go to the system browser. In the desktop app only, the Repo page's **Local folder** mode runs the user's own `git` on a picked folder through Rust commands (`src-tauri/src/git.rs`, PR #11).
+- **Hosted services:** GitHub (OAuth sign-in + REST API for repos, commits, PRs) and Supabase (email/Google sign-in, profiles, chat with Realtime).
+
+The full feature list is in `README.md` ("What works today").
 
 ## Key paths
-- `README.md`: overview, setup, layout.
-- `src/app/`: pages (`repo`, `chat`, `tasks`, `files`, `calls`) and API routes.
-- `src/lib/git.ts`: one git interface; Tauri (local git) or GitHub API backend.
-- `src-tauri/`: desktop shell (Rust).
-- `CLAUDE/`: agent workspace (instructions, board, memory).
+- `README.md`: features, setup, keys, desktop, deploy, layout.
+- `src/app/`: pages (`repo`, `chat`, `context`, `login`, `profile`; coming soon: `tasks`, `files`, `calls`), GitHub API routes in `api/github/`, Supabase auth callbacks in `auth/`.
+- `src/lib/`: `github.ts` (server only) / `github-client.ts` (browser) / `github-types.ts`; `chat*.ts`, `supabase*.ts`; `context.ts` + `workspace.ts` (`COCOMMIT/` team context); `local-git.ts` + `git-status.ts` (desktop Local mode); `auth-email.ts`, `profile.ts`, `permissions.ts`.
+- `src/proxy.ts`: Supabase session refresh (and the optional login wall).
+- `supabase/`: SQL to run once in Supabase.
+- `src-tauri/`: desktop shell (Rust): `src/lib.rs` (window, links), `src/git.rs` (local git), `BUILDING.md` (builds and installers).
+- `.github/workflows/`: desktop builds on GitHub Actions (`desktop-macos.yml`; `desktop-windows.yml` in PR #12).
+- `tests/`: Node tests (`npm test`).
+- `CLAUDE/`: agent workspace (instructions, board, memory). LIB index: `CLAUDE/LIB/pointers/general.json`.
