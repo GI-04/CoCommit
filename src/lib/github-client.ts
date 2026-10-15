@@ -8,7 +8,7 @@
 import { postGitEvent } from "./chat";
 import type { GitHubActions as Actions } from "./github-types";
 
-export type { Activity, Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
+export type { Activity, Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
 
 export class GitHubRequestError extends Error {
   status: number;
@@ -40,6 +40,8 @@ export const getChanges = action("getChanges");
 export const readFile = action("readFile");
 export const listFiles = action("listFiles");
 export const readContext = action("readContext");
+export const listSharedFiles = action("listSharedFiles");
+export const downloadFile = action("downloadFile");
 /** Latest commits / merged PRs as COCOMMIT/LOG.md activity items (see addActivity in context.ts). */
 export const listCommits = action("listCommits");
 export const listMergedPulls = action("listMergedPulls");

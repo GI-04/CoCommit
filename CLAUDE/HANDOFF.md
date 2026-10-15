@@ -14,6 +14,9 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 - **Chat names (PR #10, merged):** "Change name" in chat lets guests pick a display name. With `supabase/chat-author.sql` run (PR #16), a poster with a profile name always posts under it and a guest using a member's name gets " (guest)".
 - Chat test messages ("Guest 330", "[test by Claude-proud]") deleted from `messages` by Pattadon in the Supabase SQL Editor (2026-10-16).
 
+## Files (2026-10-16, Claude-Pattadon): built, not committed
+Branch `claude/files-function-build-591bd6`; plan `PLAN/2026-10-16-files.md` (active; Pattadon picked storing files in the repo's `COCOMMIT/files/`). `/files` uploads (drag-and-drop, 3 MB each), lists, downloads and deletes through the existing commit code; `commitFiles` now takes `encoding: "base64"` and two actions were added (`listSharedFiles`, `downloadFile`). Verified: typecheck, `npm test` (63 pass), `npm run build`, and in the browser in fake mode (upload, exact bytes back, delete, bad path 400). **Not verified:** real GitHub (signed in) and the chat git event on a real repo. **Next:** Pattadon decides on commit/PR (code freeze 09:30; don't merge to `main` during the demo without OK); try one real upload signed in. LIB `files`.
+
 ## Calls with LiveKit (2026-10-16, Claude-Pattadon): merged and live
 `/calls` → **Join call** runs a LiveKit call (voice, video, screen share) inside CoCommit: one room per repo, signed-in people only. PR #26 merged as `ac7e87a`; deploy run `38789668599` passed. Live checks: `/calls` 200; `POST /api/livekit-token` signed out → 401 "Log in to join the call." (so the keys are set). The three `LIVEKIT_*` keys are in Vercel Production and in `.env.local` (main checkout). Pattadon tested mic and camera in Safari locally. Details: LIB `calls`, report `OUTPUT/2026-10-16-0130-livekit-calls.md`. **Next:**
 1. A signed-in call on the live site with two people.

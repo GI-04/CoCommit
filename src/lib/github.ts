@@ -9,9 +9,10 @@ import type { Activity } from "./context";
 import { GitModeError, modesByPath, treeEntries, type TreeListing } from "./git-modes";
 import { hasGitHubIdentity } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
-import type { Change, Commit, FileEdit, GitHubActions, PullRequest, Repo, Session, User } from "./github-types";
+import { FILES_FOLDER, isSharedPath } from "./files-util";
+import type { Change, Commit, FileEdit, GitHubActions, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
 
-export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
+export type { Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
 
 const API = (process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, "");
 const WEB = (process.env.GITHUB_WEB_URL || "https://github.com").replace(/\/$/, "");
@@ -267,13 +268,22 @@ export async function commitFiles(repo: string, branch: string, files: FileEdit[
     await gh(`${r}/git/refs`, { method: "POST", body: { ref: `refs/heads/${branch}`, sha: parent } });
   }
 
+  // Binary files: upload the bytes as blobs first (the tree API only takes text), then point the tree at them.
+  const blobs = new Map<string, string>();
+  for (const f of files) {
+    if (f.content !== null && f.encoding === "base64") {
+      const blob = await gh<{ sha: string }>(`${r}/git/blobs`, { method: "POST", body: { content: f.content, encoding: "base64" } });
+      blobs.set(f.path, blob.sha);
+    }
+  }
+
   const baseTree = (await gh<{ tree: { sha: string } }>(`${r}/git/commits/${parent}`)).tree.sha;
   // Keep each existing file's mode (executable scripts stay executable; symlinks and submodules are refused).
   // If GitHub truncates the listing, unlisted files fall back to a plain file, as before.
   const listing = await gh<{ tree: TreeListing[]; truncated?: boolean }>(`${r}/git/trees/${baseTree}?recursive=1`);
   let entries;
   try {
-    entries = treeEntries(files, modesByPath(listing.tree ?? []));
+    entries = treeEntries(files, modesByPath(listing.tree ?? []), blobs);
   } catch (e) {
     if (e instanceof GitModeError) throw new GitHubError(400, e.message);
     throw e;
@@ -330,6 +340,36 @@ export async function listFiles(repo: string, branch: string): Promise<string[]>
   const data = await gh<{ tree: { path: string; type: string }[] }>(`${repoPath(repo)}/git/trees/${sha}?recursive=1`);
   return data.tree.filter((t) => t.type === "blob").map((t) => t.path);
 }
+
+/** Files in COCOMMIT/files/ on the default branch, sorted by name. */
+export async function listSharedFiles(repo: string): Promise<SharedFile[]> {
+  if (fakeMode) return [...(fakeShared.get(repo) ?? new Map<string, string>())].map(([path, b64]) => sharedFile(path, Buffer.from(b64, "base64").length)).sort(byName);
+  const sha = await branchSha(repo, await defaultBranch(repo)).catch((e) => (is404(e) ? null : Promise.reject(e)));
+  if (!sha) return [];
+  const data = await gh<{ tree: { path: string; type: string; size?: number }[] }>(`${repoPath(repo)}/git/trees/${sha}?recursive=1`);
+  return data.tree
+    .filter((t) => t.type === "blob" && isSharedPath(t.path))
+    .map((t) => sharedFile(t.path, t.size ?? 0))
+    .sort(byName);
+}
+
+/** A shared file's bytes as base64 (any size GitHub's blob API allows), or null if it doesn't exist. */
+export async function downloadFile(repo: string, path: string): Promise<{ content: string; size: number } | null> {
+  if (!isSharedPath(path)) throw new GitHubError(400, `Not a shared file: ${path}`);
+  if (fakeMode) {
+    const b64 = fakeShared.get(repo)?.get(path);
+    return b64 === undefined ? null : { content: b64, size: Buffer.from(b64, "base64").length };
+  }
+  const sha = await branchSha(repo, await defaultBranch(repo));
+  const data = await gh<{ tree: { path: string; type: string; sha: string }[] }>(`${repoPath(repo)}/git/trees/${sha}?recursive=1`);
+  const entry = data.tree.find((t) => t.type === "blob" && t.path === path);
+  if (!entry) return null;
+  const blob = await gh<{ content: string; size: number }>(`${repoPath(repo)}/git/blobs/${entry.sha}`);
+  return { content: blob.content.replace(/\n/g, ""), size: blob.size };
+}
+
+const sharedFile = (path: string, size: number): SharedFile => ({ name: path.slice(FILES_FOLDER.length + 1), path, size });
+const byName = (a: SharedFile, b: SharedFile) => a.name.localeCompare(b.name);
 
 /** COCOMMIT.md on the default branch, or null if the repo doesn't have one yet. */
 export async function readContext(repo: string): Promise<string | null> {
@@ -411,6 +451,8 @@ export const actions: GitHubActions = {
   openPullRequest,
   readFile,
   listFiles,
+  listSharedFiles,
+  downloadFile,
   readContext,
   writeContext,
   listCommits,
@@ -423,6 +465,11 @@ const fakeContexts = ((globalThis as { __cocommitFakeContexts?: Map<string, stri
   new Map<string, string>());
 // Fake commits made on "main" during this dev server's life, newest first, so listCommits shows them.
 const fakeLog = ((globalThis as { __cocommitFakeLog?: Map<string, Activity[]> }).__cocommitFakeLog ??= new Map<string, Activity[]>());
+// Fake shared files: repo → path → base64.
+const fakeShared = ((globalThis as { __cocommitFakeShared?: Map<string, Map<string, string>> }).__cocommitFakeShared ??= new Map<
+  string,
+  Map<string, string>
+>());
 const minutesAgo = (min: number) => new Date(Date.now() - min * 60_000).toISOString();
 
 const fake = {
@@ -470,6 +517,12 @@ Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in .env.local.
   commit(repo: string, branch: string, files: FileEdit[], message: string): Commit {
     const context = files.find((f) => f.path === CONTEXT_PATH);
     if (context?.content != null) fakeContexts.set(repo, context.content);
+    for (const f of files) {
+      if (!isSharedPath(f.path)) continue;
+      const store = fakeShared.get(repo) ?? fakeShared.set(repo, new Map()).get(repo)!;
+      if (f.content === null) store.delete(f.path);
+      else store.set(f.path, f.encoding === "base64" ? f.content : Buffer.from(f.content).toString("base64"));
+    }
     if (branch === "main") {
       const item: Activity = { kind: "commit", author: fake.user.login, text: message.split("\n")[0], at: new Date().toISOString() };
       fakeLog.set(repo, [item, ...(fakeLog.get(repo) ?? [])]);
