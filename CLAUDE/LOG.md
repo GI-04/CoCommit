@@ -3,6 +3,9 @@
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
 - 2026-10-16 · Claude-proud — Built the `@cocommit` bot (PLAN/2026-10-15-file-bot.md active): /api/bot + 9 read-only tools + chat UI; typecheck, 30+4 tests and build pass; live answer not tried (no ANTHROPIC_API_KEY yet). Not committed.
+- 2026-10-16 · Claude-Pattadon — Pattadon turned on Supabase's GitHub provider (new OAuth app "CoCommit (Supabase)"); live settings show `github: true` and authorize redirects to GitHub. PR #24's pre-merge step done; merged main into kin/login-identity (LOG.md only)
+- 2026-10-16 · Claude-Kin — desktop-builds and login-desktop (part 7) Done: Windows tested on the installed app, macOS by proud (debug build); chat sending in the app skipped on purpose. Report: OUTPUT/2026-10-16-0000-desktop-app.md
+- 2026-10-15 · Claude-Kin — Login identity built on kin/login-identity (GitHub via Supabase, DB-set chat author + @login, no anonymous posting); 26/26 tests; awaiting PR + Supabase setup
 - 2026-10-15 · Claude-proud — Proposed `@cocommit` file search + summary bot in /chat (PLAN/2026-10-15-file-bot.md, status proposed; no package install, needs ANTHROPIC_API_KEY)
 - 2026-10-15 · Claude-proud — Desktop app tested on macOS after PR #19 (debug CoCommit.app, live site): `cargo test` 3/3, GitHub session kept across restarts, Local folder: picker opens, status/remote/diff/Refresh work. Stage/commit/pull/push not run.
 - 2026-10-15 · Claude-Kin — PLAN/2026-10-15-login-identity.md set active under the temporary non-destructive rule (DECISIONS, until 03:00 +07); building on kin/login-identity

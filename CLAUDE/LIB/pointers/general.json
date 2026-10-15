@@ -19,9 +19,10 @@
         "testing",
         "mock",
         "recent-activity",
-        "commits"
+        "commits",
+        "supabase"
       ],
-      "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes and cookie, fake mode, and how to test against a local fake GitHub. Built-in fake file persistence covers only legacy COCOMMIT.md.",
+      "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes (Supabase GitHub provider with legacy fallback) and cookie, fake mode, and how to test against a local fake GitHub. Built-in fake file persistence covers only legacy COCOMMIT.md.",
       "path": "knowledge/general/github-api.md",
       "sources": [
         "sources/general/mock-github.mjs"
@@ -44,9 +45,11 @@
         "recent-activity",
         "pinned",
         "decisions",
-        "gotchas"
+        "gotchas",
+        "identity",
+        "anonymous"
       ],
-      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Display names remain client-supplied; the screen uses a fixed repo. Chat actions save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
+      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Only real accounts post (anonymous visitors read); the database sets author and a verified GitHub @login; the screen uses a fixed repo. Chat actions save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
       "path": "knowledge/general/chat.md",
       "sources": [],
       "added": "2026-10-15"

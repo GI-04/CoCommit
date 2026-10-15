@@ -1,6 +1,7 @@
 // Chat: one live channel per repo, through Supabase Realtime. Browser code only ("use client" screens).
-// There's no app login for the demo: chat signs in to Supabase anonymously (Anonymous sign-ins must be on in
-// Supabase) and shows the GitHub name from the git-buttons sign-in.
+// Visitors who aren't logged in are signed in to Supabase anonymously so they can read (Anonymous sign-ins must
+// be on); only real accounts (GitHub, email or Google) can post. The database sets each message's author and
+// verified GitHub login (supabase/chat-author.sql), so nobody can post under someone else's name.
 // Without the Supabase keys it runs in fake mode: messages are kept in this browser (localStorage) and
 // reach other tabs instantly (BroadcastChannel), so two tabs can chat before the keys exist.
 // Table and access rules: supabase/schema.sql.
@@ -21,13 +22,16 @@ export type ChatMessage = {
   kind: "text" | "git_event";
   pinned: boolean;
   createdAt: string;
+  /** Verified GitHub login of the poster (set by the database); missing for email/Google users and old messages. */
+  authorLogin?: string | null;
 };
 
 /** True while the Supabase keys aren't set (messages stay in this browser). */
 export const chatFake = !supabaseConfigured;
 
-type Row = { id: string; repo: string; author: string; text: string; kind: ChatMessage["kind"]; pinned: boolean; created_at: string };
-const COLUMNS = "id, repo, author, text, kind, pinned, created_at";
+type Row = { id: string; repo: string; author: string; text: string; kind: ChatMessage["kind"]; pinned: boolean; created_at: string; author_login?: string | null };
+// "*" rather than a column list, so chat keeps working whether or not author_login exists yet (schema.sql adds it).
+const COLUMNS = "*";
 const toMessage = (r: Row): ChatMessage => ({
   id: r.id,
   repo: r.repo,
@@ -36,6 +40,7 @@ const toMessage = (r: Row): ChatMessage => ({
   kind: r.kind,
   pinned: r.pinned,
   createdAt: r.created_at,
+  authorLogin: r.author_login ?? null,
 });
 
 /** Adds a message to a list, or replaces it if it's already there (same id). Keeps oldest first. */
@@ -44,23 +49,16 @@ export function mergeMessage(list: ChatMessage[], m: ChatMessage): ChatMessage[]
   return next.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-const NAME_KEY = "cocommit-chat-my-name";
-
 /**
- * The name shown in chat, resolved on each call so profile edits and sign-in changes affect future messages:
- * a signed-in CoCommit account's name, else the name picked with setMyName, else the GitHub account,
- * else a guest name for this tab (so two tabs look like two people).
+ * The name shown for you in chat and the online list, resolved on each call so profile edits and sign-ins show
+ * up: your account's name (GitHub, email or Google login), else your GitHub name from the git buttons, else a
+ * guest name for this tab. When posting, the database replaces it with your profile name anyway.
  */
 export async function myName(): Promise<string> {
   const { data } = (await getSupabase()?.auth.getUser()) ?? { data: { user: null } };
   if (data.user && !data.user.is_anonymous) {
-    return data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "You";
-  }
-  try {
-    const picked = localStorage.getItem(NAME_KEY);
-    if (picked) return picked;
-  } catch {
-    // Storage blocked: fall through.
+    const m = data.user.user_metadata ?? {};
+    return m.full_name || m.name || m.user_name || data.user.email?.split("@")[0] || "You";
   }
   try {
     const res = await fetch("/api/github/getSession", { method: "POST", headers: { "Content-Type": "application/json" }, body: "[]" });
@@ -72,20 +70,15 @@ export async function myName(): Promise<string> {
   return fake.name();
 }
 
-/**
- * Picks the name shown in chat when not signed in to a CoCommit account, saved in this browser.
- * `null` or "" goes back to the automatic name. Returns the name now in use.
- */
-export function setMyName(name: string | null): Promise<string> {
-  const clean = (name ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
-  try {
-    if (clean) localStorage.setItem(NAME_KEY, clean);
-    else localStorage.removeItem(NAME_KEY);
-  } catch {
-    // Storage blocked: nothing is saved, so the automatic name stays.
-  }
-  return myName();
+/** Whether you can post: in demo mode always; otherwise only with a real account (anonymous visitors only read). */
+export async function canPost(): Promise<boolean> {
+  const supabase = getSupabase();
+  if (!supabase) return true;
+  const { data } = await supabase.auth.getUser();
+  return Boolean(data.user && !data.user.is_anonymous);
 }
+
+export const LOGIN_TO_CHAT = "Log in to chat: anyone can read, but only team members with an account can post.";
 
 let sessionOnce: Promise<void> | null = null;
 
@@ -116,7 +109,7 @@ function friendly(e: { code?: string; message: string }): string {
   if (e.code === "42P01" || e.code === "PGRST205" || /does not exist|could not find the table/i.test(e.message)) {
     return "Chat isn't set up yet: run supabase/schema.sql in Supabase.";
   }
-  if (e.code === "42501") return "Chat refused the message: try reloading the page.";
+  if (e.code === "42501") return LOGIN_TO_CHAT;
   return e.message;
 }
 
@@ -155,6 +148,8 @@ async function post(repo: string, text: string, kind: ChatMessage["kind"]): Prom
     return m;
   }
   await ensureSession(supabase);
+  if (!(await canPost())) throw new Error(LOGIN_TO_CHAT);
+  // The database overwrites author (and sets author_login), so this is only a hint.
   const { data, error } = await supabase.from("messages").insert({ repo, author, text: body, kind }).select(COLUMNS).single();
   if (error) throw new Error(friendly(error));
   return toMessage(data as Row);

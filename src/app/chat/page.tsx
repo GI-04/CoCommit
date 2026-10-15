@@ -5,14 +5,15 @@ import { Button, Card, PageHeader } from "@/components/ui";
 import { isBotMessage, shareText, stripTrigger, type BotAnswer } from "@/lib/bot";
 import { askBot, BotRequestError } from "@/lib/bot-client";
 import {
+  canPost,
   chatFake,
+  LOGIN_TO_CHAT,
   loadMessages,
   mergeMessage,
   myName,
   onlineUsers,
   pinMessage,
   sendMessage,
-  setMyName,
   subscribe,
   type ChatMessage,
 } from "@/lib/chat";
@@ -46,7 +47,7 @@ export default function ChatPage() {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
-  const [nameDraft, setNameDraft] = useState<string | null>(null); // non-null while editing
+  const [mayPost, setMayPost] = useState<boolean | null>(null); // null while checking
   const [pinForm, setPinForm] = useState<PinForm | null>(null);
   const [pinNote, setPinNote] = useState<PinNote | null>(null);
   const [saving, setSaving] = useState(false);
@@ -56,20 +57,15 @@ export default function ChatPage() {
   // Load the history, then keep listening for new messages and pin changes.
   useEffect(() => {
     myName().then(setName);
+    canPost().then(setMayPost).catch(() => setMayPost(false));
     loadMessages(repo)
       .then((list) => setMessages((now) => list.reduce(mergeMessage, now)))
       .catch((e: Error) => setError(e.message));
     return subscribe(repo, (m) => setMessages((now) => mergeMessage(now, m)));
   }, []);
 
-  // Who's online; joins again under the new name after a rename.
+  // Who's online, under your account name.
   useEffect(() => (name ? onlineUsers(repo, setOnline) : undefined), [name]);
-
-  const saveName = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setName(await setMyName(nameDraft));
-    setNameDraft(null);
-  };
 
   // Braces matter: newer browsers return a Promise from scrollIntoView, and an effect may only return a cleanup function.
   useEffect(() => {
@@ -170,12 +166,14 @@ export default function ChatPage() {
             {messages.map((m) =>
               m.kind === "git_event" ? (
                 <p key={m.id} className="rounded-md border border-line bg-bg px-3 py-2 text-sm text-muted">
-                  <span className="font-medium text-fg">{m.author}</span> {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
+                  <span className="font-medium text-fg">{m.author}</span>
+                  {m.authorLogin && <Login login={m.authorLogin} />} {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                 </p>
               ) : (
                 <div key={m.id} className="group">
                   <p className="text-xs text-muted">
-                    <span className="font-semibold text-fg">{m.author}</span> · <time suppressHydrationWarning>{time(m.createdAt)}</time>
+                    <span className="font-semibold text-fg">{m.author}</span>
+                    {m.authorLogin && <Login login={m.authorLogin} />} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                     {m.pinned && " · 📌 pinned"}
                     <span className="opacity-0 group-hover:opacity-100 focus-within:opacity-100">
                       <button onClick={() => togglePin(m)} className="ml-2">
@@ -279,37 +277,30 @@ export default function ChatPage() {
               </button>
             </p>
           )}
-          {nameDraft === null ? (
-            <p className="mt-3 text-xs text-muted">
-              You: <span className="font-medium text-fg">{name ?? "…"}</span>
-              <button onClick={() => setNameDraft(name ?? "")} className="ml-2 underline">
-                Change name
-              </button>
+          {mayPost === false ? (
+            <p className="mt-3 text-sm text-muted">
+              {LOGIN_TO_CHAT}{" "}
+              <a href={`/login?returnTo=${encodeURIComponent("/chat")}`} className="font-medium text-fg underline">
+                Log in
+              </a>
             </p>
           ) : (
-            <form onSubmit={saveName} className="mt-3 flex gap-2 text-xs">
-              <input
-                value={nameDraft}
-                onChange={(e) => setNameDraft(e.target.value)}
-                placeholder="Your name (empty = automatic)"
-                maxLength={40}
-                autoFocus
-                className="min-w-0 flex-1 rounded-md border border-line bg-bg px-2 py-1"
-              />
-              <Button type="submit">Save</Button>
-              <Button type="button" variant="ghost" onClick={() => setNameDraft(null)}>
-                Cancel
-              </Button>
-            </form>
+            <p className="mt-3 text-xs text-muted">
+              You: <span className="font-medium text-fg">{name ?? "…"}</span>
+              <a href="/profile" className="ml-2 underline">
+                Change name
+              </a>
+            </p>
           )}
           <form onSubmit={send} className="mt-2 flex gap-2">
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Message the team · @cocommit to ask the bot"
+              placeholder={mayPost === false ? "Log in to chat" : "Message the team · @cocommit to ask the bot"}
+              disabled={mayPost === false}
               className="min-w-0 flex-1 rounded-md border border-line bg-bg px-3 py-2 text-sm"
             />
-            <Button type="submit" disabled={!text.trim()}>
+            <Button type="submit" disabled={!text.trim() || mayPost === false}>
               Send
             </Button>
           </form>
@@ -325,5 +316,14 @@ export default function ChatPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+// A poster's GitHub login, verified by the database (only GitHub sign-ins have one).
+function Login({ login }: { login: string }) {
+  return (
+    <span className="ml-1 text-muted" title="Verified GitHub account">
+      @{login} ✓
+    </span>
   );
 }
