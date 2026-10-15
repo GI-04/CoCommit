@@ -5,13 +5,13 @@ The desktop app is a thin Tauri window that loads the CoCommit web app. It has n
 | Key | Used by | Value |
 |-----|---------|-------|
 | `build.devUrl` | `npm run tauri dev` | `http://localhost:3000` (starts `npm run dev` for you) |
-| `build.frontendDist` | `npm run tauri build` | `http://localhost:3000` until the Vercel URL exists, then the Vercel URL |
+| `build.frontendDist` | `npm run tauri build` | `https://cocommit.vercel.app` (the live Vercel site) |
 
 Each OS builds its own installer: build the `.msi` on Windows and the `.dmg` on a Mac.
 
-## Before the real build: set the web URL
+## Which site the installed app shows
 
-Once Vercel gives the public URL, change `build.frontendDist` in `src-tauri/tauri.conf.json` to it (e.g. `"https://<project>.vercel.app"`) and rebuild. Until then, an installed app shows a blank window unless `npm run dev` is running on that machine.
+The installed app loads https://cocommit.vercel.app, so it shows whatever is deployed there, not your local code. Pushing to GitHub does not redeploy it yet: Pattadon deploys with `vercel deploy --prod`. A web change shows up in the desktop app after that deploy, with no rebuild needed. Rebuild only when `src-tauri/` changes or the URL moves.
 
 ## macOS (`.dmg`)
 
