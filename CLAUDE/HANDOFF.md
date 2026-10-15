@@ -1,15 +1,18 @@
 # Handoff
 
-**Last updated:** 2026-10-15 · **By:** Codex-Pattadon (profile feature; prior operational notes retained)
+**Last updated:** 2026-10-15 21:50 · **By:** Claude-Pattadon (landing page; earlier notes kept)
 
 ## Current state
 Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud); rename task Done.
 - **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It's deployed with the CLI, so pushes do NOT auto-deploy: run `vercel deploy --prod` (add `--force` after changing env vars; see GOTCHAS) from a clean checkout of `main`.
 - **On `main`:** PR #4 (git API, Google sign-in switched off, real chat; Supabase set up with anonymous sign-ins and both SQL files) and PR #5 (activity feed `listCommits` / `listMergedPulls` / `listPinned` for `COCOMMIT/LOG.md`, plus `commitFilesQuietly`). **GitHub OAuth keys are live** (`getSession` → `"fake":false`). The sidebar has a "Log in" button → `/login` (GitHub recommended; Google availability is read from Supabase). Google setup was reported complete in `OUTPUT/2026-10-15-1530-google-login.md`; live settings were not rechecked in this reading pass.
 - **AI context = `COCOMMIT/` team workspace** (`PLAN/2026-10-15-context-workspace.md`). The load/save layer and activity refresh already exist in `src/lib/workspace.ts`; the feed task is in `BOARD/Done/`. The Context screen still uses mock data and needs wiring.
-- Desktop (Kin): the Tauri app loads the live site; new-window links open in the system browser (PR #9); GitHub sign-in and commit work in the installed Windows app. Installers: macOS `.dmg` on GitHub Actions (merged, PR #7); Windows `.msi`/`.exe` on Actions in **PR #12** (open). Local git Rust side in **PR #11** (open). Both need a review. Details: LIB `desktop-app`, `local-git`.
+- Desktop (Kin): the Tauri app loads the live site; new-window links open in the system browser (PR #9); GitHub sign-in and commit work in the installed Windows app. Installers: macOS `.dmg` (PR #7) and Windows `.msi`/`.exe` (PR #12) build on GitHub Actions; the Windows installer is hosted (PR #13). Local git Rust side is merged (PR #11). All merged to `main`; not yet deployed. Details: LIB `desktop-app`, `local-git`.
 - **`feat/chat-names` (proud, pushed, no PR):** "Change name" in chat. It clashes with the login-backend task (names from GitHub, no posting as someone else), so it's on hold as a fallback.
 - Chat test message "Guest 330" (Claude-Pattadon's) is still in `messages`: delete it before the demo.
+
+## Landing page (2026-10-15, Claude-Pattadon), uncommitted on Pattadon's `main`
+`/` is now a landing page (no sidebar) and the app home moved to `/home` (LIB `landing-page`, `OUTPUT/2026-10-15-2145-landing-page.md`). Typecheck, tests, route loop and browser checks pass. **Next:** Pattadon decides on a branch + commit + PR; then deploy; then open the desktop app once to confirm it lands on `/home`. Any new "go home" link should use `/home`.
 
 ## Chat pins handoff (2026-10-15, Codex-proud)
 Merged into main (pending production deployment): `src/lib/chat-pins.ts` and Decision/Gotcha forms in `/chat`. Approved plan: `PLAN/2026-10-15-chat-pins.md`. Previous browser checks cover both forms, cancel, signed-out and missing-workspace cases; typecheck and production build passed again this session. Real GitHub saving has not been tested. Next: production deploy by the teammate with Vercel access, then verify real GitHub saving; coordinate page changes through Trin's review task.

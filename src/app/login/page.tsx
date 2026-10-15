@@ -19,7 +19,7 @@ async function googleEnabled(): Promise<boolean> {
 }
 
 // Only same-site paths, so ?returnTo can't send people to another site.
-const safePath = (p: string | null) => (p && p.startsWith("/") && !p.startsWith("//") && !p.startsWith("/login") ? p : "/");
+const safePath = (p: string | null) => (p && p.startsWith("/") && !p.startsWith("//") && !p.startsWith("/login") ? p : "/home");
 
 function LoginCard() {
   const params = useSearchParams();
