@@ -7,7 +7,7 @@ import { scryptSync, timingSafeEqual } from "node:crypto";
 import { createInterface } from "node:readline/promises";
 
 const SALT = "cocommit-in-person-approval-v1";
-const OWNER_HASH = ""; // set by Pattadon with --hash
+const OWNER_HASH = "afa3714dc692c2aba6476c5c149805f7b025f964163a5a673e7a0c285782c2b4"; // set by Pattadon with --hash
 
 // Ignore case, outer spaces and extra spaces, so "Smith" and " smith " match.
 export function normalize(text) {

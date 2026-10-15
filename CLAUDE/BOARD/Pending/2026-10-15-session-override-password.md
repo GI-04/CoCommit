@@ -17,7 +17,7 @@
 - The rule goes into `CLAUDE.md`/`AGENTS.md` only after everyone below has ticked "agrees".
 
 ## Acceptance
-- [ ] Pattadon has set `OWNER_HASH` in `scripts/check-override.mjs` (`node scripts/check-override.mjs --hash`).
+- [x] Pattadon has set `OWNER_HASH` in `scripts/check-override.mjs` (`node scripts/check-override.mjs --hash`).
 - Each person agrees to the rule for their own device (tick it yourself):
   - [ ] Pattadon agrees
   - [ ] proud agrees
