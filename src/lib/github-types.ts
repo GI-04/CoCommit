@@ -29,7 +29,8 @@ export type GitHubActions = {
   listRepos(): Promise<Repo[]>;
   listBranches(repo: string): Promise<string[]>;
   getChanges(repo: string, branch: string): Promise<Change[]>;
-  commitFiles(repo: string, branch: string, files: FileEdit[], message: string): Promise<Commit>;
+  /** A missing `branch` is created from `from` (the branch the files came from), else from the default branch. */
+  commitFiles(repo: string, branch: string, files: FileEdit[], message: string, from?: string): Promise<Commit>;
   openPullRequest(repo: string, head: string, base: string, title: string, body?: string): Promise<PullRequest>;
   readFile(repo: string, branch: string | null, path: string): Promise<string | null>;
   listFiles(repo: string, branch: string): Promise<string[]>;

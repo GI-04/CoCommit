@@ -135,7 +135,8 @@ function GitHubRepo() {
     listBranches(repo)
       .then((bs) => {
         setBranches(bs);
-        const start = bs.find((b) => b !== base) ?? bs[0] ?? base;
+        // Start on the default branch, so a new branch builds on the latest work.
+        const start = bs.includes(base) ? base : (bs[0] ?? base);
         setBranch(start);
       })
       .catch(fail);
@@ -163,7 +164,8 @@ function GitHubRepo() {
     if (!path) return;
     setBusy("commit");
     try {
-      const c = await commitFiles(repo, target, [{ path, content: text }], message.trim());
+      // A new branch starts from the branch the file was opened on (not from the default branch).
+      const c = await commitFiles(repo, target, [{ path, content: text }], message.trim(), branch);
       setNote({ kind: "ok", text: `Committed “${message.trim()}” to ${c.branch}.`, href: c.url });
       setMessage("");
       setOriginal(text);
