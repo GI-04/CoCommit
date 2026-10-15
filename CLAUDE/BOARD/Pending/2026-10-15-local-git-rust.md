@@ -43,6 +43,8 @@ The Repo page gets a **Local** mode in the desktop app: pick a cloned repo folde
 ```
 and permissions for `dialog:allow-open` plus the 12 commands above. In Tauri 2, app commands may need an app manifest in `build.rs`: `tauri_build::Attributes::new().app_manifest(tauri_build::AppManifest::new().commands(&[...]))`, then `allow-git-status` etc. in the capability. Check with `npm run tauri dev` that `window.__TAURI_INTERNALS__.invoke("git_check", { repo })` works from the loaded page.
 
+**Web side is ready (Claude-Pattadon):** `src/lib/local-git.ts`, `git-status.ts` and `components/LocalRepo.tsx` call exactly these commands. A working **reference** with the same commands and guards in Node is in `CLAUDE/LIB/sources/general/local-git-bridge.mjs`; copy its argument lists and checks into Rust. Once your commands are in, the Repo page shows a **GitHub | Local folder** switch in the desktop app; test the whole flow there.
+
 ## Acceptance
 - In `npm run tauri dev`, from the page's dev console: `git_check` on a clone returns its root; `git_status` returns porcelain v2 output; `git_stage` and `git_commit` work; a path outside the repo (`../x`) is refused.
 - `git_push` / `git_pull` use the user's existing git login and don't hang without one; you get an error instead.

@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { LocalRepo } from "@/components/LocalRepo";
 import { Button, Card, PageHeader } from "@/components/ui";
+import { isDesktop } from "@/lib/local-git";
 import {
   commitFiles,
   getChanges,
@@ -22,7 +24,58 @@ const field = "rounded-md border border-line bg-surface px-2 py-2 text-sm";
 
 type Note = { kind: "ok" | "error"; text: string; href?: string };
 
+// In the desktop app the Repo page has two modes: GitHub (through the API, as on the website) and
+// Local (a clone on this computer, through the user's own git). The website only has GitHub mode.
 export default function RepoPage() {
+  const [desktop, setDesktop] = useState(false);
+  const [mode, setMode] = useState<"github" | "local">("github");
+  useEffect(() => {
+    if (!isDesktop()) return;
+    setDesktop(true);
+    try {
+      if (localStorage.getItem("cocommitRepoMode") === "local") setMode("local");
+    } catch {}
+  }, []);
+  const choose = (m: "github" | "local") => {
+    setMode(m);
+    try {
+      localStorage.setItem("cocommitRepoMode", m);
+    } catch {}
+  };
+
+  const tabs = desktop && (
+    <div className="mb-4 inline-flex rounded-md border border-line bg-surface p-0.5 text-sm" role="tablist">
+      {(["github", "local"] as const).map((m) => (
+        <button
+          key={m}
+          role="tab"
+          aria-selected={mode === m}
+          onClick={() => choose(m)}
+          className={`rounded px-3 py-1 ${mode === m ? "bg-accent text-accent-fg" : "hover:bg-line/60"}`}
+        >
+          {m === "github" ? "GitHub" : "Local folder"}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (mode === "local")
+    return (
+      <div className="max-w-6xl">
+        <PageHeader title="Repo" subtitle="Your clone on this computer: stage, commit, pull and push with buttons." />
+        {tabs}
+        <LocalRepo />
+      </div>
+    );
+  return (
+    <>
+      {desktop && <div className="max-w-6xl">{tabs}</div>}
+      <GitHubRepo />
+    </>
+  );
+}
+
+function GitHubRepo() {
   const [fake, setFake] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [repos, setRepos] = useState<Repo[]>([]);

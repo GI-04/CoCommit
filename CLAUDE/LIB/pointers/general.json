@@ -73,6 +73,31 @@
         "sources/general/workspace-e2e/"
       ],
       "added": "2026-10-15"
+    },
+    {
+      "id": "local-git",
+      "title": "Local git in the desktop app (Repo page Local mode, src/lib/local-git.ts)",
+      "kind": "reference",
+      "tags": [
+        "git",
+        "local",
+        "desktop",
+        "tauri",
+        "staged",
+        "untracked",
+        "status",
+        "porcelain",
+        "push",
+        "pull",
+        "bridge",
+        "testing"
+      ],
+      "summary": "How the desktop app's Repo page works on a local clone: the 12 Tauri git commands, status parsing, the screen, safety rules, and testing in a normal browser with the Node git bridge.",
+      "path": "knowledge/general/local-git.md",
+      "sources": [
+        "sources/general/local-git-bridge.mjs"
+      ],
+      "added": "2026-10-15"
     }
   ]
 }
