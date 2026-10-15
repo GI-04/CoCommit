@@ -370,6 +370,33 @@ export async function listMergedPulls(repo: string, limit = 10): Promise<Activit
     .map((p) => ({ kind: "pr", author: p.user?.login ?? "someone", text: `merged #${p.number}: ${p.title}`, at: p.merged_at }));
 }
 
+// ---------- For the @cocommit bot (server only, not in `actions`)
+
+/** File paths under `folder` on the default branch, plus that branch's name (for links). */
+export async function listFolderFiles(repo: string, folder: string): Promise<{ branch: string; paths: string[] }> {
+  const prefix = `${folder.replace(/\/+$/, "")}/`;
+  if (fakeMode) return { branch: "main", paths: fake.files.filter((p) => p.startsWith(prefix)) };
+  const branch = await defaultBranch(repo);
+  return { branch, paths: (await listFiles(repo, branch)).filter((p) => p.startsWith(prefix)) };
+}
+
+/** Commits on the default branch that changed `path` (a file or folder), newest first. `since` is an ISO date. */
+export async function listFileCommits(repo: string, path: string, limit = 10, since?: string): Promise<Activity[]> {
+  const n = clampLimit(limit);
+  if (fakeMode) return fake.commits(repo).slice(0, n);
+  const query = new URLSearchParams({ path, per_page: String(n) });
+  if (since && !Number.isNaN(Date.parse(since))) query.set("since", new Date(since).toISOString());
+  const data = await gh<{ author: { login: string } | null; commit: { message: string; author: { name: string; date: string } | null } }[]>(
+    `${repoPath(repo)}/commits?${query}`,
+  );
+  return data.map((c) => ({
+    kind: "commit",
+    author: c.author?.login ?? c.commit.author?.name ?? "someone",
+    text: c.commit.message.split("\n")[0],
+    at: c.commit.author?.date ?? new Date(0).toISOString(),
+  }));
+}
+
 /** What browser code may call through POST /api/github/<name> (see github-client.ts). */
 export const actions: GitHubActions = {
   getSession,

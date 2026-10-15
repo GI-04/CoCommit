@@ -12,6 +12,7 @@ Git without the terminal, plus team chat and one shared context for everyone's A
 | **Repo: GitHub mode** | ✅ live | Pick a repo and branch, edit a file, commit (optionally to a new branch), see the branch's changes, open a pull request. Everything goes through the GitHub API, on web and desktop. |
 | **Repo: Local folder mode** | ✅ desktop only | Open a clone on your computer: Staged / Changes / Untracked, stage, discard, diffs, commit, pull, push. Uses your own `git` and its login; not shown on the website. |
 | **Chat** | ✅ live | One live channel per repo (Supabase Realtime). Commits and PRs post themselves into chat. Pin messages, or save one as a **decision** or **gotcha**. |
+| **@cocommit bot** | 🟡 built, needs `ANTHROPIC_API_KEY` | Type `@cocommit` + a question in chat: it searches and summarizes the repo's `COCOMMIT/` files (team status, what changed, who does what, a file, today's chat) with links. Only you see the answer until **Share to chat**. Read only. Questions and team files are sent to the Claude API. |
 | **Context** | 🟡 logic done, screen on demo data | Each repo gets a `COCOMMIT/` team workspace (handoff, team, decisions, gotchas, log, todo, task board) that every teammate's AI agent reads first. Load/save and the auto-filled log work; the tabbed screen is in progress. |
 | **Desktop app** | ✅ Windows, 🟡 macOS | A Tauri window that loads the live site. Links open in your browser. Windows installer builds; the macOS `.dmg` builds on GitHub Actions. |
 | **Calls** | 🟡 built, needs LiveKit keys | `/calls` → **Join call**: voice, video and screen sharing inside CoCommit (LiveKit), one room per repo, signed-in people only. Needs the three `LIVEKIT_*` keys. |
@@ -52,6 +53,8 @@ Then open http://localhost:3000. **With an empty `.env.local` everything runs on
 |---|---|---|
 | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | GitHub login and git buttons | A GitHub OAuth app with callback `http://localhost:3000/api/github/callback` (the **dev** app; the live site has its own) |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chat, Google/email login, profiles | Supabase project → Project Settings → API |
+| `ANTHROPIC_API_KEY` | The `@cocommit` chat bot (server only) | Claude Console → API keys. Without it the bot replies "not set up" and chat still works |
+| `ANTHROPIC_WORKSPACE_ID` | Only with a key not scoped to a workspace (`sk-ant-usr-…`) | Claude Console → the workspace's ID (`wrkspc_…`) |
 | `REQUIRE_GOOGLE_LOGIN` | Optional | `true` forces a login wall; off for the demo |
 
 Ask Pattadon for the team's values one-to-one. **Never commit `.env.local`** or paste keys into chat or the board. Step-by-step setup: `CLAUDE/OUTPUT/accounts-and-keys-setup.md`.
@@ -88,11 +91,12 @@ Why not Vercel's own Git connection? On the Hobby plan it can't deploy a private
 ## Project layout
 | Path | What |
 |---|---|
-| `src/app/` | Pages: `repo`, `chat`, `context`, `login`, `profile` `calls` (plus coming-soon `tasks`, `files`). API routes in `api/github/`; Supabase auth callbacks in `auth/` |
+| `src/app/` | Pages: `repo`, `chat`, `context`, `login`, `profile`, `calls` (plus coming-soon `tasks`, `files`). API routes in `api/github/` and `api/bot/`; Supabase auth callbacks in `auth/` |
 | `src/components/` | Shared UI: `Nav`, `UserChip`, `LocalRepo`, `Avatar`, `ui` |
 | `src/lib/github*.ts` | GitHub API: `github.ts` (server only), `github-client.ts` (browser), `github-types.ts` |
 | `src/lib/chat*.ts`, `supabase*.ts` | Chat backend, pins, Supabase clients |
 | `src/lib/context.ts`, `workspace.ts` | `COCOMMIT/` team-context workspace: text helpers, plus load/save through GitHub |
+| `src/lib/bot.ts`, `bot-tools.ts`, `bot-client.ts` | `@cocommit` bot: search/summary helpers, its tools (server), the browser call |
 | `src/lib/local-git.ts`, `git-status.ts` | Local git for the desktop app |
 | `src/lib/auth-email.ts`, `profile.ts`, `permissions.ts` | Email login, profile, who may use git |
 | `src/proxy.ts` | Supabase session refresh (and the optional login wall) |
