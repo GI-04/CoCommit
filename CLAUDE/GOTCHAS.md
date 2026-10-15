@@ -2,11 +2,10 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
-## 2026-10-15 — next dev keeps reloading /repo (open, dev only)
-- **What failed:** with only /repo open under `next dev`, the page reloads itself ~15 times a second; the server log shows `[github] GITHUB_CLIENT_ID is empty` again and again (github.ts reloaded). Happens on plain `main` too (134 reloads in 8 s); /chat is fine; `next build` + `next start` and the live site are fine.
-- **Evidence:** dev logs in proud's session, 2026-10-15 ~22:40 (`grep -c "GET /repo"`).
-- **Workaround:** check the Repo screen with `npm run build && npx next start`. Cause not found yet; no browser file imports `github.ts` directly.
-
+## 2026-10-15 — next dev kept reloading /repo (fixed)
+- **What failed:** with only /repo open under `next dev`, the page reloaded itself about 15 times a second (console: `[HMR] connected` → reload). Production (`next start`, Vercel) was fine.
+- **Evidence:** dev log ~137 `GET /repo` in 8 s, also on plain `main`. Stubbing `LocalRepo`/`local-git` stopped it; then stubbing only the two `await import("@tauri-apps/…")` lines in `src/lib/local-git.ts` stopped it too (0 reloads).
+- **Workaround:** `local-git.ts` now imports `invoke` and `open` statically; they only touch Tauri when called. Don't use `await import()` for packages in browser code. Also run `npm ci` after pulling when `package.json` changed: `@tauri-apps/plugin-dialog` was in the lockfile but missing from `node_modules` here.
 ## 2026-10-15 — Commit to a new branch overwrote newer files with an old copy (fixed in branch fix/new-branch-base)
 - **What failed:** on the live Repo screen, proud opened README.md (the screen had picked the old branch `kin/desktop-builds`), typed the new branch `test-cocommit` and committed. `commitFiles` creates a missing branch from the **default branch**, so the old README replaced main's newer one on the new branch (4d04d5d: +17 −105). Not merged.
 - **Evidence:** `gh api repos/GI-04/CoCommit/commits/4d04d5d`; `kin/desktop-builds:README.md` matches the new content.

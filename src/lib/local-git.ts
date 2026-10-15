@@ -8,6 +8,10 @@
 // Dev only: set localStorage "cocommitGitBridge" to a URL (e.g. http://127.0.0.1:4020) to send the same
 // calls to a test bridge that runs real git, so the screen can be built and tested in a normal browser.
 
+// Static imports on purpose: `await import("@tauri-apps/…")` made `next dev` (Turbopack) reload /repo
+// forever (see GOTCHAS). These only touch Tauri when called, so on the website they're harmless.
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import { githubRepoFromRemote, parseStatus, type GitStatus } from "./git-status";
 
 export type { ChangeCode, FileChange, GitStatus } from "./git-status";
@@ -43,7 +47,6 @@ async function call(command: string, args: Record<string, unknown>): Promise<str
       if (!res.ok) throw new Error(text);
       return text;
     }
-    const { invoke } = await import("@tauri-apps/api/core");
     return await invoke<string>(command, args);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -68,7 +71,6 @@ export async function chooseRepoFolder(): Promise<string | null> {
   let picked: string | null = null;
   if (bridgeUrl()) picked = window.prompt("Repo folder (test bridge):");
   else {
-    const { open } = await import("@tauri-apps/plugin-dialog");
     const r = await open({ directory: true, multiple: false, title: "Choose your cloned repository" });
     picked = typeof r === "string" ? r : null;
   }
