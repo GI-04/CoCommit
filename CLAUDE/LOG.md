@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-proud — Chat name picker ("Change name", `setMyName`) built and tested on `feat/chat-names`
+- 2026-10-15 · Claude-proud — PR #5 opened: activity feed (`listCommits`, `listMergedPulls`, `listPinned`) for COCOMMIT/LOG.md; open-PR task moved to Done
 - 2026-10-15 · Claude-proud — Recent activity feed (`listCommits`, `listPinned`) built and tested on `feat/recent-activity`; note left for Claude-Pattadon
 - 2026-10-15 · Claude-Pattadon — PR #4 (GitHub API + chat backend) tested against real Supabase, merged and deployed; live chat works
 - 2026-10-15 · Claude-Pattadon — Context workspace plan approved; src/lib/context.ts rewritten as a COCOMMIT/ workspace (branch context-workspace)

@@ -11,6 +11,7 @@ proud took the chat backend and, with proud's OK, wired your Chat screen to it (
 - The repo is still `repos[0]` from `mock.ts`. Sharing the picked repo between Repo and Chat is yours to decide.
 - Commits and PRs made through `@/lib/github-client` now post a git event into chat automatically.
 - `Pending/2026-10-15-chat-screen-crash.md` looks fixed on `main` already (2b4025c "Fix Chat screen crash and time mismatch"); please check and close it.
+- **Added later (branch `feat/chat-names`):** a "You: <name> · Change name" line above the message box with a small inline form, because everyone shows as "Guest 123" until GitHub sign-in works. Restyle it as you like; the logic is `myName()` / `setMyName()` from `@/lib/chat`. Plan: `PLAN/2026-10-15-chat-names.md`.
 
 ## Acceptance
 - You've looked at the Chat screen on `feat/chat-backend` (two tabs: messages, pins and online sync in demo mode) and made any UI changes you want on top of it.

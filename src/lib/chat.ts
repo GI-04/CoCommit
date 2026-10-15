@@ -45,14 +45,39 @@ export function mergeMessage(list: ChatMessage[], m: ChatMessage): ChatMessage[]
 }
 
 let nameOnce: Promise<string> | null = null;
+const NAME_KEY = "cocommit-chat-my-name";
 
-/** The name shown in chat: the GitHub account, else a Google login, else a guest name for this tab (so two tabs look like two people). */
+/**
+ * The name shown in chat: the name you picked (setMyName), else the GitHub account, else a Google login,
+ * else a guest name for this tab (so two tabs look like two people).
+ */
 export function myName(): Promise<string> {
   nameOnce ??= resolveName();
   return nameOnce;
 }
 
+/** Picks the name shown in chat, saved in this browser. `null` or "" goes back to the automatic name. Returns the name now in use. */
+export function setMyName(name: string | null): Promise<string> {
+  const clean = (name ?? "").replace(/\s+/g, " ").trim().slice(0, 40);
+  try {
+    if (clean) localStorage.setItem(NAME_KEY, clean);
+    else localStorage.removeItem(NAME_KEY);
+  } catch {
+    // Storage blocked: the name lasts until the page reloads.
+    nameOnce = Promise.resolve(clean || fake.name());
+    return nameOnce;
+  }
+  nameOnce = null;
+  return myName();
+}
+
 async function resolveName(): Promise<string> {
+  try {
+    const picked = localStorage.getItem(NAME_KEY);
+    if (picked) return picked;
+  } catch {
+    // Storage blocked: fall through.
+  }
   try {
     const res = await fetch("/api/github/getSession", { method: "POST", headers: { "Content-Type": "application/json" }, body: "[]" });
     const s = (await res.json()) as Session;
@@ -209,7 +234,17 @@ export function subscribe(repo: string, onMessage: (m: ChatMessage) => void): ()
 /** Calls `onChange` with the names of everyone who has this repo's chat open, live. Returns a stop function. */
 export function onlineUsers(repo: string, onChange: (names: string[]) => void): () => void {
   const supabase = getSupabase();
-  if (!supabase) return fake.online(repo, onChange);
+  if (!supabase) {
+    let stop = () => {};
+    let stopped = false;
+    myName().then((name) => {
+      if (!stopped) stop = fake.online(repo, onChange, name);
+    });
+    return () => {
+      stopped = true;
+      stop();
+    };
+  }
 
   let channel: RealtimeChannel | null = null;
   let stopped = false;
@@ -273,9 +308,9 @@ const fake = {
     out.close();
   },
 
-  online(repo: string, onChange: (names: string[]) => void): () => void {
+  online(repo: string, onChange: (names: string[]) => void, name: string): () => void {
     const channel = new BroadcastChannel(`cocommit-online:${repo}`);
-    const me = { tab: crypto.randomUUID(), name: fake.name() };
+    const me = { tab: crypto.randomUUID(), name };
     const seen = new Map<string, { name: string; at: number }>();
     const emit = () => {
       const now = Date.now();
