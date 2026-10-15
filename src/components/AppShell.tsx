@@ -1,15 +1,23 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { CallProvider } from "@/components/CallProvider";
 import { Nav } from "@/components/Nav";
 
 // The landing page at "/" brings its own header; every app page gets the sidebar.
+// CallProvider wraps both, so a call keeps going whichever page you open.
 export function AppShell({ children }: { children: React.ReactNode }) {
-  if (usePathname() === "/") return <>{children}</>;
+  const landing = usePathname() === "/";
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
-      <Nav />
-      <main className="min-w-0 flex-1 p-6 md:p-8">{children}</main>
-    </div>
+    <CallProvider>
+      {landing ? (
+        children
+      ) : (
+        <div className="flex min-h-dvh flex-col md:flex-row">
+          <Nav />
+          <main className="min-w-0 flex-1 p-6 md:p-8">{children}</main>
+        </div>
+      )}
+    </CallProvider>
   );
 }

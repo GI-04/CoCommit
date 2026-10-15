@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 import { canPost, loadMessages, mergeMessage, sendMessage, subscribe, type ChatMessage } from "@/lib/chat";
@@ -46,7 +47,7 @@ export default function CallChat({ repo }: { repo: string }) {
   return (
     <aside className="flex min-h-0 w-full flex-col rounded-lg border border-line bg-surface p-3">
       <h2 className="mb-2 text-sm font-semibold text-muted">
-        Team chat <a href="/chat" className="ml-1 font-normal underline">open full chat</a>
+        Team chat <Link href="/chat" className="ml-1 font-normal underline">open full chat</Link>
       </h2>
       <div ref={list} className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1 text-sm">
         {messages.length === 0 && <p className="text-muted">No messages yet.</p>}
