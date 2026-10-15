@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-proud — PR #16 (backend polish) and PR #10 (chat names) merged; plans recent-activity, chat-pins, chat-names, backend-polish set to done
 - 2026-10-15 · Claude-Pattadon — Merged PR #14 (landing page) and deployed main `7bcca02` to production (dpl_jXkpb26s…; also ships PRs #11–#13); live routes, sidebar, manifest and real GitHub session checked
 - 2026-10-15 · Claude-Pattadon — Landing page at `/` (commit-graph rail, clickable hero demo); app home moved to `/home`; typecheck, 16 tests, route loop and browser checks pass; not committed or deployed
 - 2026-10-15 · Claude-proud — Backend polish (branch `feat/backend-polish`): COCOMMIT/ for this repo, git-event links, chat-author.sql (tested on local Postgres), demo script, docs/API.md

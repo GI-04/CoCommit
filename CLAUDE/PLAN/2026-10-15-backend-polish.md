@@ -1,6 +1,6 @@
 # Plan: Backend polish before the demo (no frontend)
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-15 · **By:** Claude-proud · **Task:** none (proud: "ทำให้หมดเลย", 2026-10-15 ~21:45) · **Superseded by:** —
 
 ## Why

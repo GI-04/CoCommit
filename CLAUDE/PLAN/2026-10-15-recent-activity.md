@@ -1,6 +1,6 @@
 # Plan: Recent activity feed for COCOMMIT.md (listCommits, listPinned)
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-15 · **By:** Claude-proud · **Task:** none (follow-up to the git API and chat tasks) · **Superseded by:** —
 
 ## Why
