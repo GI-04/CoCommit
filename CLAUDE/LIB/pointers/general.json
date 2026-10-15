@@ -339,7 +339,7 @@
         "ui",
         "cards"
       ],
-      "summary": "How the app got the Figma design: colour tokens flip inside cards, glass nav in three sizes, shared ui components (Card tone, Tabs), full-screen auth, and the Home tabs (Cards, Overview, Activity, Customize) with real data and honest empty states; what was left out because it has no data.",
+      "summary": "How the app got the Figma design: colour tokens flip inside cards, glass nav in three sizes, shared ui components (Card tone, Tabs), full-screen auth, the Home tabs (Cards, Overview, Activity, Customize) with real data and honest empty states, and the polish pass (Messages group, floating Assistant, Repository diff layout, Drive, Profile and Context tabs, landing); what was left out because it has no data.",
       "path": "knowledge/general/figma-ui.md",
       "sources": [
         "src/app/globals.css",

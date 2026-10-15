@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/icons";
 import { Button, Card, PageHeader } from "@/components/ui";
 import { getCurrentRepo } from "@/lib/current-repo";
 import { deleteSharedFile, listShared, saveSharedFile, uploadSharedFile, type SharedFile } from "@/lib/files";
@@ -15,6 +16,7 @@ export default function FilesPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [view, setView] = useState<"grid" | "list">("grid");
   const input = useRef<HTMLInputElement>(null);
 
   const fail = useCallback((e: unknown) => {
@@ -83,12 +85,42 @@ export default function FilesPage() {
     });
   };
 
+  const TONES = ["pink", "cyan", "mustard", "green"] as const;
+  const ext = (name: string) => (name.includes(".") ? (name.split(".").pop() ?? "").slice(0, 5).toUpperCase() : "FILE");
+  const actions = (file: SharedFile) => (
+    <div className="flex gap-2">
+      <Button variant="ghost" className="bg-paper py-1.5" disabled={busy !== null} onClick={() => repo && void run(`Downloading ${file.name}…`, () => saveSharedFile(repo, file))}>
+        Download
+      </Button>
+      <Button variant="ghost" className="py-1.5" disabled={busy !== null || needsLogin} onClick={() => remove(file)}>
+        Delete
+      </Button>
+    </div>
+  );
+
   return (
-    <div className="max-w-3xl">
-      <PageHeader title="Files" subtitle={repo ? `Shared with everyone on ${repo}. Saved in its COCOMMIT/files folder.` : "Shared team files."}>
-        <Button onClick={() => input.current?.click()} disabled={!repo || busy !== null || needsLogin}>
-          Choose files
-        </Button>
+    <div className="max-w-6xl">
+      <PageHeader title="Drive" subtitle={repo ? `Shared with everyone on ${repo}. Saved in its COCOMMIT/files folder.` : "Shared team files."}>
+        <span className="hidden w-24 lg:block" aria-hidden />
+        <div className="flex items-center gap-3">
+          <Button variant="glass" onClick={() => input.current?.click()} disabled={!repo || busy !== null || needsLogin} className="flex items-center gap-2 py-3">
+            <Icon name="upload" className="size-4" /> Upload
+          </Button>
+          <div className="glass inline-flex gap-1 rounded-full p-1" role="group" aria-label="View">
+            {(["grid", "list"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => setView(v)}
+                aria-pressed={view === v}
+                aria-label={v === "grid" ? "Grid view" : "List view"}
+                className={`grid size-10 place-items-center rounded-full ${view === v ? "glass-thumb text-white" : "text-white/80 hover:bg-white/10"}`}
+              >
+                <Icon name={v} className="size-4" />
+              </button>
+            ))}
+          </div>
+        </div>
         <input ref={input} type="file" multiple hidden onChange={(e) => e.target.files && void upload(e.target.files)} />
       </PageHeader>
 
@@ -101,6 +133,10 @@ export default function FilesPage() {
         </Card>
       )}
 
+      {busy && <p className="mb-3 text-sm text-muted">{busy}</p>}
+      {notice && <p className="mb-3 text-sm text-added">{notice}</p>}
+      {error && <p className="mb-3 text-sm text-removed">{error}</p>}
+
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -112,41 +148,62 @@ export default function FilesPage() {
           setDragging(false);
           if (!needsLogin && !busy) void upload(e.dataTransfer.files);
         }}
-        className={`mb-4 border-2 !border-dashed p-8 text-center text-sm font-medium ${dragging ? "block-green" : "block-cyan"}`}
+        className={dragging ? "rounded-xl outline-2 outline-dashed outline-green" : ""}
       >
-        Drop files here, up to {formatSize(MAX_FILE_BYTES)} each.
-      </div>
-
-      {busy && <p className="mb-3 text-sm text-muted">{busy}</p>}
-      {notice && <p className="mb-3 text-sm text-added">{notice}</p>}
-      {error && <p className="mb-3 text-sm text-removed">{error}</p>}
-
-      <Card tone="paper" title="Team files">
         {files === null ? (
           <p className="text-sm text-muted">Loading…</p>
-        ) : files.length === 0 ? (
-          <p className="text-sm text-muted">No files yet. Share the first one above.</p>
+        ) : view === "list" ? (
+          <Card title="Team files">
+            {files.length === 0 ? (
+              <p className="text-sm text-muted">No files yet. Share the first one with Upload, or drop it here.</p>
+            ) : (
+              <ul className="divide-y divide-line">
+                {files.map((file) => (
+                  <li key={file.path} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{file.name}</p>
+                      <p className="text-xs text-muted">{formatSize(file.size)}</p>
+                    </div>
+                    {actions(file)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         ) : (
-          <ul className="divide-y divide-line">
-            {files.map((file) => (
-              <li key={file.path} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{file.name}</p>
-                  <p className="text-xs text-muted">{formatSize(file.size)}</p>
+          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {files.map((file, i) => (
+              <li key={file.path} className={`block-${TONES[i % TONES.length]} flex min-h-[15rem] flex-col justify-between p-5`}>
+                <div className="flex items-start justify-between gap-2">
+                  <Icon name="file" className="size-7" />
+                  <span className="rounded-full border border-black bg-paper px-2.5 py-0.5 text-xs font-medium">{ext(file.name)}</span>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" disabled={busy !== null} onClick={() => repo && void run(`Downloading ${file.name}…`, () => saveSharedFile(repo, file))}>
-                    Download
-                  </Button>
-                  <Button variant="ghost" disabled={busy !== null || needsLogin} onClick={() => remove(file)}>
-                    Delete
-                  </Button>
+                <div className="space-y-3">
+                  <div className="min-w-0">
+                    <p className="break-words font-semibold" title={file.name}>
+                      {file.name}
+                    </p>
+                    <p className="text-xs">{formatSize(file.size)}</p>
+                  </div>
+                  {actions(file)}
                 </div>
               </li>
             ))}
+            <li>
+              <button
+                type="button"
+                onClick={() => input.current?.click()}
+                disabled={!repo || busy !== null || needsLogin}
+                className="flex min-h-[15rem] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/40 p-5 text-center text-sm hover:bg-white/5 disabled:opacity-50"
+              >
+                <Icon name="plus" className="size-6" />
+                <span className="font-medium">Upload a file</span>
+                <span className="text-xs text-muted">or drop files here, up to {formatSize(MAX_FILE_BYTES)} each</span>
+              </button>
+            </li>
           </ul>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

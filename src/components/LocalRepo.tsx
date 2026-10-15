@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { DiffView } from "@/components/DiffView";
 import { Button, Card } from "@/components/ui";
 import {
   chooseRepoFolder,
@@ -221,24 +222,9 @@ export function LocalRepo() {
         <div className="min-w-0 space-y-4">
           <Card tone="dark" title={pick ? `${pick.file} (${pick.mode})` : "Diff"}>
             {pick ? (
-              <pre className="max-h-[26rem] overflow-auto rounded-md bg-black/30 p-2 font-mono text-[13px] leading-6">
-                {diff.split("\n").map((line, i) => (
-                  <div
-                    key={i}
-                    className={
-                      line.startsWith("+") && !line.startsWith("+++")
-                        ? "bg-added/10 text-added"
-                        : line.startsWith("-") && !line.startsWith("---")
-                          ? "bg-removed/10 text-removed"
-                          : line.startsWith("@@")
-                            ? "text-muted"
-                            : ""
-                    }
-                  >
-                    {line || " "}
-                  </div>
-                ))}
-              </pre>
+              <div className="max-h-[26rem] overflow-auto rounded-md bg-black/30">
+                <DiffView patch={diff} empty="(no text changes to show)" />
+              </div>
             ) : (
               <p className="text-sm text-muted">Click a file to see what changed.</p>
             )}

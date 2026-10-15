@@ -89,7 +89,7 @@ export function HeroDemo() {
     `${btn} ${tab === t ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"}`;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_40px_100px_-30px_rgb(79_70_229/0.45)]">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]">
       <div className="flex items-center gap-3 border-b border-line bg-bg px-3 py-2">
         <div role="tablist" aria-label="Same push, two ways" className="flex rounded-lg bg-fg/10 p-1">
           <button role="tab" aria-selected={tab === "terminal"} aria-controls="demo-panel" onClick={() => pick("terminal")} className={tabClass("terminal")}>

@@ -199,9 +199,9 @@ export default function ChatPage() {
 
   return (
     <MessagesShell active="chat" fill>
-      <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[20rem_1fr] max-lg:grid-rows-[auto_minmax(0,1fr)]">
+      <div className="grid h-full min-h-0 gap-4 max-lg:grid-cols-[minmax(0,1fr)] max-lg:grid-rows-[auto_minmax(0,1fr)] lg:grid-cols-[20rem_minmax(0,1fr)]">
         <ListPanel title="Messages" items={chats} value={chat} onSelect={openChat} />
-        <Card className="flex min-h-0 flex-col">
+        <Card className="flex min-h-0 min-w-0 flex-col">
           <div className="mb-3 flex items-center gap-3 border-b border-black/15 pb-3">
             <Initials text={current.short} className="size-11 text-sm" />
             <div className="min-w-0 flex-1">
@@ -215,7 +215,7 @@ export default function ChatPage() {
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
             {messages.map((m) =>
               m.kind === "git_event" ? (
-                <p key={m.id} className="rounded-2xl border border-line bg-bg px-4 py-2 text-sm text-muted">
+                <p key={m.id} className="break-words rounded-2xl border border-line bg-bg px-4 py-2 text-sm text-muted [overflow-wrap:anywhere]">
                   <span className="font-medium text-fg">{m.author}</span>
                   {m.authorLogin && <Login login={m.authorLogin} />} {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                 </p>

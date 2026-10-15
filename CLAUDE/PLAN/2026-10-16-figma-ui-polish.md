@@ -1,6 +1,6 @@
 # Plan: Figma look, polish pass (as close to the design as the real data allows)
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 **Proposed by:** Claude-Trin (for Trin) · **Approved by:** Trin (2026-10-16, in chat: "make the app look like in figma as much as possible"). Continues `PLAN/2026-10-16-figma-ui.md` (done), whose "out of scope" list this plan now takes on.
 
@@ -31,3 +31,11 @@ Phases 1 and 2 gave the whole app the Figma colours, glass navigation and Home. 
 
 ## How we'll verify
 `npm run typecheck`, `npm test`, `npm run build`; browser at 390 / 834 / 1440 px on demo data after each step, compared with the Figma screenshots; no horizontal scroll; existing flows still work (send a chat message, edit and commit a file in demo mode, move a task, upload a file).
+
+## Changes while building (Claude-Trin, 2026-10-16)
+- Nothing in the plan was dropped. Extra: `src/lib/diff.ts` + `tests/diff.test.mjs`; the Profile test now renders the Account tab (the forms live there) and stubs the new Overview and icons.
+- The Chat/Team/Call "list" is the person's repos (real data); a one-item list was not shown on Call.
+- Left out on purpose (no data source): Drive Personal/Shared tabs, 2-factor and sessions, Slack, the "Create branch" action card in the Assistant, Context setup form and editing, "History" in Repository, stat tiles such as Pull requests.
+- Fixed while testing: phone-width overflow on Chat and Tasks (grid columns need `minmax(0,1fr)`), black logo on dark (`invert`), stale `icons.tsx` on the dev server.
+- Commits on `trin/email-login-screens`: `96822a9` (Messages, navigation, Assistant) and the one after it (Repository, Drive, Profile, Context, landing). Not pushed.
+

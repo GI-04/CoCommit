@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { detectOs, downloads, type OsId } from "@/lib/downloads";
 
 const base =
-  "inline-flex items-center justify-center rounded-lg px-5 py-3 text-base font-semibold outline-accent focus-visible:outline-2 focus-visible:outline-offset-2";
+  "inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-medium outline-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2";
 
 // Landing-page download links: the visitor's own OS first, every platform listed.
 // A platform without a committed installer shows as "coming soon".

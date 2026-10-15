@@ -151,7 +151,7 @@ export default function TasksPage() {
 
   const shell = (content: React.ReactNode) => (
     <MessagesShell active="team">
-      <div className="grid gap-4 lg:grid-cols-[20rem_1fr]">
+      <div className="grid gap-4 max-lg:grid-cols-[minmax(0,1fr)] lg:grid-cols-[20rem_minmax(0,1fr)]">
         <ListPanel title="Teams" items={teams} value={repo} onSelect={openTeam} />
         <div className="min-w-0">
           {toolbar}

@@ -9,7 +9,7 @@ import { getCurrentRepo } from "@/lib/current-repo";
 import { GitHubRequestError, listCommitDates } from "@/lib/github-client";
 import { windowStart, type CommitDate } from "@/lib/heatmap";
 import { loadBoard, type Board } from "@/lib/tasks";
-import { recentActivity } from "@/lib/workspace";
+import { loadWorkspace, recentActivity, type Workspace } from "@/lib/workspace";
 
 export type Load<T> =
   | { status: "loading" }
@@ -56,6 +56,8 @@ const latestActivity = async (repo: string) => (await recentActivity(repo, 12)).
 export const useCommits = (repo: string | null): Load<CommitDate[]> => useLoad(repo, commitDates);
 export const useBoard = (repo: string | null): Load<Board> => useLoad(repo, loadBoard);
 export const useActivity = (repo: string | null): Load<Activity[]> => useLoad(repo, latestActivity);
+/** The `COCOMMIT/` team files; `ready` with `null` means the repo has no team context yet. */
+export const useWorkspace = (repo: string | null): Load<Workspace | null> => useLoad(repo, loadWorkspace);
 
 /** One line for a card that can't show its data, or null while it is loading or ready. */
 export function problem(state: Load<unknown>): string | null {

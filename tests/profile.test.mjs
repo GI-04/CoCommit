@@ -159,9 +159,10 @@ test("combined sign-out reports either provider's failure", async () => {
   assert.match((await api.signOut()).error, /Couldn't sign out/);
 });
 
-function renderProfileState(accounts, loading = false) {
+function renderProfileState(accounts, loading = false, tab = "account") {
   let hook = 0;
-  const initial = [accounts, loading, false, null];
+  // useState calls of the page, in order: accounts, loading, signingOut, notice, tab (the forms live on the Account tab).
+  const initial = [accounts, loading, false, null, tab];
   const react = {
     useState: (value) => [hook < initial.length ? initial[hook++] : (hook++, typeof value === "function" ? value() : value), () => {}],
     useRef: (current) => ({ current }), useCallback: (fn) => fn, useEffect: () => {},
@@ -172,6 +173,8 @@ function renderProfileState(accounts, loading = false) {
     "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },
     "@/components/Avatar": { Avatar: ({ name }) => React.createElement("span", {}, name.slice(0, 1)) },
     "@/components/ui": ui,
+    "@/components/icons": { Icon: () => null },
+    "@/components/profile/Overview": { ProfileOverview: () => null },
     "@/lib/auth-email": { MIN_PASSWORD_LENGTH: 8 },
     "@/lib/profile": {}, "@/lib/supabase": {},
   });
