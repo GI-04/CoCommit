@@ -17,7 +17,7 @@
 - **Supersedes / superseded by:** none.
 
 ## 2026-10-15 — Temporary: only destructive plans need Pattadon's review (until 2026-10-16 03:00 +07)
-- **Status:** active until **2026-10-16 03:00 (UTC+7)**, then expired on its own. After that, work-loop step 3 applies again as written.
+- **Status:** expired 2026-10-16 03:00 (UTC+7). No longer in effect; work-loop step 3 applies again as written. Notice removed from `HANDOFF.md`.
 - **Decision (Pattadon, project owner):** plans no longer wait for Pattadon's review unless they're destructive. A destructive plan still goes to `PLAN/` as `proposed` and waits for Pattadon's OK. That covers deleting files, branches or data, force-pushing or rewriting history, dropping or wiping database tables, changing secrets or keys, and production changes that can't be rolled back.
 - **Not changed:** each agent's "Off-limits / ask first" list with its own user (commit, push, installs, deletes), each agent's safety rules, and the app's permission prompts. Merging to `main` still deploys to production (auto-deploy), so treat it with care.
 - **Why:** to keep work moving overnight before the demo.
