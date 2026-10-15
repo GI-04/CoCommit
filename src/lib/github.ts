@@ -6,6 +6,8 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import type { Activity } from "./context";
+import { hasGitHubIdentity } from "./login-identity";
+import { getSupabaseServer } from "./supabase-server";
 import type { Change, Commit, FileEdit, GitHubActions, PullRequest, Repo, Session, User } from "./github-types";
 
 export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
@@ -87,6 +89,14 @@ export async function finishSignIn(origin: string, code: string | null, state: s
 
 export async function signOut(): Promise<void> {
   (await cookies()).delete(TOKEN_COOKIE);
+}
+
+/**
+ * Keeps GitHub's token from a Supabase GitHub sign-in (/auth/callback), sealed in the same cookie the
+ * legacy sign-in uses, so every git function below works unchanged.
+ */
+export async function saveGitHubToken(accessToken: string): Promise<void> {
+  (await cookies()).set(TOKEN_COOKIE, seal(accessToken), { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 });
 }
 
 function safeReturnTo(path: string | null | undefined): string {
@@ -188,8 +198,20 @@ export async function getSession(): Promise<Session> {
     const u = await gh<{ login: string; name: string | null; avatar_url: string }>("/user");
     return { user: { login: u.login, name: u.name, avatarUrl: u.avatar_url }, fake: false };
   } catch (e) {
-    if (e instanceof GitHubError && e.status === 401) return { user: null, fake: false };
+    if (e instanceof GitHubError && e.status === 401) return { user: null, fake: false, needsReconnect: await signedInWithGitHub() };
     throw e;
+  }
+}
+
+/** A Supabase user who signed in with GitHub but has no usable GitHub token (cookie gone, expired or revoked). */
+async function signedInWithGitHub(): Promise<boolean> {
+  try {
+    const supabase = await getSupabaseServer();
+    if (!supabase) return false;
+    const { data } = await supabase.auth.getUser();
+    return Boolean(data.user && !data.user.is_anonymous && hasGitHubIdentity(data.user));
+  } catch {
+    return false;
   }
 }
 

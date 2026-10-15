@@ -21,7 +21,8 @@ export type FileEdit = { path: string; content: string | null };
 export type Commit = { sha: string; url: string; branch: string };
 export type PullRequest = { number: number; url: string; title: string; head: string; base: string };
 export type User = { login: string; name: string | null; avatarUrl: string };
-export type Session = { user: User | null; fake: boolean };
+/** `needsReconnect`: signed in with GitHub (Supabase) but the GitHub token is missing or expired: show "Sign in with GitHub". */
+export type Session = { user: User | null; fake: boolean; needsReconnect?: boolean };
 
 /** What browser code may call through POST /api/github/<name>; github.ts implements it. */
 export type GitHubActions = {
