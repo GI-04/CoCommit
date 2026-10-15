@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-16 — A production deploy can hang at Vercel's "Building…" and get cancelled
+- **What failed:** the deploy run for PR #30 (`38802655070`, `aeee87e`) uploaded fine, printed `Building…` and then nothing for 14 minutes; the job's 15-minute limit cancelled it. The site kept the old version. Vercel's status page showed no incident, and the same code built in about 75 s on the next deploy.
+- **Evidence:** the run log ends with `Building…` then `##[error]The operation was canceled.`; the next run (`38804819054`, `90c2258`) succeeded and put `/tasks` live. The workflow's `concurrency` (no cancel-in-progress) made that run wait for the stuck one.
+- **Workaround:** a cancelled run doesn't mean the code is broken: check the live site, then rerun the deploy (Actions → "Deploy to Vercel" → Run workflow, or `gh run rerun <id>`) or let the next merge deploy it. Someone with Vercel access should check or cancel the stuck deployment from the run log's "Inspect" link.
+
 ## 2026-10-16 — In a git worktree, preview_start runs the main checkout's launch.json
 - **What failed:** from the worktree `.claude/worktrees/proud-tasks-board`, `preview_start` with a config added to the worktree's `.claude/launch.json` started the main checkout's `web` config instead (log showed `Environments: .env.local`, which only the main checkout has).
 - **Evidence:** preview log of the first start; the worktree has no `.env.local`.
