@@ -1,21 +1,21 @@
 # Handoff
 
-**Last updated:** 2026-10-15 · **By:** Claude-Pattadon (merged with Claude-proud's and Claude-Kin's notes)
+**Last updated:** 2026-10-15 15:12 · **By:** Claude-proud (on top of Claude-Pattadon's notes)
 
 ## Current state
-Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud).
-- **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It's deployed with the CLI, so pushes do NOT auto-deploy: run `vercel deploy --prod` from a clean checkout of `main`.
-- **PR #4 is merged and deployed** (520eedf): git API (fake mode until the OAuth keys exist), Google sign-in (off; `REQUIRE_GOOGLE_LOGIN=true` turns it on), and **real chat**. Supabase is set up: anonymous sign-ins on, `profiles.sql` and `schema.sql` run. Chat was tested live; Claude-Pattadon's test message ("Guest 330") is in `messages`, so delete it before the demo.
-- **AI context = `COCOMMIT/` team workspace** (`PLAN/2026-10-15-context-workspace.md`, active). `src/lib/context.ts` builds and edits it. Next is the load/save layer on `readFile`/`commitFiles` (Claude-Pattadon). The Context screen tabs are Trin's.
+Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud); rename task Done.
+- **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It's deployed with the CLI, so pushes do NOT auto-deploy: run `vercel deploy --prod` (add `--force` after changing env vars; see GOTCHAS) from a clean checkout of `main`.
+- **On `main`:** PR #4 (git API, Google sign-in switched off, real chat; Supabase set up with anonymous sign-ins and both SQL files) and PR #5 (activity feed `listCommits` / `listMergedPulls` / `listPinned` for `COCOMMIT/LOG.md`, plus `commitFilesQuietly`). **GitHub OAuth keys are live** (`getSession` → `"fake":false`). The sidebar has a "Log in" button → `/login` (GitHub recommended, Google greyed out until set up).
+- **AI context = `COCOMMIT/` team workspace** (`PLAN/2026-10-15-context-workspace.md`). Next is the load/save layer (Claude-Pattadon); note `BOARD/Pending/2026-10-15-use-recent-activity-feed.md` shows how to fill LOG.md.
 - Desktop: Kin's Tauri app loads the live site (PR #3). Pattadon builds the `.dmg` per `src-tauri/BUILDING.md`.
-- GitHub OAuth apps: still to do (Pattadon, `OUTPUT/accounts-and-keys-setup.md`). Until then sign-in and git buttons use fake data.
-- **`feat/recent-activity` (proud, PR open):** `listCommits`, `listPinned` and (new) `listMergedPulls` return `Activity` items for `COCOMMIT/LOG.md` (`addActivity` in `context.ts`). Plan `PLAN/2026-10-15-recent-activity.md`; note for Claude-Pattadon `BOARD/Pending/2026-10-15-use-recent-activity-feed.md`. PR next.
+- **`feat/chat-names` (proud, pushed, no PR):** "Change name" in chat. It clashes with the login-backend task (names from GitHub, no posting as someone else), so it's on hold as a fallback.
+- Chat test message "Guest 330" (Claude-Pattadon's) is still in `messages`: delete it before the demo.
 
 ## Exact next step
-1. Pattadon: create the two GitHub OAuth apps (callback `/api/github/callback` on localhost and on https://cocommit.vercel.app), add the keys to `.env.local` and Vercel, then redeploy.
-2. Claude-Pattadon: `loadWorkspace` / `saveWorkspace` in a new `src/lib/workspace.ts` (step 2 of the context-workspace plan).
-3. proud: test sign-in → commit → PR on a test repo once the OAuth keys exist.
-4. Trin: `BOARD/Pending/2026-10-15-wire-screens-to-github.md`, `...-review-chat-screen.md`, and the tabbed Context screen (`...-layout-and-screens.md`).
+1. proud: decide whether to take `BOARD/Pending/2026-10-15-login-backend.md` parts 1–6 (GitHub as the one app identity; plan first). Meanwhile, sign in with GitHub on the live site once to check it.
+2. Claude-Pattadon: `loadWorkspace` / `saveWorkspace` (context-workspace step 2), using the activity feed.
+3. Trin: login frontend, `wire-screens-to-github`, `review-chat-screen`, the tabbed Context screen.
+4. Pattadon: dev OAuth app for localhost (login-backend part 8); decide on Google (part 9).
 
 ## Watch out
 - Ask before commit, push, package installs or deleting files.
