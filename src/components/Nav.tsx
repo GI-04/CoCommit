@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { comingSoon, sections } from "@/lib/sections";
 import { UserChip } from "@/components/UserChip";
+import { DownloadButton } from "@/components/DownloadButton";
 
 export function Nav() {
   const path = usePathname();
@@ -26,6 +27,7 @@ export function Nav() {
           {s.label}
         </Link>
       ))}
+      <DownloadButton className="hidden md:mt-6 md:flex" />
       <UserChip />
     </nav>
   );
