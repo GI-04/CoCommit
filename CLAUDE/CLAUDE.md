@@ -6,14 +6,16 @@
 @HANDOFF.md
 
 ## Commands
-No code yet; the stack is still a proposal (`PLAN/2026-10-15-stack.md`). Fill this in once the app is scaffolded.
+Stack is approved (`PLAN/2026-10-15-stack.md`). Skeleton exists; dependencies are not installed yet.
 
 | Task | Command |
 |------|---------|
-| Install | unknown — ask |
-| Dev | unknown — ask |
-| Test | unknown — ask |
-| Lint/format | unknown — ask |
+| Install | `npm install` (ask first) |
+| Dev (web) | `npm run dev` → http://localhost:3000 |
+| Dev (desktop) | `npm run tauri dev` (needs Rust + icons) |
+| Typecheck | `npm run typecheck` |
+| Test | none yet — ask |
+| Lint/format | none yet — ask |
 
 ## What lives where (`CLAUDE/`)
 | Path | Holds |
@@ -53,9 +55,9 @@ No code yet; the stack is still a proposal (`PLAN/2026-10-15-stack.md`). Fill th
 - The folder is the status. Never copy a task into two folders.
 
 ## Conventions
-- Language/style: unknown until the stack plan is accepted (proposed: TypeScript).
+- Language/style: TypeScript (strict), React function components, Tailwind classes; `@/` imports from `src/`.
 - Tests: unknown — ask.
-- Layout: only `README.md` and `CLAUDE/` exist so far.
+- Layout: Next.js App Router in `src/app/`, shared UI in `src/components/`, service helpers in `src/lib/`, desktop shell in `src-tauri/`.
 
 ## Off-limits / ask first
 - `git commit` and `git push` (including to GitHub).

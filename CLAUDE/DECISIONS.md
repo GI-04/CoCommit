@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-15 — Stack: Next.js (React) PWA + Tauri 2, GitHub API, Supabase, LiveKit
+- **Status:** active
+- **Decision:** Build on `PLAN/2026-10-15-stack.md` as proposed.
+- **Why:** One React codebase for web, phone (PWA) and desktop; Next.js gives server routes for secrets (GitHub OAuth, LiveKit tokens).
+- **Alternatives:** React + Vite with Supabase Edge Functions; simpler and fits Tauri better, but Pattadon chose to keep the original plan.
+- **Supersedes / superseded by:** none
+
 ## 2026-10-15 — Adopted CLAUDE/ workspace via /initiate-team
 - **Status:** active
 - **Decision:** Coordinate people and agents through `CLAUDE/` (LIB, BOARD, PLAN, OUTPUT, project memory), with `CLAUDE.md`/`AGENTS.md` as shared instructions.
