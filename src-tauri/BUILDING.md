@@ -17,6 +17,16 @@ Links with `target="_blank"` (like "View on GitHub") and `window.open` open in t
 
 The installed app loads https://cocommit.vercel.app, so it shows whatever is deployed there, not your local code. Pushing to GitHub does not redeploy it yet: Pattadon deploys with `vercel deploy --prod`. A web change shows up in the desktop app after that deploy, with no rebuild needed. Rebuild only when `src-tauri/` changes or the URL moves.
 
+## Windows installers from GitHub (no Rust needed)
+
+`.github/workflows/desktop-windows.yml` builds the `.msi` and the setup `.exe` on a GitHub-hosted Windows machine:
+
+1. On GitHub, open **Actions** → **Desktop app (Windows)** → **Run workflow** (branch `main`) → **Run workflow**.
+2. Wait for the green check (about 10 minutes the first time, faster once the Rust cache is warm).
+3. Open the run and download **CoCommit-windows-installers** under **Artifacts**. It's a `.zip` with both installers; artifacts are kept 14 days.
+
+The setup `.exe` is the easiest to give people: double-click → installs for that Windows user, with Start menu and Desktop shortcuts. It isn't code-signed, so Windows says "unknown publisher": **More info** → **Run anyway**. Like the macOS build, it also runs on pull requests that change `src-tauri/`.
+
 ## macOS `.dmg` without a Mac (GitHub)
 
 `.github/workflows/desktop-macos.yml` builds a universal `.dmg` (Apple Silicon and Intel) on a GitHub-hosted Mac:
