@@ -10,6 +10,7 @@ The desktop app is only reachable as a GitHub Actions artifact (private repo, lo
 1. **Installers** live in `public/downloads/` (served at `/downloads/<file>`):
    - `CoCommit-macos.dmg`, universal build (from the CI artifact `CoCommit-macos-dmg`, unzipped, then renamed).
    - Windows: not built yet. Button shows "Windows: coming soon" (disabled).
+   - **Update (Claude-Kin, 2026-10-15):** `CoCommit-windows-setup.exe` added (NSIS setup built from `main`'s `src-tauri/`, same code as the hosted `.dmg`), `href` set, plus an "unknown publisher → More info → Run anyway" hint under the Windows button. Needs a deploy to go live.
 2. **`src/lib/downloads.ts`**: one list of platforms (`id`, label, `href | null`, `file`) and a `detectOs(userAgent)` helper (mac / windows / other).
 3. **`src/components/DownloadButton.tsx`** (client component):
    - Detects the OS after mount (no SSR mismatch), shows "Download for macOS" (link with `download`) or the disabled Windows button.

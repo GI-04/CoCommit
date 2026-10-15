@@ -49,6 +49,11 @@ export function DownloadButton({ className = "" }: { className?: string }) {
           If macOS says it can't be opened, run <code>xattr -cr /Applications/CoCommit.app</code> once in Terminal.
         </p>
       )}
+      {mine?.id === "windows" && mine.href && (
+        <p className="text-xs text-muted">
+          If Windows says &ldquo;unknown publisher&rdquo;, choose <strong>More info</strong> → <strong>Run anyway</strong>.
+        </p>
+      )}
     </div>
   );
 }

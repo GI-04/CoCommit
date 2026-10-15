@@ -9,7 +9,7 @@ export type Download = {
 
 export const downloads: Download[] = [
   { id: "macos", label: "macOS", href: "/downloads/CoCommit-macos.dmg" },
-  { id: "windows", label: "Windows", href: null },
+  { id: "windows", label: "Windows", href: "/downloads/CoCommit-windows-setup.exe" },
 ];
 
 export function detectOs(userAgent: string): OsId | null {

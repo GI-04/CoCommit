@@ -94,7 +94,7 @@
         "bridge",
         "testing"
       ],
-      "summary": "How the desktop app's Repo page works on a local clone: the 12 Tauri git commands, status parsing, the screen, safety rules, and testing in a normal browser with the Node git bridge. Rust command registration and desktop permissions remain pending.",
+      "summary": "How the desktop app's Repo page works on a local clone: the 12 Tauri git commands (Rust side in PR #11: guards, dialog plugin, live-site-only permission), status parsing, the screen, safety rules, and testing in a normal browser with the Node git bridge.",
       "path": "knowledge/general/local-git.md",
       "sources": [
         "sources/general/local-git-bridge.mjs"
@@ -117,6 +117,54 @@
       ],
       "summary": "Profile page/helper, saved auth metadata, own-row mirror, provider separation, sidebar refresh and fresh chat names; controlled tests and live verification limits.",
       "path": "knowledge/general/account-profile.md",
+      "sources": [],
+      "added": "2026-10-15"
+    },
+    {
+      "id": "desktop-app",
+      "title": "Desktop app (Tauri shell, builds, installers)",
+      "kind": "reference",
+      "tags": [
+        "desktop",
+        "tauri",
+        "windows",
+        "macos",
+        "msi",
+        "exe",
+        "dmg",
+        "installer",
+        "github-actions",
+        "webview2",
+        "new-window",
+        "links",
+        "sign-in",
+        "cookies",
+        "testing"
+      ],
+      "summary": "The Tauri window that loads the live site: window setup and new-window links (system browser), sign-in and cookies in WebView2, local/GitHub Actions builds for .msi/.exe/.dmg, unsigned-install steps, and testing the window through the WebView2 debug port.",
+      "path": "knowledge/general/desktop-app.md",
+      "sources": [],
+      "added": "2026-10-15"
+    },
+    {
+      "id": "email-login",
+      "title": "Email/password login and permissions (auth-email.ts, permissions.ts)",
+      "kind": "reference",
+      "tags": [
+        "email",
+        "password",
+        "login",
+        "sign-up",
+        "reset",
+        "supabase",
+        "auth",
+        "permissions",
+        "git",
+        "chat",
+        "profiles"
+      ],
+      "summary": "Email/password helpers (sign up, log in, reset, sign out, friendly errors), what email/Google/GitHub users may do (permissions.ts), the profiles name fallback, and open gaps (form and /login/reset page are Trin's; Supabase settings are Pattadon's).",
+      "path": "knowledge/general/email-login.md",
       "sources": [],
       "added": "2026-10-15"
     }
