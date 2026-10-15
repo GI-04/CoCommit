@@ -18,10 +18,10 @@ Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). 
 - The macOS steps are written down and work on Pattadon's Mac.
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
-- **Owner:** — · **Taken on:** —
-- **Scope:** —
-- **Progress:** —
-- **Blockers:** none
+- **Owner:** Kin (with Claude-Kin) · **Taken on:** 2026-10-15
+- **Scope:** `src-tauri/` (Rust entry files, config, icons, BUILDING.md); `next.config.ts` static-export switch removed. Branch `kin/desktop-builds`.
+- **Progress:** Rust files filled; window loads `build.frontendDist` (`http://localhost:3000` until the Vercel URL exists); placeholder icons generated; macOS + Windows steps in `src-tauri/BUILDING.md`. Windows build OK (`.msi` 2.7 MB + NSIS `.exe` 1.8 MB, 3 min); built app launches. Not yet tested: sign-in/commit/chat inside it (screens are still empty), the macOS steps on a Mac.
+- **Blockers:** acceptance needs the Vercel URL (Pattadon's accounts task) and working screens; then set `build.frontendDist` and rebuild.
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
