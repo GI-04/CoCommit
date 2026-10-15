@@ -9,6 +9,7 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 - **AI context = `COCOMMIT/` team workspace** (`PLAN/2026-10-15-context-workspace.md`, active). `src/lib/context.ts` builds and edits it. Next is the load/save layer on `readFile`/`commitFiles` (Claude-Pattadon). The Context screen tabs are Trin's.
 - Desktop: Kin's Tauri app loads the live site (PR #3). Pattadon builds the `.dmg` per `src-tauri/BUILDING.md`.
 - GitHub OAuth apps: still to do (Pattadon, `OUTPUT/accounts-and-keys-setup.md`). Until then sign-in and git buttons use fake data.
+- **`feat/recent-activity` (proud, PR open):** `listCommits`, `listPinned` and (new) `listMergedPulls` return `Activity` items for `COCOMMIT/LOG.md` (`addActivity` in `context.ts`). Plan `PLAN/2026-10-15-recent-activity.md`; note for Claude-Pattadon `BOARD/Pending/2026-10-15-use-recent-activity-feed.md`. PR next.
 
 ## Exact next step
 1. Pattadon: create the two GitHub OAuth apps (callback `/api/github/callback` on localhost and on https://cocommit.vercel.app), add the keys to `.env.local` and Vercel, then redeploy.

@@ -17,7 +17,9 @@
         "api",
         "fake-mode",
         "testing",
-        "mock"
+        "mock",
+        "recent-activity",
+        "commits"
       ],
       "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes and cookie, fake mode, and how to test against a local fake GitHub.",
       "path": "knowledge/general/github-api.md",
@@ -38,7 +40,9 @@
         "messages",
         "git-event",
         "fake-mode",
-        "schema"
+        "schema",
+        "recent-activity",
+        "pinned"
       ],
       "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode.",
       "path": "knowledge/general/chat.md",

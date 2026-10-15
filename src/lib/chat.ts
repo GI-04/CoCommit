@@ -6,6 +6,7 @@
 // Table and access rules: supabase/schema.sql.
 
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import type { Activity } from "./context";
 import type { Session } from "./github-types";
 import { getSupabase, supabaseConfigured } from "./supabase";
 
@@ -135,6 +136,31 @@ async function post(repo: string, text: string, kind: ChatMessage["kind"]): Prom
   const { data, error } = await supabase.from("messages").insert({ repo, author, text: body, kind }).select(COLUMNS).single();
   if (error) throw new Error(friendly(error));
   return toMessage(data as Row);
+}
+
+/** Pinned messages in a repo, newest first, as activity items for COCOMMIT/LOG.md (see addActivity in context.ts). */
+export async function listPinned(repo: string, limit = 10): Promise<Activity[]> {
+  const supabase = getSupabase();
+  let pinned: ChatMessage[];
+  if (!supabase) {
+    pinned = fake
+      .read()
+      .filter((m) => m.repo === repo && m.pinned)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, limit);
+  } else {
+    await ensureSession(supabase);
+    const { data, error } = await supabase
+      .from("messages")
+      .select(COLUMNS)
+      .eq("repo", repo)
+      .eq("pinned", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(friendly(error));
+    pinned = (data as Row[]).map(toMessage);
+  }
+  return pinned.map((m) => ({ kind: "pinned", author: m.author, text: m.text, at: m.createdAt }));
 }
 
 /** Pins a message (or unpins it with `pinned: false`). */

@@ -62,9 +62,25 @@ createServer(async (req, res) => {
     if (prCount === 1) return send(res, 201, pr);
     return send(res, 422, { message: "Validation Failed", errors: [{ message: "A pull request already exists for acme:feature/x." }] });
   }
+  if (m === "GET" && p === `${R}/pulls` && url.searchParams.get("state") === "closed") {
+    const closed = [
+      { number: 5, title: "Chat backend", merged_at: "2026-10-15T07:40:00Z", user: { login: "mock-user" } },
+      { number: 4, title: "Closed without merging", merged_at: null, user: { login: "someone" } },
+      { number: 3, title: "Git API", merged_at: "2026-10-15T06:00:00Z", user: { login: "mock-user" } },
+    ];
+    return send(res, 200, closed.slice(0, Number(url.searchParams.get("per_page") ?? 30)));
+  }
   if (m === "GET" && p === `${R}/pulls`) {
     const ok = url.searchParams.get("head") === "acme:feature/x" && url.searchParams.get("base") === "main";
     return send(res, 200, ok ? [pr] : []);
+  }
+  if (m === "GET" && p === `${R}/commits`) {
+    const all = [
+      { author: { login: "mock-user" }, commit: { message: "Add chat\n\nLonger body that should be dropped", author: { name: "Mock User", date: "2026-10-15T07:30:00Z" } } },
+      { author: null, commit: { message: "Fix typo", author: { name: "Someone Without Account", date: "2026-10-15T06:00:00Z" } } },
+      { author: { login: "mock-user" }, commit: { message: "Initial commit", author: { name: "Mock User", date: "2026-10-14T23:00:00Z" } } },
+    ];
+    return send(res, 200, all.slice(0, Number(url.searchParams.get("per_page") ?? 30)));
   }
   if (m === "GET" && p === `${R}/contents/COCOMMIT.md`) return send(res, 200, { type: "file", content: Buffer.from("# COCOMMIT.md\nสวัสดี ✓\n").toString("base64") });
   if (m === "GET" && p.startsWith(`${R}/contents/`)) return send(res, 404, { message: "Not Found" });

@@ -8,7 +8,7 @@
 import { postGitEvent } from "./chat";
 import type { GitHubActions as Actions } from "./github-types";
 
-export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
+export type { Activity, Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
 
 export class GitHubRequestError extends Error {
   status: number;
@@ -40,11 +40,16 @@ export const getChanges = action("getChanges");
 export const readFile = action("readFile");
 export const listFiles = action("listFiles");
 export const readContext = action("readContext");
+/** Latest commits / merged PRs as COCOMMIT/LOG.md activity items (see addActivity in context.ts). */
+export const listCommits = action("listCommits");
+export const listMergedPulls = action("listMergedPulls");
 
 // These three also post a git event into the repo's chat. If posting fails, the commit still counts.
 const announce = (repo: string, summary: string) => void postGitEvent(repo, summary).catch(() => {});
 
 const commit = action("commitFiles");
+/** Same as commitFiles, but no git event in chat: for automatic bookkeeping commits such as COCOMMIT/LOG.md updates. */
+export const commitFilesQuietly = commit;
 export async function commitFiles(...args: Parameters<typeof commit>) {
   const result = await commit(...args);
   announce(args[0], `committed “${args[3]}” to ${result.branch}`);

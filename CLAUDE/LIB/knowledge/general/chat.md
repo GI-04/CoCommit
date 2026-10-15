@@ -8,7 +8,7 @@
 ## Details
 - **Who's talking (no app login for the demo):** before any read or write, chat signs in to Supabase anonymously (once per browser; "Allow anonymous sign-ins" must be on). The name is the GitHub account from `/api/github/getSession` (ignored in GitHub fake mode), else a Google login, else a per-tab guest name. The Google login wall is off unless `REQUIRE_GOOGLE_LOGIN=true`.
 - **Don't import `github.ts` from browser code, even for types:** it made `next dev` reload two open tabs forever. Use `github-types.ts`.
-- **Functions:** `loadMessages(repo, limit?)` (oldest first), `sendMessage(repo, text)`, `postGitEvent(repo, summary)`, `pinMessage(id, pinned?)`, `subscribe(repo, onMessage)` and `onlineUsers(repo, onChange)` (both return a stop function), `myName()`, `mergeMessage(list, m)` (add or replace by id, keeps order), `chatFake`.
+- **Functions:** `loadMessages(repo, limit?)` (oldest first), `sendMessage(repo, text)`, `postGitEvent(repo, summary)`, `pinMessage(id, pinned?)`, `listPinned(repo, limit?)` (pinned messages, newest first, as `Activity` items for `COCOMMIT/LOG.md`), `subscribe(repo, onMessage)` and `onlineUsers(repo, onChange)` (both return a stop function), `myName()`, `mergeMessage(list, m)` (add or replace by id, keeps order), `chatFake`.
 - **Shape:** `ChatMessage = { id, repo, author, text, kind: "text" | "git_event", pinned, createdAt }`, the same as `mock.ts`.
 - **Your own messages come back through `subscribe` too.** Always add with `mergeMessage`, so nothing shows twice.
 - **Git events:** `github-client.ts` posts one after every `commitFiles`, `openPullRequest` and `writeContext`. If posting fails, it's ignored.
