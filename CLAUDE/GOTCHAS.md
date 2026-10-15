@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — Turbopack build blocked by local port restriction
+- **What failed:** `npm run build` failed while evaluating globals.css, including after retrying outside the sandbox.
+- **Evidence:** creating new process → binding to a port → Operation not permitted (os error 1).
+- **Workaround:** `npm run build -- --webpack` passed, including TypeScript and all page generation. This is an environment workaround; default build configuration was not changed.
+
 ## 2026-10-15 — New Vercel env vars ignored until a fresh build
 - **What failed:** after adding `GITHUB_CLIENT_ID`/`SECRET` to Vercel Production, `vercel deploy --prod` still served fake mode (`getSession` → `"fake":true`).
 - **Evidence:** the values were correct in Vercel (`Ov23…`, 20 chars), but the deploy reused the build cache.

@@ -21,7 +21,7 @@
         "recent-activity",
         "commits"
       ],
-      "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes and cookie, fake mode, and how to test against a local fake GitHub.",
+      "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes and cookie, fake mode, and how to test against a local fake GitHub. Built-in fake file persistence covers only legacy COCOMMIT.md.",
       "path": "knowledge/general/github-api.md",
       "sources": [
         "sources/general/mock-github.mjs"
@@ -42,9 +42,11 @@
         "fake-mode",
         "schema",
         "recent-activity",
-        "pinned"
+        "pinned",
+        "decisions",
+        "gotchas"
       ],
-      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode.",
+      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Display names remain client-supplied; the screen uses a fixed repo. Chat actions save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
       "path": "knowledge/general/chat.md",
       "sources": [],
       "added": "2026-10-15"
@@ -67,7 +69,7 @@
         "testing",
         "mock"
       ],
-      "summary": "The COCOMMIT/ team-context folder each repo gets: file layout, the load/save functions screens call, how LOG.md fills itself from commits/PRs/pinned chat, and the end-to-end test against a stateful fake GitHub.",
+      "summary": "The COCOMMIT/ team-context folder each repo gets: file layout, the load/save functions screens call, how LOG.md fills itself from commits/PRs/pinned chat, and the end-to-end test against a stateful fake GitHub. Service exists on main; Context screen wiring remains pending.",
       "path": "knowledge/general/context-workspace.md",
       "sources": [
         "sources/general/workspace-e2e/"
@@ -92,11 +94,30 @@
         "bridge",
         "testing"
       ],
-      "summary": "How the desktop app's Repo page works on a local clone: the 12 Tauri git commands, status parsing, the screen, safety rules, and testing in a normal browser with the Node git bridge.",
+      "summary": "How the desktop app's Repo page works on a local clone: the 12 Tauri git commands, status parsing, the screen, safety rules, and testing in a normal browser with the Node git bridge. Rust command registration and desktop permissions remain pending.",
       "path": "knowledge/general/local-git.md",
       "sources": [
         "sources/general/local-git-bridge.mjs"
       ],
+      "added": "2026-10-15"
+    },
+    {
+      "id": "account-profile",
+      "title": "Account profile and settings (/profile)",
+      "kind": "reference",
+      "tags": [
+        "profile",
+        "account",
+        "supabase",
+        "name",
+        "avatar",
+        "email",
+        "password",
+        "sidebar"
+      ],
+      "summary": "Profile page/helper, saved auth metadata, own-row mirror, provider separation, sidebar refresh and fresh chat names; controlled tests and live verification limits.",
+      "path": "knowledge/general/account-profile.md",
+      "sources": [],
       "added": "2026-10-15"
     }
   ]

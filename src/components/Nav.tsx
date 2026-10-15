@@ -11,8 +11,8 @@ export function Nav() {
     `block rounded-md px-3 py-2 text-sm ${path.startsWith(href) ? "bg-accent text-accent-fg" : "hover:bg-line/60"}`;
 
   return (
-    <nav className="sticky top-0 flex h-dvh w-52 shrink-0 flex-col gap-1 border-r border-line bg-surface p-4">
-      <Link href="/" className="mb-4 px-3 text-lg font-bold">
+    <nav aria-label="Main navigation" className="flex w-full shrink-0 flex-wrap items-center gap-1 border-b border-line bg-surface p-3 md:sticky md:top-0 md:h-dvh md:w-52 md:flex-col md:items-stretch md:border-b-0 md:border-r md:p-4">
+      <Link href="/" className="mr-auto px-3 text-lg font-bold md:mb-4 md:mr-0">
         CoCommit
       </Link>
       {sections.map((s) => (
@@ -20,9 +20,9 @@ export function Nav() {
           {s.label}
         </Link>
       ))}
-      <p className="mt-6 px-3 text-xs uppercase tracking-wide text-muted">Coming soon</p>
+      <p className="mt-6 hidden px-3 text-xs uppercase tracking-wide text-muted md:block">Coming soon</p>
       {comingSoon.map((s) => (
-        <Link key={s.href} href={s.href} className={`${item(s.href)} text-muted`}>
+        <Link key={s.href} href={s.href} className={`${item(s.href)} hidden text-muted md:block`}>
           {s.label}
         </Link>
       ))}

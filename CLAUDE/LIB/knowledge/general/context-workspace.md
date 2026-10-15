@@ -6,6 +6,7 @@
 Each repo's shared AI context is a `COCOMMIT/` folder laid out like our own `CLAUDE/` (CONTEXT, PROJECT, COLLAB, HANDOFF, TODO, LOG, DECISIONS, GOTCHAS, BOARD/). `context.ts` is pure text in/out (no imports, so `github-types.ts` can use its `Activity` type). `workspace.ts` is for `"use client"` screens: it reads files with `readFile`, applies `context.ts`, and commits with `commitFiles`. Every commit message starts with `COCOMMIT:`.
 
 ## Details
+- **Current integration (2026-10-15 inspection):** The service layer is on `main`; `src/app/context/page.tsx` still renders mock sections and saves only in component state. The tabbed workspace UI, setup button and real save wiring remain pending.
 - **Screens call:** `loadWorkspace(repo)` (null = not set up; else `{ files, handoff, collab, todo, decisions, gotchas, log }`), `setUpWorkspace(repo, form)` ("Set up team context" button; also puts `@COCOMMIT/CONTEXT.md` atop CLAUDE.md and a pointer line in AGENTS.md, keeping what was there), `saveHandoff`, `addDecisionTo`, `addGotchaTo`, `saveMember`, `saveTodo`, generic `updateFile(repo, key, edit, text)` / `saveFiles(repo, edits, text)`.
 - **Edits that change nothing make no commit** (`updateFile` returns null).
 - **Log:** `refreshLog(repo)` merges `listCommits` + `listMergedPulls` + `listPinned` into LOG.md with `addActivity` (time-sorted, no duplicates, max 100 lines), skips `COCOMMIT:` commits, commits with `commitFilesQuietly` (no chat event), and returns null when nothing is new. Cheap to call each time the Context screen opens.

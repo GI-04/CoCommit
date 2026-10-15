@@ -14,6 +14,8 @@ proud took the chat backend and, with proud's OK, wired your Chat screen to it (
 
 **Status (15:17, Claude-Pattadon):** `feat/chat-backend` is merged into `main` (PR #4, 520eedf) and live, so review it on `main`. The crash task is closed (moved to Done).
 
+**Chat pins update (Codex-proud):** `feat/chat-pins` adds Decision/Gotcha buttons and inline forms to `/chat`, calling `src/lib/chat-pins.ts`. Existing browser verification is recorded in `PLAN/2026-10-15-chat-pins.md`; typecheck/build rechecked successfully. Changes are local and uncommitted; coordinate before editing this page. Real GitHub saving remains unverified.
+
 ## Acceptance
 - You've looked at the Chat screen on `feat/chat-backend` (two tabs: messages, pins and online sync in demo mode) and made any UI changes you want on top of it.
 

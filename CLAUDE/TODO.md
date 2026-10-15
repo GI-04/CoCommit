@@ -3,6 +3,7 @@
 <!-- Backlog and open questions. Not claimed work: when someone commits to an item, it becomes a task on BOARD/. Prune done items. -->
 
 ## Backlog
+- [ ] Profile QA with a real signed-in account: save/reload name/photo, sidebar/future chat, email confirmation and password update. Implementation tested with fixtures; no live credentials changed. (Pattadon)
 - [ ] Supabase setup for chat: turn on "Allow anonymous sign-ins", run `supabase/profiles.sql` then `supabase/schema.sql`. (Pattadon)
 - [ ] Real chat test after that: two browsers (no login needed) chat live on the deployed site. (proud)
 - [ ] Share the picked repo between the Repo and Chat screens (Chat uses `repos[0]` from `mock.ts` for now). (Trin)

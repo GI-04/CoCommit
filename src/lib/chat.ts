@@ -44,15 +44,12 @@ export function mergeMessage(list: ChatMessage[], m: ChatMessage): ChatMessage[]
   return next.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
-let nameOnce: Promise<string> | null = null;
-
-/** The name shown in chat: the GitHub account, else a Google login, else a guest name for this tab (so two tabs look like two people). */
-export function myName(): Promise<string> {
-  nameOnce ??= resolveName();
-  return nameOnce;
-}
-
-async function resolveName(): Promise<string> {
+/** Resolve each time so profile edits and sign-in changes affect future messages. */
+export async function myName(): Promise<string> {
+  const { data } = (await getSupabase()?.auth.getUser()) ?? { data: { user: null } };
+  if (data.user && !data.user.is_anonymous) {
+    return data.user.user_metadata?.full_name || data.user.user_metadata?.name || data.user.email?.split("@")[0] || "You";
+  }
   try {
     const res = await fetch("/api/github/getSession", { method: "POST", headers: { "Content-Type": "application/json" }, body: "[]" });
     const s = (await res.json()) as Session;
@@ -60,9 +57,7 @@ async function resolveName(): Promise<string> {
   } catch {
     // Not signed in to GitHub, or offline: fall through.
   }
-  const { data } = (await getSupabase()?.auth.getUser()) ?? { data: { user: null } };
-  const google = data.user && !data.user.is_anonymous ? (data.user.user_metadata?.full_name ?? data.user.email) : null;
-  return google ?? fake.name();
+  return fake.name();
 }
 
 let sessionOnce: Promise<void> | null = null;

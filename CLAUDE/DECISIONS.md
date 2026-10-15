@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-15 — CoCommit profile uses auth metadata; providers remain separate
+- **Status:** active
+- **Decision:** `/profile` saves full_name/avatar_url to Supabase Auth metadata, then mirrors only name/avatar_url to the authenticated user's existing profiles row. A mirror failure is reported as partial sync, not lost profile data. Email/password updates require the current password. GitHub-owned details link to GitHub settings.
+- **Why:** persistent edits work with existing deployed permissions; no new migration or silent linking of unrelated identities. Sidebar and future chat use the same saved CoCommit name first.
+- **Alternatives:** browser-only storage (not durable), editing GitHub directly (requires different scope), unified auth (separate pending task).
+- **Supersedes / superseded by:** supersedes GitHub-first display-name priority when a real CoCommit account is also signed in; identity unification remains pending.
+
 ## 2026-10-15 — AI context is a COCOMMIT/ team workspace, not one file
 - **Status:** active
 - **Decision:** Replace the single `COCOMMIT.md` with a `COCOMMIT/` folder laid out like /initiate-team (CONTEXT, PROJECT, COLLAB, HANDOFF, TODO, LOG, DECISIONS, GOTCHAS, BOARD), written by a "Set up team context" button. See `PLAN/2026-10-15-context-workspace.md`.

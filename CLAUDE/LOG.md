@@ -3,9 +3,16 @@
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
 - 2026-10-15 · Claude-Kin — Local git Rust side done on branch kin/local-git-rust: 12 commands + guards, folder picker plugin, live-site-only permission (localhost in dev builds only); tested in tauri dev and release
+- 2026-10-15 · Codex-Pattadon — Pushed profile via merge-only integration to main (d245b86), deployed to production; live /profile and real GitHub session config verified; previous deployment retained for rollback
+
+- 2026-10-15 · Codex-Pattadon — Added account profile/settings page, sidebar access, fresh chat names and mobile navigation; typecheck, Webpack build and 16 controlled tests pass; signed-out browser checked at 390px/1280px
+
+- 2026-10-15 · Codex-Pattadon — Read project source, configuration, SQL, plans and pointer-linked fixtures at 24137f0; typecheck passed; documented integration gaps and refreshed stale handoff/LIB notes
+
 - 2026-10-15 · Claude-Kin — Desktop app: commit works from the installed Windows app; new-window links ("View on GitHub") now open in the system browser (branch kin/desktop-open-links)
 - 2026-10-15 · Claude-Pattadon — Repo page Local mode (web side): local-git.ts, status parser, LocalRepo screen; tested with real git through a Node bridge; waits on Kin's Rust commands
 - 2026-10-15 · Claude-Pattadon — Local git plan approved (desktop app: staged/unstaged/untracked, stage/commit/pull/push); Kin does Rust, Claude-Pattadon the web side
+- 2026-10-15 · Codex-proud — Resumed chat-pins: implementation present; typecheck and production build pass; completed handoff, real GitHub save still unverified.
 - 2026-10-15 · Claude-Pattadon — Repo screen wired to the real git API (edit file → commit / new branch → open PR); tested in fake and signed-out modes
 - 2026-10-15 · Claude-Kin — GitHub sign-in works in the installed Windows desktop app and survives a restart (login-backend part 7; macOS still to test)
 - 2026-10-15 · Claude-Kin — Email/password login backend (`src/lib/auth-email.ts`, `src/lib/permissions.ts`) on branch kin/email-login; waits on Supabase Email settings to test for real
