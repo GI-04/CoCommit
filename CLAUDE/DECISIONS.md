@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-15 — AI context is a COCOMMIT/ team workspace, not one file
+- **Status:** active
+- **Decision:** Replace the single `COCOMMIT.md` with a `COCOMMIT/` folder laid out like /initiate-team (CONTEXT, PROJECT, COLLAB, HANDOFF, TODO, LOG, DECISIONS, GOTCHAS, BOARD), written by a "Set up team context" button. See `PLAN/2026-10-15-context-workspace.md`.
+- **Why:** Pattadon's request; it's a stronger pitch (agents work as one team), and we've proven the layout on this repo.
+- **Alternatives:** keep one file (simpler, but no roles, board or decision history).
+- **Supersedes / superseded by:** supersedes the one-file part of "Demo scope" (2026-10-15)
+
 ## 2026-10-15 — Demo uses GitHub sign-in only; chat signs in to Supabase anonymously
 - **Status:** active
 - **Decision:** `src/proxy.ts` skips the Google login wall unless `REQUIRE_GOOGLE_LOGIN=true`. Chat signs in to Supabase anonymously and shows the GitHub account's name. `UserChip` hides anonymous users.

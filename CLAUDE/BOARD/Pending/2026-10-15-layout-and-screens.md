@@ -11,7 +11,7 @@ Fill the empty `src/app/layout.tsx`, `page.tsx`, `globals.css` and `src/componen
 - **Chat** (`src/app/chat/`): message list, input, online list, git events shown inline
 - **Context** (`src/app/context/`): shows and edits `COCOMMIT.md`
 Hide or mark "coming soon": calls, files, tasks.
-- Context screen: use `src/lib/context.ts` (`parseContext`, `updateSection`, `renderContext`, `addRecentActivity`) instead of the inline parser in `src/app/context/page.tsx`.
+- Context screen: now a **team workspace** (see `PLAN/2026-10-15-context-workspace.md`). Make tabs for Handoff, Team, Decisions, Gotchas, Log and Todo, plus a "Set up team context" button, all using `src/lib/context.ts` (`setupWorkspace`, `parseHandoff`/`renderHandoff`, `parseCollab`/`upsertMember`, `addDecision`, `addGotcha`, `parseTodo`/`renderTodo`, `addActivity`). Chat gets "Pin as decision / gotcha" buttons.
 
 Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). Work on your own branch and merge by PR.
 
