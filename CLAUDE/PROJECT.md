@@ -12,11 +12,14 @@ CoCommit replaces the messy Discord-to-GitHub workflow with one platform. It mak
 - unknown — ask (e.g. replacing GitHub itself, a full IDE).
 
 ## Stack
-- **Proposed, not decided:** see `PLAN/2026-10-15-stack.md` (Next.js PWA + Tauri 2 desktop, GitHub API, Supabase, LiveKit).
+- **Approved 2026-10-15:** see `PLAN/2026-10-15-stack.md` (Next.js PWA + Tauri 2 desktop, GitHub API, Supabase, LiveKit).
 
 ## Architecture
-Not built yet. The proposed plan has three parts: the web/PWA client, a Tauri desktop shell that can run local git, and hosted services for auth, realtime data, storage and calls.
+Skeleton only. Three parts: the web/PWA client, a Tauri desktop shell that can run local git, and hosted services for auth, realtime data, storage and calls.
 
 ## Key paths
-- `README.md`: project readme (title only so far).
+- `README.md`: overview, setup, layout.
+- `src/app/`: pages (`repo`, `chat`, `tasks`, `files`, `calls`) and API routes.
+- `src/lib/git.ts`: one git interface; Tauri (local git) or GitHub API backend.
+- `src-tauri/`: desktop shell (Rust).
 - `CLAUDE/`: agent workspace (instructions, board, memory).

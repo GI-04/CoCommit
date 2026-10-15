@@ -1,15 +1,15 @@
 # Handoff
 
-<!-- Current state and the exact next step, so anyone can pick up cold. Rewritten (not appended) at the end of every loop. Keep under ~30 lines. -->
-
 **Last updated:** 2026-10-15 · **By:** Claude
 
 ## Current state
-Fresh repo: only `README.md` plus the `CLAUDE/` workspace. No code yet. The stack is proposed in `PLAN/2026-10-15-stack.md`, awaiting Pattadon's approval.
+Stack plan approved (`PLAN/2026-10-15-stack.md`, active). Project skeleton is **structure only**: every code file in `src/` and `src-tauri/src/` (plus `src-tauri/build.rs`) is an empty placeholder, by Pattadon's request. Config files are filled in (`package.json`, `tsconfig.json`, `next.config.ts`, `postcss.config.mjs`, `src-tauri/tauri.conf.json`, `Cargo.toml`, `.env.example`, PWA manifest). Pattadon is running `npm install`. Nothing committed yet.
 
 ## Exact next step
-Pattadon reviews `PLAN/2026-10-15-stack.md` and sets it to `active` or `rejected`. Once it's approved, scaffold the Next.js app (asking before installs).
+Fill in the empty files, starting with `src/app/layout.tsx` and `src/app/page.tsx`. `npm run dev` errors until both have a default export. Then commit the skeleton (ask first).
 
 ## Watch out
 - Ask before commit, push, package installs or deleting files.
 - Give shell commands in both zsh and PowerShell 7.
+- Tauri needs Rust and generated icons (`npx tauri icon logo.png`) before `npm run tauri dev`.
+- Static export (Tauri build) can't include API routes; see GOTCHAS.
