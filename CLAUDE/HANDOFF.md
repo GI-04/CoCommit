@@ -4,16 +4,15 @@
 
 ## Current state
 Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud).
-- **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It was deployed with the CLI from Pattadon's laptop, so pushes do NOT auto-deploy: run `vercel deploy --prod`. Keys: Pattadon follows `OUTPUT/accounts-and-keys-setup.md` (GitHub OAuth apps and Supabase still to do).
-- **`main`:** layout, nav and Repo/Chat/Context screens on fake data (frontend is Trin's); `src/lib/context.ts` (AI context, Claude-Pattadon, waiting on proud's `readContext`/`writeContext`); Kin's Tauri shell (Windows `.msi` builds; the window loads `http://localhost:3000` until the Vercel URL is put in `src-tauri/tauri.conf.json` `build.frontendDist`).
-- **`feat/github-api` (pushed; included in PR #4, no PR of its own):** the git API (proud, 7858f94: `src/lib/github.ts`, `github-client.ts`, `src/app/api/github/`; tested in fake mode and against a fake GitHub, not on real GitHub) and Google sign-in (Claude-Pattadon, 5d05bf3; not tested with real keys).
-- **`feat/chat-backend` (pushed, PR #4):** made from `feat/github-api` with `main` merged in (1fd522d). Chat backend built (ec2b997): `supabase/schema.sql`, `src/lib/chat.ts`, git events in `github-client.ts`, `/chat` wired (plan `PLAN/2026-10-15-chat-backend.md`, option A; task `BOARD/Taken/2026-10-15-chat-backend.md`). Tested in fake mode with two browser tabs; **not tested on real Supabase** (no keys). How it works: LIB entry `chat`.
+- **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It was deployed with the CLI from Pattadon's laptop, so pushes do NOT auto-deploy: run `vercel deploy --prod`. **Supabase project exists; its URL and anon key are in Vercel Production (no tables yet).** GitHub OAuth apps are still to do (`OUTPUT/accounts-and-keys-setup.md`).
+- **`main`:** layout, nav and Repo/Chat/Context screens on fake data (frontend is Trin's); `src/lib/context.ts` (AI context, Claude-Pattadon, waiting on proud's `readContext`/`writeContext`); Kin's Tauri shell, which now loads https://cocommit.vercel.app (PR #3). Pattadon builds the `.dmg` per `src-tauri/BUILDING.md`.
+- **PR #4 (draft while being fixed)** (https://github.com/GI-04/CoCommit/pull/4, `feat/chat-backend` → `main`) holds the git API (proud, 7858f94), Google sign-in (Claude-Pattadon, 5d05bf3) and the chat backend (proud, ec2b997). `feat/github-api` has no PR of its own; it's included. Task: `BOARD/Taken/2026-10-15-open-pr-github-api.md`.
+- **Fixing PR #4 per Pattadon's request:** no Google login wall for the demo (GitHub sign-in only); chat signs in to Supabase anonymously and uses the GitHub name. Then typecheck and build, push, and mark the PR ready.
 
 ## Exact next step
-1. **PR #4** (https://github.com/GI-04/CoCommit/pull/4, `feat/chat-backend` → `main`) holds all three pieces: git API, Google sign-in, chat. Pattadon reviews and merges it; it has a setup checklist (keys, both SQL files, redeploy). After the merge, `feat/github-api` isn't needed. No CI checks are set up on the repo.
-2. Trin: `BOARD/Pending/2026-10-15-wire-screens-to-github.md` (Repo and Context screens).
-3. Pattadon: GitHub OAuth app(s) with callback `/api/github/callback` (localhost and Vercel) and the Supabase project; run `supabase/profiles.sql`, then `supabase/schema.sql` (chat).
-4. Kin: put https://cocommit.vercel.app in `build.frontendDist`, rebuild; Pattadon builds the `.dmg` per `src-tauri/BUILDING.md`.
+1. proud: finish the PR #4 fix above, push, mark ready for review.
+2. Pattadon: in Supabase, turn on **Anonymous sign-ins** and run `supabase/profiles.sql` and `supabase/schema.sql`; create the GitHub OAuth app(s) (callback `/api/github/callback` on localhost and Vercel); merge PR #4, then `vercel deploy --prod`.
+3. Trin: `BOARD/Pending/2026-10-15-wire-screens-to-github.md` (Repo and Context screens) and `2026-10-15-review-chat-screen.md`.
 
 ## Watch out
 - Ask before commit, push, package installs or deleting files.
