@@ -6,6 +6,7 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import type { Activity } from "./context";
+import { GitModeError, modesByPath, treeEntries, type TreeListing } from "./git-modes";
 import { hasGitHubIdentity } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
 import type { Change, Commit, FileEdit, GitHubActions, PullRequest, Repo, Session, User } from "./github-types";
@@ -267,16 +268,19 @@ export async function commitFiles(repo: string, branch: string, files: FileEdit[
   }
 
   const baseTree = (await gh<{ tree: { sha: string } }>(`${r}/git/commits/${parent}`)).tree.sha;
+  // Keep each existing file's mode (executable scripts stay executable; symlinks and submodules are refused).
+  // If GitHub truncates the listing, unlisted files fall back to a plain file, as before.
+  const listing = await gh<{ tree: TreeListing[]; truncated?: boolean }>(`${r}/git/trees/${baseTree}?recursive=1`);
+  let entries;
+  try {
+    entries = treeEntries(files, modesByPath(listing.tree ?? []));
+  } catch (e) {
+    if (e instanceof GitModeError) throw new GitHubError(400, e.message);
+    throw e;
+  }
   const tree = await gh<{ sha: string }>(`${r}/git/trees`, {
     method: "POST",
-    body: {
-      base_tree: baseTree,
-      tree: files.map((f) =>
-        f.content === null
-          ? { path: f.path, mode: "100644", type: "blob", sha: null }
-          : { path: f.path, mode: "100644", type: "blob", content: f.content },
-      ),
-    },
+    body: { base_tree: baseTree, tree: entries },
   });
   const commit = await gh<{ sha: string; html_url: string }>(`${r}/git/commits`, {
     method: "POST",

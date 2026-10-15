@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Kin — Demo polish built on kin/demo-polish: #general + repo chat with tabs, file modes kept on commit; 58/58 tests
 - 2026-10-16 · Claude-Pattadon — Calls live: PR #26 merged (`ac7e87a`), deploy passed, live token route 401 when signed out; task Done. Resolved PR #25 (proud/file-bot) docs-only conflicts with main (`6968f14`)
 - 2026-10-16 · Claude-proud — Built the `@cocommit` bot (PLAN/2026-10-15-file-bot.md active): /api/bot + 9 read-only tools + chat UI; typecheck, 30+4 tests and build pass; live answer not tried (no ANTHROPIC_API_KEY yet). Not committed.
 - 2026-10-16 · Claude-Pattadon — LiveKit calls built on claude/discord-api-chat-call-c18c19 (PLAN/2026-10-16-livekit-calls.md, active under the non-destructive rule; proud asked for it; Pattadon OK'd the 3 packages). Token route + /calls Join call + macOS camera/mic text; 29/29 tests, build passes. Real LiveKit Cloud test passed: two tabs in one room, Leave works; fixed blocked-mic kick-out and collapsed call area

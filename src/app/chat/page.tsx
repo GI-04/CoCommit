@@ -26,8 +26,8 @@ import {
   type DecisionFields,
   type GotchaFields,
 } from "@/lib/chat-pins";
+import { DEFAULT_REPO, GENERAL, getCurrentRepo } from "@/lib/current-repo";
 import { GitHubRequestError, signInHref } from "@/lib/github-client";
-import { repos } from "@/lib/mock";
 
 // The "Pin as decision / gotcha" form open under one message.
 type PinForm = { id: string; kind: "decision"; fields: DecisionFields } | { id: string; kind: "gotcha"; fields: GotchaFields };
@@ -38,10 +38,11 @@ const input = "w-full rounded-md border border-line bg-bg px-2 py-1 text-sm";
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-// The team's repo for now; sharing the picked repo with the Repo screen is a later step.
-const repo = repos[0].fullName;
 
 export default function ChatPage() {
+  // Two chats: #general (the whole team) and the repo picked on /repo. `chat` is the open one (messages.repo).
+  const [repo, setRepo] = useState(DEFAULT_REPO);
+  const [chat, setChat] = useState(DEFAULT_REPO);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [online, setOnline] = useState<string[]>([]);
   const [text, setText] = useState("");
@@ -54,18 +55,35 @@ export default function ChatPage() {
   const [botReplies, setBotReplies] = useState<BotReply[]>([]);
   const end = useRef<HTMLDivElement>(null);
 
-  // Load the history, then keep listening for new messages and pin changes.
+  // Once: who you are, whether you can post, and the repo picked on /repo (read here, not during render,
+  // so the server and browser render the same first frame).
   useEffect(() => {
     myName().then(setName);
     canPost().then(setMayPost).catch(() => setMayPost(false));
-    loadMessages(repo)
-      .then((list) => setMessages((now) => list.reduce(mergeMessage, now)))
-      .catch((e: Error) => setError(e.message));
-    return subscribe(repo, (m) => setMessages((now) => mergeMessage(now, m)));
+    const picked = getCurrentRepo();
+    setRepo(picked);
+    setChat(picked);
   }, []);
 
-  // Who's online, under your account name.
-  useEffect(() => (name ? onlineUsers(repo, setOnline) : undefined), [name]);
+  // The open chat's history, then live updates. Switching chats starts from an empty list, and a late
+  // answer for the previous chat is ignored.
+  useEffect(() => {
+    let current = true;
+    setMessages([]);
+    setPinForm(null);
+    setPinNote(null);
+    loadMessages(chat)
+      .then((list) => current && setMessages((now) => list.reduce(mergeMessage, now)))
+      .catch((e: Error) => current && setError(e.message));
+    const stop = subscribe(chat, (m) => current && setMessages((now) => mergeMessage(now, m)));
+    return () => {
+      current = false;
+      stop();
+    };
+  }, [chat]);
+
+  // Who's online in the open chat, under your account name.
+  useEffect(() => (name ? onlineUsers(chat, setOnline) : undefined), [name, chat]);
 
   // Braces matter: newer browsers return a Promise from scrollIntoView, and an effect may only return a cleanup function.
   useEffect(() => {
@@ -79,9 +97,10 @@ export default function ChatPage() {
   const ask = async (question: string) => {
     const id = crypto.randomUUID();
     setBotReplies((now) => [...now, { id, question }]);
-    const chat = messages.filter((m) => m.kind === "text").map(({ author, text, createdAt }) => ({ author, text, createdAt }));
+    const recent = messages.filter((m) => m.kind === "text").map(({ author, text, createdAt }) => ({ author, text, createdAt }));
     try {
-      updateReply(id, { result: await askBot(repo, question, chat) });
+      // The bot reads a repo's COCOMMIT/ files: the picked repo, also from #general.
+      updateReply(id, { result: await askBot(repo, question, recent) });
     } catch (err) {
       updateReply(id, {
         error: err instanceof Error ? err.message : "The bot couldn't answer.",
@@ -93,7 +112,7 @@ export default function ChatPage() {
   const shareReply = async (r: BotReply) => {
     if (!r.result) return;
     try {
-      const m = await sendMessage(repo, shareText(r.question, r.result));
+      const m = await sendMessage(chat, shareText(r.question, r.result));
       setMessages((now) => mergeMessage(now, m));
       updateReply(r.id, { shared: true });
     } catch (err) {
@@ -113,7 +132,7 @@ export default function ChatPage() {
       return;
     }
     try {
-      const m = await sendMessage(repo, draft);
+      const m = await sendMessage(chat, draft);
       setMessages((now) => mergeMessage(now, m));
       setError(null);
     } catch (err) {
@@ -159,7 +178,23 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-[calc(100dvh-4rem)] max-w-5xl flex-col">
-      <PageHeader title="Chat" subtitle={`# ${repo}${chatFake ? " · demo mode: messages stay in this browser" : ""}`} />
+      <PageHeader
+        title="Chat"
+        subtitle={`${chat === GENERAL ? "# general · the whole team" : `# ${chat}`}${chatFake ? " · demo mode: messages stay in this browser" : ""}`}
+      />
+      <div className="mb-3 flex gap-2" role="tablist" aria-label="Chats">
+        {[GENERAL, repo].map((id) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={chat === id}
+            onClick={() => setChat(id)}
+            className={`rounded-md border px-3 py-1 text-sm ${chat === id ? "border-accent bg-accent text-accent-fg" : "border-line hover:bg-line/60"}`}
+          >
+            # {id}
+          </button>
+        ))}
+      </div>
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_12rem]">
         <Card className="flex min-h-0 flex-col">
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
@@ -179,12 +214,16 @@ export default function ChatPage() {
                       <button onClick={() => togglePin(m)} className="ml-2">
                         {m.pinned ? "Unpin" : "Pin"}
                       </button>
-                      <button onClick={() => setPinForm({ id: m.id, kind: "decision", fields: decisionFields(m) })} className="ml-2">
-                        Decision
-                      </button>
-                      <button onClick={() => setPinForm({ id: m.id, kind: "gotcha", fields: gotchaFields(m) })} className="ml-2">
-                        Gotcha
-                      </button>
+                      {chat !== GENERAL && (
+                        <>
+                          <button onClick={() => setPinForm({ id: m.id, kind: "decision", fields: decisionFields(m) })} className="ml-2">
+                            Decision
+                          </button>
+                          <button onClick={() => setPinForm({ id: m.id, kind: "gotcha", fields: gotchaFields(m) })} className="ml-2">
+                            Gotcha
+                          </button>
+                        </>
+                      )}
                     </span>
                   </p>
                   <p className="whitespace-pre-wrap break-words text-sm">{m.text}</p>

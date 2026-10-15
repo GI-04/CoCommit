@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LocalRepo } from "@/components/LocalRepo";
 import { Button, Card, PageHeader } from "@/components/ui";
+import { setCurrentRepo } from "@/lib/current-repo";
 import { isDesktop } from "@/lib/local-git";
 import {
   commitFiles,
@@ -215,7 +216,16 @@ function GitHubRepo() {
       <PageHeader title="Repo" subtitle="Pick a branch, edit a file, commit, then open a pull request.">
         <div className="flex flex-wrap items-center gap-2">
           {fake && <span className="rounded-full border border-line px-2 py-1 text-xs text-muted">demo data</span>}
-          <select value={repo} onChange={(e) => setRepo(e.target.value)} className={field} aria-label="Repository">
+          <select
+            value={repo}
+            onChange={(e) => {
+              setRepo(e.target.value);
+              // Chat opens this repo's chat next time, but never one from the signed-out sample list.
+              if (!fake) setCurrentRepo(e.target.value);
+            }}
+            className={field}
+            aria-label="Repository"
+          >
             {repos.map((r) => (
               <option key={r.fullName}>{r.fullName}</option>
             ))}
