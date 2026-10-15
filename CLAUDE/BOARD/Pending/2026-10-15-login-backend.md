@@ -23,7 +23,9 @@ Make **GitHub sign-in the app's login**, and tie the Supabase user to it:
 
 Suggested split: proud → 1–6, Kin → 7, Pattadon → 8–9. Claim the parts you take in the Taken copy's Scope.
 
-**Part 7 is taken by Kin** (2026-10-15): tracked separately in `BOARD/Taken/2026-10-15-login-desktop.md`, so this task stays open for parts 1–6 and 8–9.
+**Part 7 is taken by Kin** (2026-10-15): tracked separately in `BOARD/Taken/2026-10-15-login-desktop.md`.
+
+**Parts 1–6 are taken by Kin** (2026-10-15, with proud's OK): tracked in `BOARD/Taken/2026-10-15-login-identity.md`. This task stays open for parts 8–9 (Pattadon).
 
 ## Acceptance
 - On https://cocommit.vercel.app: sign in with GitHub, close the browser, reopen it, and you're still signed in as yourself.

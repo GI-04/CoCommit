@@ -2,6 +2,16 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — next dev keeps reloading /repo (open, dev only)
+- **What failed:** with only /repo open under `next dev`, the page reloads itself ~15 times a second; the server log shows `[github] GITHUB_CLIENT_ID is empty` again and again (github.ts reloaded). Happens on plain `main` too (134 reloads in 8 s); /chat is fine; `next build` + `next start` and the live site are fine.
+- **Evidence:** dev logs in proud's session, 2026-10-15 ~22:40 (`grep -c "GET /repo"`).
+- **Workaround:** check the Repo screen with `npm run build && npx next start`. Cause not found yet; no browser file imports `github.ts` directly.
+
+## 2026-10-15 — Commit to a new branch overwrote newer files with an old copy (fixed in branch fix/new-branch-base)
+- **What failed:** on the live Repo screen, proud opened README.md (the screen had picked the old branch `kin/desktop-builds`), typed the new branch `test-cocommit` and committed. `commitFiles` creates a missing branch from the **default branch**, so the old README replaced main's newer one on the new branch (4d04d5d: +17 −105). Not merged.
+- **Evidence:** `gh api repos/GI-04/CoCommit/commits/4d04d5d`; `kin/desktop-builds:README.md` matches the new content.
+- **Workaround:** until fixed, pick `main` (or the branch you want to build on) in the branch box before opening a file. Fix: `commitFiles(..., from)` creates the new branch from the branch the file was read from, and the Repo screen starts on the default branch. **Fixed:** `commitFiles(..., from)` + Repo screen passes the open branch and starts on the default branch (PLAN/2026-10-15-new-branch-base.md).
+
 ## 2026-10-15 — Deploying from the repo folder would upload `.claude/worktrees/`
 - **What failed:** nothing yet, but the risk is real. `.claude/worktrees/` (other sessions' git worktrees, 418 MB, possibly with their own `.env.local`) is git-ignored, but there's no `.vercelignore`, so a plain `vercel deploy --prod` from the repo folder may upload it.
 - **Evidence:** `du -sh .claude/worktrees` → 418M; `ls -a` shows no `.vercelignore`.

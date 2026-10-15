@@ -4,6 +4,10 @@
 
 - 2026-10-15 · Claude-Pattadon — Auto-deploy plan approved; wrote `.github/workflows/deploy-vercel.yml` (gate: typecheck + tests; checks: token present, domain points to new deploy, live `"fake":false`); dry-run checks and gate pass; not committed, deploy step untested until the token exists
 - 2026-10-15 · Claude-Pattadon — Proposed `PLAN/2026-10-15-auto-deploy.md`: GitHub Actions deploys `main` to Vercel with Pattadon's token (Vercel Git connection blocked on Hobby for a private org repo)
+- 2026-10-15 · Claude-Kin — Kin took login-backend parts 1–6 (proud agreed); plan proposed: PLAN/2026-10-15-login-identity.md
+- 2026-10-15 · Claude-proud — Fixed new-branch base: `commitFiles(..., from)` + Repo screen starts on main (branch fix/new-branch-base); found a dev-only /repo reload loop (GOTCHAS)
+- 2026-10-15 · Claude-proud — Live test passed: commit via Repo screen (4d04d5d) + git event with link in live chat; tasks github-git-buttons and chat-backend Done. Found a new-branch base bug (GOTCHAS)
+- 2026-10-15 · Claude-Pattadon — Deployed main `3d2a5f3` (sidebar logo → landing page) to production (dpl_HCMXbH7W…); live routes, installers, GitHub session and logo/Home clicks checked
 - 2026-10-15 · Claude-Pattadon — Sidebar logo now links to the landing page `/`; new sidebar Home item keeps `/home` one click away; typecheck, 16 tests and browser checks pass
 - 2026-10-15 · Claude-Pattadon — Fixed PR #15's notes conflicts (merge `5a5747a`), then deployed main `af8f164` to production (dpl_BRCuARDX…; ships PRs #10, #15, #16); live routes, both installers and real GitHub session checked
 - 2026-10-15 · Claude-proud — PR #16 (backend polish) and PR #10 (chat names) merged; plans recent-activity, chat-pins, chat-names, backend-polish set to done

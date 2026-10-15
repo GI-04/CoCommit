@@ -225,8 +225,11 @@ export async function getChanges(repo: string, branch: string): Promise<Change[]
   }));
 }
 
-/** Makes one commit with all `files` on `branch`. Creates the branch from the default branch if it doesn't exist. */
-export async function commitFiles(repo: string, branch: string, files: FileEdit[], message: string): Promise<Commit> {
+/**
+ * Makes one commit with all `files` on `branch`. If `branch` doesn't exist, it's created from `from`
+ * (the branch the files were read from), or from the default branch when `from` is left out.
+ */
+export async function commitFiles(repo: string, branch: string, files: FileEdit[], message: string, from?: string): Promise<Commit> {
   if (!Array.isArray(files) || files.length === 0) throw new GitHubError(400, "Pick at least one file to commit.");
   if (typeof message !== "string" || !message.trim()) throw new GitHubError(400, "Write a commit message.");
   if (fakeMode) return fake.commit(repo, branch, files, message);
@@ -237,7 +240,7 @@ export async function commitFiles(repo: string, branch: string, files: FileEdit[
     parent = await branchSha(repo, branch);
   } catch (e) {
     if (!is404(e)) throw e;
-    parent = await branchSha(repo, await defaultBranch(repo));
+    parent = await branchSha(repo, from || (await defaultBranch(repo)));
     await gh(`${r}/git/refs`, { method: "POST", body: { ref: `refs/heads/${branch}`, sha: parent } });
   }
 
