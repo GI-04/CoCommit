@@ -2,6 +2,16 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-16 — In a git worktree, preview_start runs the main checkout's launch.json
+- **What failed:** from the worktree `.claude/worktrees/proud-tasks-board`, `preview_start` with a config added to the worktree's `.claude/launch.json` started the main checkout's `web` config instead (log showed `Environments: .env.local`, which only the main checkout has).
+- **Evidence:** preview log of the first start; the worktree has no `.env.local`.
+- **Workaround:** add a temporary config to the main checkout's `.claude/launch.json` that changes folder first, e.g. `"runtimeExecutable": "bash", "runtimeArgs": ["-c", "cd .claude/worktrees/<name> && exec npx next dev -p 3300"]`, start it, then restore the file (`git checkout -- .claude/launch.json`). The running server keeps going.
+
+## 2026-10-16 — The stateful mock GitHub broke after "keep file modes on commit" (fixed)
+- **What failed:** since PR #29, `commitFiles` reads `GET git/trees/<sha>?recursive=1` before committing; the mock in `LIB/sources/general/workspace-e2e/mock-github-files.mjs` had no such route, so every commit against it would fail with 404.
+- **Evidence:** `src/lib/github.ts` line ~273 vs. the mock's route list.
+- **Workaround:** the mock now answers that route (all files as `100644` blobs) and has `POST /__seed` for test data. Update the mock whenever `github.ts` starts calling a new GitHub endpoint.
+
 ## 2026-10-16 — LiveKit's CSS beats Tailwind classes; a blocked mic comes through `onError`
 - **What failed:** (1) `className="h-[70vh]"` on `LiveKitRoom` did nothing: the call area collapsed to 87px and the second person moved to page 2. (2) A refused microphone kicked the user out of the call.
 - **Evidence:** `@livekit/components-styles` sets `.lk-room-container { height: 100% }` unlayered, and Tailwind 4 utilities sit in `@layer utilities`, so LiveKit wins. `LiveKitRoom` calls `onError` with `NotAllowedError: Permission denied` when it can't turn on the mic, the same callback it uses for connection errors.

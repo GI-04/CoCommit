@@ -1,6 +1,6 @@
 # Handoff
 
-**Last updated:** 2026-10-16 02:20 · **By:** Claude-Pattadon (LiveKit calls merged and live) and Claude-proud (@cocommit bot, merged in PR #25); earlier notes kept
+**Last updated:** 2026-10-16 03:30 · **By:** Claude-proud (Tasks board PR #30 open, not merged); before that Claude-Pattadon (LiveKit calls merged and live); earlier notes kept
 
 ## Current state
 > **Notice from Pattadon (until 2026-10-16 03:00 UTC+7):** only destructive plans need Pattadon's review. Everything else, including your ask-first list with your own user, is unchanged. Details: `DECISIONS.md`, top entry.
@@ -14,8 +14,14 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 - **Chat names (PR #10, merged):** "Change name" in chat lets guests pick a display name. With `supabase/chat-author.sql` run (PR #16), a poster with a profile name always posts under it and a guest using a member's name gets " (guest)".
 - Chat test messages ("Guest 330", "[test by Claude-proud]") deleted from `messages` by Pattadon in the Supabase SQL Editor (2026-10-16).
 
-## Files (2026-10-16, Claude-Pattadon): built, not committed
+## Files (2026-10-16, Claude-Pattadon): PR #32, merged to main
 Branch `claude/files-function-build-591bd6`; plan `PLAN/2026-10-16-files.md` (active; Pattadon picked storing files in the repo's `COCOMMIT/files/`). `/files` uploads (drag-and-drop, 3 MB each), lists, downloads and deletes through the existing commit code; `commitFiles` now takes `encoding: "base64"` and two actions were added (`listSharedFiles`, `downloadFile`). Verified: typecheck, `npm test` (63 pass), `npm run build`, and in the browser in fake mode (upload, exact bytes back, delete, bad path 400). **Not verified:** real GitHub (signed in) and the chat git event on a real repo. **Next:** Pattadon decides on commit/PR (code freeze 09:30; don't merge to `main` during the demo without OK); try one real upload signed in. LIB `files`.
+
+## Heat map (2026-10-16, Claude-Pattadon): PR open, not merged
+Plan `PLAN/2026-10-16-heat-map.md` (active, approved by Pattadon). `/home` now has a commit-activity grid for the picked repo (13 weeks, person filter, tap for details). New: `src/lib/heatmap.ts`, `src/components/HeatMap.tsx`, `tests/heatmap.test.mjs`; changed: `src/lib/github.ts` / `github-client.ts` / `github-types.ts` (+`listCommitDates`), `src/app/home/page.tsx`. Verified: typecheck, `npm test` 71/71, build, browser on fake data (filter, tap, phone width, no console errors). **Not verified:** real GitHub history. **Next:** review the PR; merging deploys, so wait for the 09:30 demo freeze decision; then look at it on the live site while logged in. Branch `claude/heat-map-b1bbd5`. LIB `heat-map`.
+
+## Tasks board (2026-10-16 03:30, Claude-proud): PR #30 open, not merged
+Plan `PLAN/2026-10-16-tasks-board.md` (active, approved by proud). `/tasks` is now a Pending / Taken / Done board over the current repo's `COCOMMIT/BOARD/` task files: **New task**, **Take**, **Done** (also a `LOG.md` line) and **Release**, one commit each. New: `src/lib/tasks-text.ts`, `src/lib/tasks.ts`, `tests/tasks.test.mjs`; changed: `src/app/tasks/page.tsx`, `src/lib/sections.ts` (Tasks in the main nav), the LIB mock GitHub, docs. Verified: typecheck, `npm test` 65/65, build, and a browser run against the stateful mock GitHub (report `OUTPUT/2026-10-16-0315-tasks-board.md`, LIB `tasks-board`). **Not verified:** real GitHub. **Where:** branch `proud/tasks-board` in the worktree `.claude/worktrees/proud-tasks-board` (proud's machine; its own `node_modules` from `npm ci`); the main folder stays on `main`. `.claude/worktrees/` is git-ignored only in this machine's `.git/info/exclude`. **PR:** https://github.com/GI-04/CoCommit/pull/30 (latest `main` merged in, checks rerun). **Next:** review and merge before the 09:30 freeze (merging deploys); then one real task on `GI-04/CoCommit`; tell Pattadon (demo scope now includes the task board) and Trin (new page in the UI area). Also: the main folder's `node_modules` lacks the LiveKit packages; run `npm ci` there before building `main` locally.
 
 ## Calls with LiveKit (2026-10-16, Claude-Pattadon): merged and live
 `/calls` → **Join call** runs a LiveKit call (voice, video, screen share) inside CoCommit: one room per repo, signed-in people only. PR #26 merged as `ac7e87a`; deploy run `38789668599` passed. Live checks: `/calls` 200; `POST /api/livekit-token` signed out → 401 "Log in to join the call." (so the keys are set). The three `LIVEKIT_*` keys are in Vercel Production and in `.env.local` (main checkout). Pattadon tested mic and camera in Safari locally. Details: LIB `calls`, report `OUTPUT/2026-10-16-0130-livekit-calls.md`. **Next:**

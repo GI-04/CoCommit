@@ -13,11 +13,12 @@ Each repo's shared AI context is a `COCOMMIT/` folder laid out like our own `CLA
 - **Chat events:** the other saves use `commitFiles`, so each one posts "committed “COCOMMIT: …”" to the repo's chat. Only the log refresh is quiet.
 - **Branch:** commits go to the repo's default branch (from `listRepos`, else `main`).
 - **Pure helpers** (for screens that edit in memory first): `parseHandoff`/`renderHandoff`, `parseCollab`/`upsertMember`, `parseTodo`/`renderTodo`, `addDecision`, `addGotcha`, `entryTitles`, `addLogEntry`, `addActivity`, `agentTitle("Claude", owner)`.
-- **Test:** `sources/general/workspace-e2e/`. Start `node mock-github-files.mjs` (a fake GitHub on :4011 that really stores commits). Then run the dev server against it: zsh `GITHUB_CLIENT_ID=test-id GITHUB_CLIENT_SECRET=test-secret GITHUB_API_URL=http://127.0.0.1:4011 GITHUB_WEB_URL=http://127.0.0.1:4011 npx next dev -p 3300`; PowerShell 7: set each with `$env:NAME="value"` first. Finally, from that folder, `node --import ./register.mjs workspace-e2e.ts` (Node 22.6+ runs `.ts` directly). It signs in through the app's own routes and checks setup, every save, no-op saves and the log. Pinned chat isn't covered (chat runs in fake mode in Node).
+- **BOARD/:** the Tasks screen (`/tasks`) reads and moves these task files; see LIB `tasks-board`.
+- **Test:** `sources/general/workspace-e2e/`. Start `node mock-github-files.mjs` (a fake GitHub on :4011 that really stores commits; since 2026-10-16 it also answers the recursive tree listing that `listFiles` and `commitFiles` need, and `POST /__seed` with `{"path": "text"}` adds files without a commit). Then run the dev server against it: zsh `GITHUB_CLIENT_ID=test-id GITHUB_CLIENT_SECRET=test-secret GITHUB_API_URL=http://127.0.0.1:4011 GITHUB_WEB_URL=http://127.0.0.1:4011 npx next dev -p 3300`; PowerShell 7: set each with `$env:NAME="value"` first. Finally, from that folder, `node --import ./register.mjs workspace-e2e.ts` (Node 22.6+ runs `.ts` directly). It signs in through the app's own routes and checks setup, every save, no-op saves and the log. Pinned chat isn't covered (chat runs in fake mode in Node).
 
 ## Sources
 - `sources/general/workspace-e2e/`: stateful mock GitHub plus the end-to-end test (passed 2026-10-15)
 - `src/lib/context.ts`, `src/lib/workspace.ts`: the code
 - `PLAN/2026-10-15-context-workspace.md`: the design
 
-**Last checked against sources:** 2026-10-15
+**Last checked against sources:** 2026-10-16 (mock routes; the workspace-e2e run itself was last done 2026-10-15)

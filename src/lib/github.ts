@@ -6,6 +6,7 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import type { Activity } from "./context";
+import type { CommitDate } from "./heatmap";
 import { GitModeError, modesByPath, treeEntries, type TreeListing } from "./git-modes";
 import { hasGitHubIdentity } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
@@ -399,6 +400,25 @@ export async function listCommits(repo: string, limit = 10): Promise<Activity[]>
   }));
 }
 
+/** Who committed and when on the default branch since `since` (an ISO date), newest first, for the home heat map. Up to 500 commits. */
+export async function listCommitDates(repo: string, since: string): Promise<CommitDate[]> {
+  const from = Date.parse(since);
+  if (Number.isNaN(from)) throw new GitHubError(400, "since must be a date.");
+  if (fakeMode) return fake.commits(repo).filter((c) => Date.parse(c.at) >= from).map(({ author, at }) => ({ author, at }));
+  const out: CommitDate[] = [];
+  for (let page = 1; page <= 5; page++) {
+    const data = await gh<{ author: { login: string } | null; commit: { author: { name: string; date: string } | null } }[]>(
+      `${repoPath(repo)}/commits?per_page=100&page=${page}&since=${encodeURIComponent(new Date(from).toISOString())}`,
+    );
+    for (const c of data) {
+      if (!c.commit.author?.date) continue;
+      out.push({ author: c.author?.login ?? c.commit.author.name ?? "someone", at: c.commit.author.date });
+    }
+    if (data.length < 100) break;
+  }
+  return out;
+}
+
 /** Recently merged pull requests, newest first, as activity items for COCOMMIT/LOG.md. `author` is who opened the PR. */
 export async function listMergedPulls(repo: string, limit = 10): Promise<Activity[]> {
   const n = clampLimit(limit);
@@ -457,6 +477,7 @@ export const actions: GitHubActions = {
   writeContext,
   listCommits,
   listMergedPulls,
+  listCommitDates,
 };
 
 // ---------- Fake mode: used while GITHUB_CLIENT_ID is empty, so the screens work before the keys exist.

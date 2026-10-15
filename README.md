@@ -16,8 +16,9 @@ Git without the terminal, plus team chat and one shared context for everyone's A
 | **Context** | 🟡 logic done, screen on demo data | Each repo gets a `COCOMMIT/` team workspace (handoff, team, decisions, gotchas, log, todo, task board) that every teammate's AI agent reads first. Load/save and the auto-filled log work; the tabbed screen is in progress. |
 | **Desktop app** | ✅ Windows, 🟡 macOS | A Tauri window that loads the live site. Links open in your browser. Windows installer builds; the macOS `.dmg` builds on GitHub Actions. |
 | **Calls** | ✅ live | `/calls` → **Join call**: voice, video and screen sharing inside CoCommit (LiveKit), one room per repo, signed-in people only. Needs the three `LIVEKIT_*` keys locally. |
+| **Tasks** | 🟡 built, not on `main` yet | `/tasks`: a Pending / Taken / Done board over the repo's `COCOMMIT/BOARD/` task files, the same ones AI agents use. **New task**, **Take**, **Done** (also adds a `LOG.md` line) and **Release** each make one commit, which shows in chat. Needs GitHub login and a set-up `COCOMMIT/`. |
+| **Heat map** | 🟡 built, PR open | `/home` shows a grid of commits per day for the picked repo (last 13 weeks), with a per-person filter. Reads the default branch's commit history; needs GitHub login. |
 | **Files** | 🟡 built, not yet tried on real GitHub | `/files`: upload (drag-and-drop, 3 MB each), download and delete team files. They are saved in the repo's `COCOMMIT/files/` folder as normal commits. |
-| Tasks | ⏳ coming soon | Placeholder page. |
 
 ## Stack
 Next.js 16 (App Router) + React 19 + TypeScript + Tailwind 4 · GitHub REST API (no Octokit) · Supabase (auth, Postgres, Realtime) · Tauri 2 (desktop) · Vercel (hosting). Plans and decisions: `CLAUDE/PLAN/`, `CLAUDE/DECISIONS.md`.
@@ -92,7 +93,7 @@ Why not Vercel's own Git connection? On the Hobby plan it can't deploy a private
 ## Project layout
 | Path | What |
 |---|---|
-| `src/app/` | Pages: `repo`, `chat`, `context`, `login`, `profile`, `calls` (plus `files`; coming-soon `tasks`). API routes in `api/github/` and `api/bot/`; Supabase auth callbacks in `auth/` |
+| `src/app/` | Pages: `repo`, `chat`, `context`, `login`, `profile`, `calls`, `tasks`, `files`. API routes in `api/github/` and `api/bot/`; Supabase auth callbacks in `auth/` |
 | `src/components/` | Shared UI: `Nav`, `UserChip`, `LocalRepo`, `Avatar`, `ui` |
 | `src/lib/github*.ts` | GitHub API: `github.ts` (server only), `github-client.ts` (browser), `github-types.ts` |
 | `src/lib/chat*.ts`, `supabase*.ts` | Chat backend, pins, Supabase clients |

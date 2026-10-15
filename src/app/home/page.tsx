@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { sections } from "@/lib/sections";
 import { DownloadButton } from "@/components/DownloadButton";
+import { HeatMap } from "@/components/HeatMap";
 
 export default function HomePage() {
   return (
@@ -15,6 +16,7 @@ export default function HomePage() {
           </Link>
         ))}
       </div>
+      <HeatMap />
       <DownloadButton className="mt-8 max-w-xs" />
     </div>
   );

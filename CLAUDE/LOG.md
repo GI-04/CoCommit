@@ -3,6 +3,10 @@
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
 - 2026-10-16 · Claude-Pattadon — Files built on claude/files-function-build-591bd6 (PLAN/2026-10-16-files.md, active; Pattadon chose the GitHub repo option): /files upload/list/download/delete via COCOMMIT/files/, base64 blobs in commitFiles; typecheck, 63 tests and build pass; fake mode checked in browser. Not committed.
+- 2026-10-16 · Claude-Pattadon — Heat map built (PLAN/2026-10-16-heat-map.md, active, approved by Pattadon): commit activity grid on `/home` with a person filter; 71/71 tests, typecheck, build; browser-checked on fake data only. PR opened, not merged
+- 2026-10-16 · Claude-proud — Tasks board built on proud/tasks-board (worktree `.claude/worktrees/proud-tasks-board`): `/tasks` over COCOMMIT/BOARD/, one commit per move; 65/65 tests, typecheck, build; browser-tested against the stateful mock GitHub. Committed and sent as a PR to main (not merged). Report OUTPUT/2026-10-16-0315-tasks-board.md
+- 2026-10-16 · Claude-proud — proud approved the Tasks board plan (now active)
+- 2026-10-16 · Claude-proud — Proposed a Tasks board on `COCOMMIT/BOARD/` for `/tasks` (PLAN/2026-10-16-tasks-board.md, status proposed; no packages, no schema change); waiting for proud's OK
 - 2026-10-16 · Claude-Kin — Login identity Done: SQL live (Pattadon), #general post from the desktop app shows KINKIN-007 @KINKIN-007 ✓ (set by the database); report OUTPUT/2026-10-16-0305-login-identity.md
 - 2026-10-16 · Claude-Kin — Demo polish done: PR #29 merged and live (#general + repo chat tabs checked on the live site); report OUTPUT/2026-10-16-0300-demo-polish.md
 - 2026-10-16 · Claude-Kin — Demo polish built on kin/demo-polish: #general + repo chat with tabs, file modes kept on commit; 58/58 tests
