@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-15 — Temporary: only destructive plans need Pattadon's review (until 2026-10-16 03:00 +07)
+- **Status:** active until **2026-10-16 03:00 (UTC+7)**, then expired on its own. After that, work-loop step 3 applies again as written.
+- **Decision (Pattadon, project owner):** plans no longer wait for Pattadon's review unless they're destructive. A destructive plan still goes to `PLAN/` as `proposed` and waits for Pattadon's OK. That covers deleting files, branches or data, force-pushing or rewriting history, dropping or wiping database tables, changing secrets or keys, and production changes that can't be rolled back.
+- **Not changed:** each agent's "Off-limits / ask first" list with its own user (commit, push, installs, deletes), each agent's safety rules, and the app's permission prompts. Merging to `main` still deploys to production (auto-deploy), so treat it with care.
+- **Why:** to keep work moving overnight before the demo.
+- **Supersedes / superseded by:** none. The in-person approval idea (`PLAN/2026-10-15-in-person-approval.md`) was dropped the same day.
+
 ## 2026-10-15 — Auto-deploy `main` with a GitHub Actions workflow, not Vercel's Git connection
 - **Status:** active
 - **Decision:** `.github/workflows/deploy-vercel.yml` deploys every push to `main` (except notes/docs/desktop-only changes) with `vercel deploy --prod` and Pattadon's Vercel token. Typecheck and tests must pass first. The token is a secret in a GitHub environment `production` that only `main` can use. The repo variable `AUTO_DEPLOY=off` pauses push deploys. Plan: `PLAN/2026-10-15-auto-deploy.md`.

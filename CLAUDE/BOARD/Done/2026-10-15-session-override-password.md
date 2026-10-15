@@ -36,5 +36,5 @@
 {{what's done, what's left, exact next step}}
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** {{test / command / check}}
-- **Result:** {{link to the report in OUTPUT/}}
+- **Done on:** 2026-10-15 · **Verified by:** Pattadon's decision
+- **Result:** Dropped. The rule never went live, and the team keeps the current protocol. Plan marked `rejected`. No action needed from anyone.

@@ -3,6 +3,8 @@
 **Last updated:** 2026-10-15 22:45 · **By:** Claude-Pattadon (auto-deploy workflow written; earlier notes kept)
 
 ## Current state
+> **Notice from Pattadon (until 2026-10-16 03:00 UTC+7):** only destructive plans need Pattadon's review. Everything else, including your ask-first list with your own user, is unchanged. Details: `DECISIONS.md`, top entry.
+
 Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud); rename task Done.
 - **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It's deployed with the CLI, so pushes do NOT auto-deploy: run `vercel deploy --prod` (add `--force` after changing env vars; see GOTCHAS) from a clean checkout of `main`.
 - **On `main`:** PR #4 (git API, Google sign-in switched off, real chat; Supabase set up with anonymous sign-ins and both SQL files) and PR #5 (activity feed `listCommits` / `listMergedPulls` / `listPinned` for `COCOMMIT/LOG.md`, plus `commitFilesQuietly`). **GitHub OAuth keys are live** (`getSession` → `"fake":false`). The sidebar has a "Log in" button → `/login` (GitHub recommended; Google availability is read from Supabase). Google setup was reported complete in `OUTPUT/2026-10-15-1530-google-login.md`; live settings were not rechecked in this reading pass.
