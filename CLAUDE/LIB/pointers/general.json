@@ -209,6 +209,26 @@
       "path": "knowledge/general/deploy.md",
       "sources": [],
       "added": "2026-10-15"
+    },
+    {
+      "id": "file-bot",
+      "title": "@cocommit chat bot: find and summarize COCOMMIT/ files (Claude API)",
+      "kind": "reference",
+      "tags": [
+        "bot",
+        "claude",
+        "anthropic",
+        "ai",
+        "chat",
+        "search",
+        "summary",
+        "cocommit-folder",
+        "api-route"
+      ],
+      "summary": "How @cocommit in /chat works: files, the 9 read-only tools, the Claude loop (Haiku 5.5, plain fetch, 5 rounds, caching), GitHub access via the asker's cookie, the 5-minute cache, the ANTHROPIC_API_KEY, and its tests.",
+      "path": "knowledge/general/file-bot.md",
+      "sources": [],
+      "added": "2026-10-16"
     }
   ]
 }

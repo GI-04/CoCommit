@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-16 — @cocommit bot calls the Claude API with plain `fetch`, not `@anthropic-ai/sdk`
+- **Status:** active
+- **Decision:** `src/app/api/bot/route.ts` posts to `https://api.anthropic.com/v1/messages` with `fetch`, model `claude-haiku-5-5`, and runs its own tool loop. Plan: `PLAN/2026-10-15-file-bot.md` (approved by proud).
+- **Why:** no package install during the hackathon (ask-first rule), same style as our GitHub client (no Octokit), and the loop is small. Haiku 5.5 keeps the cost per question low.
+- **Alternatives:** the official SDK (`@anthropic-ai/sdk`) with its typed errors and Tool Runner; Anthropic recommends it for TypeScript projects. Switch if someone approves the install.
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-15 — Temporary: only destructive plans need Pattadon's review (until 2026-10-16 03:00 +07)
 - **Status:** active until **2026-10-16 03:00 (UTC+7)**, then expired on its own. After that, work-loop step 3 applies again as written.
 - **Decision (Pattadon, project owner):** plans no longer wait for Pattadon's review unless they're destructive. A destructive plan still goes to `PLAN/` as `proposed` and waits for Pattadon's OK. That covers deleting files, branches or data, force-pushing or rewriting history, dropping or wiping database tables, changing secrets or keys, and production changes that can't be rolled back.

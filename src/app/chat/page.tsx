@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button, Card, PageHeader } from "@/components/ui";
+import { isBotMessage, shareText, stripTrigger, type BotAnswer } from "@/lib/bot";
+import { askBot, BotRequestError } from "@/lib/bot-client";
 import {
   chatFake,
   loadMessages,
@@ -29,6 +31,8 @@ import { repos } from "@/lib/mock";
 // The "Pin as decision / gotcha" form open under one message.
 type PinForm = { id: string; kind: "decision"; fields: DecisionFields } | { id: string; kind: "gotcha"; fields: GotchaFields };
 type PinNote = { ok: boolean; text: string; href?: string };
+// A @cocommit question and its answer. Only the asker sees these (they aren't saved) until "Share to chat".
+type BotReply = { id: string; question: string; result?: BotAnswer; error?: string; needsLogin?: boolean; shared?: boolean };
 const input = "w-full rounded-md border border-line bg-bg px-2 py-1 text-sm";
 
 const time = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -46,6 +50,7 @@ export default function ChatPage() {
   const [pinForm, setPinForm] = useState<PinForm | null>(null);
   const [pinNote, setPinNote] = useState<PinNote | null>(null);
   const [saving, setSaving] = useState(false);
+  const [botReplies, setBotReplies] = useState<BotReply[]>([]);
   const end = useRef<HTMLDivElement>(null);
 
   // Load the history, then keep listening for new messages and pin changes.
@@ -69,13 +74,48 @@ export default function ChatPage() {
   // Braces matter: newer browsers return a Promise from scrollIntoView, and an effect may only return a cleanup function.
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, botReplies]);
+
+  const updateReply = (id: string, change: Partial<BotReply>) =>
+    setBotReplies((now) => now.map((r) => (r.id === id ? { ...r, ...change } : r)));
+
+  // "@cocommit …" goes to the bot instead of the chat. Recent chat goes along for "summarize the chat".
+  const ask = async (question: string) => {
+    const id = crypto.randomUUID();
+    setBotReplies((now) => [...now, { id, question }]);
+    const chat = messages.filter((m) => m.kind === "text").map(({ author, text, createdAt }) => ({ author, text, createdAt }));
+    try {
+      updateReply(id, { result: await askBot(repo, question, chat) });
+    } catch (err) {
+      updateReply(id, {
+        error: err instanceof Error ? err.message : "The bot couldn't answer.",
+        needsLogin: err instanceof BotRequestError && err.status === 401,
+      });
+    }
+  };
+
+  const shareReply = async (r: BotReply) => {
+    if (!r.result) return;
+    try {
+      const m = await sendMessage(repo, shareText(r.question, r.result));
+      setMessages((now) => mergeMessage(now, m));
+      updateReply(r.id, { shared: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't share the answer.");
+    }
+  };
 
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
     const draft = text;
     setText("");
+    if (isBotMessage(draft)) {
+      const question = stripTrigger(draft);
+      if (question) ask(question);
+      else setError("Write a question after @cocommit, e.g. “@cocommit team status”.");
+      return;
+    }
     try {
       const m = await sendMessage(repo, draft);
       setMessages((now) => mergeMessage(now, m));
@@ -149,7 +189,7 @@ export default function ChatPage() {
                       </button>
                     </span>
                   </p>
-                  <p className="text-sm">{m.text}</p>
+                  <p className="whitespace-pre-wrap break-words text-sm">{m.text}</p>
                   {pinForm?.id === m.id && (
                     <form onSubmit={(e) => savePin(e, m)} className="mt-2 space-y-2 rounded-md border border-line bg-bg p-3 text-xs">
                       <p className="font-medium text-fg">
@@ -181,6 +221,48 @@ export default function ChatPage() {
                 </div>
               ),
             )}
+            {botReplies.map((r) => (
+              <div key={r.id} className="rounded-md border border-dashed border-line bg-bg p-3 text-sm">
+                <p className="text-xs text-muted">
+                  <span className="font-semibold text-fg">🤖 @cocommit</span> · “{r.question}” · only you can see this
+                  <button onClick={() => setBotReplies((now) => now.filter((x) => x.id !== r.id))} className="ml-2" aria-label="Dismiss">
+                    ✕
+                  </button>
+                </p>
+                {!r.result && !r.error && <p className="mt-1 text-muted">Looking through COCOMMIT/…</p>}
+                {r.error && (
+                  <p className="mt-1 text-removed">
+                    {r.error}{" "}
+                    {r.needsLogin && (
+                      <a href={signInHref("/chat")} className="underline">
+                        Log in with GitHub
+                      </a>
+                    )}
+                  </p>
+                )}
+                {r.result && (
+                  <>
+                    <p className="mt-1 whitespace-pre-wrap break-words">{r.result.answer}</p>
+                    {r.result.sources.length > 0 && (
+                      <ul className="mt-2 space-y-0.5 text-xs">
+                        {r.result.sources.map((s) => (
+                          <li key={s.path}>
+                            <a href={s.url} target="_blank" rel="noreferrer" className="underline">
+                              {s.path}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <div className="mt-2">
+                      <Button type="button" variant="ghost" onClick={() => shareReply(r)} disabled={r.shared}>
+                        {r.shared ? "Shared" : "Share to chat"}
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
             <div ref={end} />
           </div>
           {error && <p className="mt-2 text-sm text-removed">{error}</p>}
@@ -224,7 +306,7 @@ export default function ChatPage() {
             <input
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Message the team"
+              placeholder="Message the team · @cocommit to ask the bot"
               className="min-w-0 flex-1 rounded-md border border-line bg-bg px-3 py-2 text-sm"
             />
             <Button type="submit" disabled={!text.trim()}>

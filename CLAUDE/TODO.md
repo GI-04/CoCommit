@@ -9,6 +9,9 @@
 - [ ] `commitFiles` writes every file as mode `100644`, so committing an executable script drops its +x bit. Fine for the demo.
 - [ ] Sign-in screen copy: say that GitHub's `repo` scope gives full access to your repos (needed for private repos). (Trin)
 
+- [ ] `@cocommit` bot: add `ANTHROPIC_API_KEY` to `.env.local` and Vercel, then try a real question on `GI-04/CoCommit` (team status, a decision, today's chat). (Pattadon for Vercel; proud to test)
+- [ ] `@cocommit` bot: no per-user rate limit yet; add one if the key is shared beyond the team.
+
 ## Open questions
 - Which hackathon and submission format? Deadline: 2026-10-16 11:30 (24 h from 2026-10-15 11:30). (Pattadon)
 - What are the non-goals for v1? (Pattadon)
