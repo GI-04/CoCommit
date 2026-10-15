@@ -1,6 +1,6 @@
 # Plan: Chat backend (Supabase Realtime)
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-15 · **By:** Claude-proud · **Task:** `BOARD/Taken/2026-10-15-chat-backend.md` (on `main`) · **Superseded by:** —
 
 ## Why
