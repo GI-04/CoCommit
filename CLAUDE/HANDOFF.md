@@ -19,7 +19,7 @@ Every push to `main` now deploys automatically (`.github/workflows/deploy-vercel
 1. Watch the first teammate-authored merge to `main`: does Hobby block it?
 2. **Demo:** set `AUTO_DEPLOY=off` before about 09:00 on 2026-10-16, or don't merge to `main` during the demo.
 3. Pattadon: the `Production` environment shows no main-only branch rule in GitHub's API; recheck it, or revoke the token after the hackathon.
-4. The docs update (README, CLAUDE.md/AGENTS.md, PROJECT.md, LIB, GOTCHAS) is on branch `claude/vercel-auto-deploy-53b5dd`, not committed yet.
+4. The docs update (README, CLAUDE.md/AGENTS.md, PROJECT.md, LIB, GOTCHAS) is in a PR from `claude/vercel-auto-deploy-53b5dd` (docs only, so merging it does not deploy).
 
 ## Latest deploy (2026-10-15 22:03, Claude-Pattadon)
 `main` at `3d2a5f3` is live: `dpl_HCMXbH7WtTZnL5RMCSPGWMYMSPLn` (`https://cocommit-fs44ytgrn-gi-04.vercel.app`), deployed from a `git archive` export. New in it: the sidebar CoCommit logo links to the landing page `/`, and a sidebar **Home** item links to `/home`. Before that, `af8f164` (PRs #10, #15, #16) went live at 21:56. Live checks: `/`, `/home`, `/repo`, `/chat`, `/login`, `/profile`, `/context`, the manifest and both installers return 200; `getSession` → `"fake":false`; on the live site, logo from `/repo` → landing page, Home from `/chat` → `/home`, no console errors. Rollback target: `https://cocommit-gqdlwx4yn-gi-04.vercel.app` (`dpl_BRCuARDXcBX77uzmbEoS3QfkAcww`).
