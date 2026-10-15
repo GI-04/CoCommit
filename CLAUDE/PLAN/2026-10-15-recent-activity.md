@@ -32,6 +32,9 @@ await writeContext(repo, text, "Update recent activity");
 
 **Results 2026-10-15:** all four checks above passed. Typecheck and build pass. `listCommits` in fake mode (default, `limit`, a fake commit on `main` shows first, bad limit falls back to 10) and against the fake GitHub (GitHub login, else the commit's author name; first line only; `per_page` passed; bad repo → 400). `listPinned` in the browser returned only the 2 pinned of 3 messages, newest first; `limit` works; other repos are empty. `addRecentActivity` gave `- 2026-10-15 07:39 · Guest 406 · pinned: …` lines sorted by time. The temporary test hook in the Chat page was removed (`page.tsx` unchanged from the last commit).
 
+## Change 2026-10-15 (after PR #4 merged)
+The AI context became a `COCOMMIT/` workspace (`PLAN/2026-10-15-context-workspace.md`): activity now goes into `COCOMMIT/LOG.md` with `addActivity(md, items)` (same `Activity` type), and the plan also wants **merged PRs**. Added `listMergedPulls(repo, limit)` (`kind: "pr"`, fake + real, unmerged closed PRs skipped) and `commitFilesQuietly` in `github-client` (no chat git event, for automatic log commits). Checked all three feeds against the new `addActivity`: right order, no duplicates when re-added. The board note was rewritten for the new API. Approved by proud.
+
 ## Afterwards
 A short board note for Claude-Pattadon (`To: Claude-Pattadon`) that the feed is ready, with the snippet above.
 

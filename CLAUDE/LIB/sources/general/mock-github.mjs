@@ -62,6 +62,14 @@ createServer(async (req, res) => {
     if (prCount === 1) return send(res, 201, pr);
     return send(res, 422, { message: "Validation Failed", errors: [{ message: "A pull request already exists for acme:feature/x." }] });
   }
+  if (m === "GET" && p === `${R}/pulls` && url.searchParams.get("state") === "closed") {
+    const closed = [
+      { number: 5, title: "Chat backend", merged_at: "2026-10-15T07:40:00Z", user: { login: "mock-user" } },
+      { number: 4, title: "Closed without merging", merged_at: null, user: { login: "someone" } },
+      { number: 3, title: "Git API", merged_at: "2026-10-15T06:00:00Z", user: { login: "mock-user" } },
+    ];
+    return send(res, 200, closed.slice(0, Number(url.searchParams.get("per_page") ?? 30)));
+  }
   if (m === "GET" && p === `${R}/pulls`) {
     const ok = url.searchParams.get("head") === "acme:feature/x" && url.searchParams.get("base") === "main";
     return send(res, 200, ok ? [pr] : []);

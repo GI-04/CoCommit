@@ -313,9 +313,11 @@ export async function writeContext(repo: string, text: string, message: string):
   return commitFiles(repo, branch, [{ path: CONTEXT_PATH, content: text }], message);
 }
 
-/** The latest commits on the default branch, newest first, as "Recent activity" items for COCOMMIT.md (see context.ts). */
+const clampLimit = (limit: unknown) => Math.min(Math.max(Math.trunc(Number(limit)) || 10, 1), 100);
+
+/** The latest commits on the default branch, newest first, as activity items for COCOMMIT/LOG.md (see addActivity in context.ts). */
 export async function listCommits(repo: string, limit = 10): Promise<Activity[]> {
-  const n = Math.min(Math.max(Math.trunc(Number(limit)) || 10, 1), 100);
+  const n = clampLimit(limit);
   if (fakeMode) return fake.commits(repo).slice(0, n);
   const data = await gh<{ author: { login: string } | null; commit: { message: string; author: { name: string; date: string } | null } }[]>(
     `${repoPath(repo)}/commits?per_page=${n}`,
@@ -326,6 +328,21 @@ export async function listCommits(repo: string, limit = 10): Promise<Activity[]>
     text: c.commit.message.split("\n")[0],
     at: c.commit.author?.date ?? new Date(0).toISOString(),
   }));
+}
+
+/** Recently merged pull requests, newest first, as activity items for COCOMMIT/LOG.md. `author` is who opened the PR. */
+export async function listMergedPulls(repo: string, limit = 10): Promise<Activity[]> {
+  const n = clampLimit(limit);
+  if (fakeMode) return fake.pulls.slice(0, n);
+  // Closed PRs include ones closed without merging, so fetch extra and keep the merged ones.
+  const data = await gh<{ number: number; title: string; merged_at: string | null; user: { login: string } | null }[]>(
+    `${repoPath(repo)}/pulls?state=closed&sort=updated&direction=desc&per_page=${Math.min(n * 3, 100)}`,
+  );
+  return data
+    .filter((p): p is typeof p & { merged_at: string } => Boolean(p.merged_at))
+    .sort((a, b) => b.merged_at.localeCompare(a.merged_at))
+    .slice(0, n)
+    .map((p) => ({ kind: "pr", author: p.user?.login ?? "someone", text: `merged #${p.number}: ${p.title}`, at: p.merged_at }));
 }
 
 /** What browser code may call through POST /api/github/<name> (see github-client.ts). */
@@ -341,6 +358,7 @@ export const actions: GitHubActions = {
   readContext,
   writeContext,
   listCommits,
+  listMergedPulls,
 };
 
 // ---------- Fake mode: used while GITHUB_CLIENT_ID is empty, so the screens work before the keys exist.
@@ -409,4 +427,10 @@ Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in .env.local.
     { kind: "commit", author: "teammate", text: "Fix chat time format", at: minutesAgo(90) },
     { kind: "commit", author: "demo-user", text: "Initial commit", at: minutesAgo(600) },
   ],
+  get pulls(): Activity[] {
+    return [
+      { kind: "pr", author: "demo-user", text: "merged #2: Add login page", at: minutesAgo(20) },
+      { kind: "pr", author: "teammate", text: "merged #1: First screens", at: minutesAgo(300) },
+    ];
+  },
 };

@@ -1,30 +1,36 @@
-# Task: Use the Recent activity feed in COCOMMIT.md (listCommits, listPinned)
+# Task: Fill COCOMMIT/LOG.md from the activity feed (listCommits, listMergedPulls, listPinned)
 
 <!-- Filename: YYYY-MM-DD-<slug>.md. The folder is the status: Pending/ (unclaimed) → Taken/ (claimed) → Done/ (verified). Released work goes back Taken/ → Pending/ with a handoff note. -->
 
 **To:** Claude-Pattadon · **From:** Claude-proud · **Created:** 2026-10-15
-**Under:** Pattadon: full stack and infrastructure helper (AI context task)
+**Under:** Pattadon: full stack and infrastructure helper (AI context task, `PLAN/2026-10-15-context-workspace.md`)
 
 ## What
-The two fetchers your AI context task needs for "Recent activity" are ready on branch `feat/recent-activity` (built on PR #4's branch; its PR comes after #4 merges). Plan: `PLAN/2026-10-15-recent-activity.md`. Both return `Activity[]` from your `src/lib/context.ts`, newest first:
-- `listCommits(repo, limit = 10)`: latest commits on the default branch (`kind: "commit"`). Server: `@/lib/github`; browser: `@/lib/github-client`.
-- `listPinned(repo, limit = 10)`: pinned chat messages (`kind: "pinned"`). Browser: `@/lib/chat`.
+Your workspace plan says LOG.md gets "new commits, merged PRs, pinned chat messages" automatically. The three fetchers are ready (branch `feat/recent-activity`, PR to `main`; plan `PLAN/2026-10-15-recent-activity.md`). Each returns `Activity[]` from your `src/lib/context.ts`, newest first, `at` in UTC:
+- `listCommits(repo, limit = 10)`: latest commits on the default branch (`kind: "commit"`).
+- `listMergedPulls(repo, limit = 10)`: recently merged PRs (`kind: "pr"`, text `merged #5: Title`, author = who opened it).
+- `listPinned(repo, limit = 10)`: pinned chat messages (`kind: "pinned"`), from `@/lib/chat`.
+
+The first two are in `@/lib/github` (server) and `@/lib/github-client` (browser). For example, in your `saveWorkspace` layer:
 
 ```ts
-const items = [...(await listCommits(repo)), ...(await listPinned(repo))];
-const text = renderContext(addRecentActivity(parseContext((await readContext(repo)) ?? template(repo)), items));
-await writeContext(repo, text, "Update recent activity");
+const items = [...(await listCommits(repo)), ...(await listMergedPulls(repo)), ...(await listPinned(repo))];
+const log = addActivity((await readFile(repo, null, FILES.log)) ?? "# Log\n", items);
+await commitFilesQuietly(repo, defaultBranch, [{ path: FILES.log, content: log }], "COCOMMIT: update log");
 ```
-Both work in fake mode (no keys), so the Context screen can use them now. Browser code: import from `github-client` / `github-types`, never from `github.ts` (GOTCHAS: dev reload loop).
+- Use **`commitFilesQuietly`** (from `github-client`) for automatic log updates. Plain `commitFiles` posts a "committed …" git event to chat every time.
+- Your own log-update commits come back through `listCommits` next time. Filter them out, e.g. `items.filter((a) => !a.text.startsWith("COCOMMIT:"))`.
+- Checked against your new `addActivity`: lines come out as `- 2026-10-15 07:40 · mock-user — pr: merged #5: Chat backend`, in time order, and adding the same items twice changes nothing.
+- All three work in fake mode (no keys). Browser code imports from `github-client` / `github-types`, never from `github.ts` (GOTCHAS: dev reload loop).
 
 ## Acceptance
-- The Context screen (or wherever you build COCOMMIT.md) adds the latest commits and pinned messages under "Recent activity".
+- `COCOMMIT/LOG.md` gets the latest commits, merged PRs and pinned messages when the workspace is saved (or on a "Refresh log" button).
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
 - **Owner:** — · **Taken on:** —
 - **Scope:** —
 - **Progress:** —
-- **Blockers:** `feat/recent-activity` merged (after PR #4)
+- **Blockers:** `feat/recent-activity` merged into `main`
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —

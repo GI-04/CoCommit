@@ -19,11 +19,11 @@ Open a PR from `feat/github-api` into `main`, so the GitHub sign-in, git buttons
 - **Owner:** proud (work by Claude-proud) · **Taken on:** 2026-10-15
 - **Scope:** PR #4 (https://github.com/GI-04/CoCommit/pull/4) instead of a separate `feat/github-api` PR: `feat/chat-backend` already contains `feat/github-api` and the chat backend, and merges with `main`. `src/proxy.ts` (no Google login wall), `src/lib/chat.ts` (anonymous Supabase sign-in, GitHub name), `src/components/UserChip.tsx` (hide anonymous users).
 - **Progress:** PR #4 set to draft; `main` merged in (e841026). Google login wall off unless `REQUIRE_GOOGLE_LOGIN=true` (`proxy.ts`); chat signs in to Supabase anonymously and shows the GitHub name; `UserChip` hides anonymous users. Fixed a dev-server reload loop (browser code imported types from server `github.ts`; shared types now in `src/lib/github-types.ts`). Verified 2026-10-15: `npm run typecheck` and `npm run build` pass; with stand-in Supabase keys `/`, `/repo`, `/chat`, `/context` return 200 (no login wall), and with `REQUIRE_GOOGLE_LOGIN=true` `/chat` → 307 `/login`; two `/chat` tabs in dev: messages, online (2), and a commit + PR through `github-client` show up as git events in both tabs, no reload loop. Not verified: real Supabase (anonymous sign-in needs Pattadon to turn it on and run the SQL) and the live site after deploy.
-- **Blockers:** none for the PR. "No login wall after deploy" needs Pattadon to deploy.
+- **Blockers:** none. Deployed by Pattadon; live site checked with no login wall.
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** —
-- **Result:** —
+- **Done on:** 2026-10-15 · **Verified by:** PR #4 merged (520eedf); typecheck + build passed; live site `/`, `/chat`, `/repo` return 200 with no login wall and live chat works (checked 14:51)
+- **Result:** `OUTPUT/2026-10-15-1456-pr4-git-api-chat.md`

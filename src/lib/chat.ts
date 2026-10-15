@@ -138,7 +138,7 @@ async function post(repo: string, text: string, kind: ChatMessage["kind"]): Prom
   return toMessage(data as Row);
 }
 
-/** Pinned messages in a repo, newest first, as "Recent activity" items for COCOMMIT.md (see context.ts). */
+/** Pinned messages in a repo, newest first, as activity items for COCOMMIT/LOG.md (see addActivity in context.ts). */
 export async function listPinned(repo: string, limit = 10): Promise<Activity[]> {
   const supabase = getSupabase();
   let pinned: ChatMessage[];

@@ -35,6 +35,8 @@ export type GitHubActions = {
   listFiles(repo: string, branch: string): Promise<string[]>;
   readContext(repo: string): Promise<string | null>;
   writeContext(repo: string, text: string, message: string): Promise<Commit>;
-  /** Latest commits on the default branch, newest first, as COCOMMIT.md "Recent activity" items. */
+  /** Latest commits on the default branch, newest first, as COCOMMIT/LOG.md activity items. */
   listCommits(repo: string, limit?: number): Promise<Activity[]>;
+  /** Recently merged pull requests, newest first, as COCOMMIT/LOG.md activity items. */
+  listMergedPulls(repo: string, limit?: number): Promise<Activity[]>;
 };
