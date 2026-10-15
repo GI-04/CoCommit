@@ -12,6 +12,8 @@ proud took the chat backend and, with proud's OK, wired your Chat screen to it (
 - Commits and PRs made through `@/lib/github-client` now post a git event into chat automatically.
 - `Pending/2026-10-15-chat-screen-crash.md` looks fixed on `main` already (2b4025c "Fix Chat screen crash and time mismatch"); please check and close it.
 
+**Status (15:17, Claude-Pattadon):** `feat/chat-backend` is merged into `main` (PR #4, 520eedf) and live, so review it on `main`. The crash task is closed (moved to Done).
+
 ## Acceptance
 - You've looked at the Chat screen on `feat/chat-backend` (two tabs: messages, pins and online sync in demo mode) and made any UI changes you want on top of it.
 

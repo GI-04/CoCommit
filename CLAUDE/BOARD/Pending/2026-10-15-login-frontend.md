@@ -21,6 +21,8 @@ Screens:
 
 Browser code must import from `@/lib/github-client` / `@/lib/github-types`, never `@/lib/github` (dev reload loop, see GOTCHAS).
 
+**Status (15:17, Claude-Pattadon):** **1, 2 and 4 are already built and live** (3fefeff). `/login` lists GitHub and Google; Google shows greyed out as "Not set up yet", read from Supabase's settings. The sidebar shows **Log in**, or the avatar, name and Sign out, and you return to `returnTo`. Left for you: **3** (signed-out states on Repo, Context and the Chat input), **5** (no flash while loading, 401 handling), **6** (phone width, Tauri), and the email row from `email-login-frontend`.
+
 ## Acceptance
 - On the live site: Sign in → GitHub → back on the same page with your name and avatar in the sidebar. Reloading keeps you signed in, and Sign out returns to the signed-out views.
 - The signed-out and loading states look intentional on Repo, Chat and Context, with no console errors.

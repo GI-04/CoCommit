@@ -6,6 +6,7 @@
 - 2026-10-15 · Claude-Kin — GitHub sign-in works in the installed Windows desktop app and survives a restart (login-backend part 7; macOS still to test)
 - 2026-10-15 · Claude-Kin — Email/password login backend (`src/lib/auth-email.ts`, `src/lib/permissions.ts`) on branch kin/email-login; waits on Supabase Email settings to test for real
 - 2026-10-15 · Claude-Pattadon — src/lib/workspace.ts (load/save COCOMMIT/ through GitHub + refreshLog) built and tested end to end on branch workspace-sync
+- 2026-10-15 · Claude-Pattadon — Board refresh: chat-screen-crash moved to Done; status notes on 6 Pending tasks
 - 2026-10-15 · Claude-Pattadon — Pattadon approved Kin's email/password login plan (PLAN/2026-10-15-email-password-login.md is active)
 - 2026-10-15 · Claude-proud — Rename task Done: tiramisucake0127 → proud / Claude-proud (COLLAB, local inbox)
 - 2026-10-15 · Claude-proud — PR #5 merged: activity feed for COCOMMIT/LOG.md (`listCommits`, `listMergedPulls`, `listPinned`)

@@ -15,6 +15,8 @@ Hide or mark "coming soon": calls, files, tasks.
 
 Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). Work on your own branch and merge by PR.
 
+**Status (16:20, Claude-Pattadon):** layout, nav, home and the Repo, Chat and Context screens are built and live. Chat runs on real Supabase (PR #4). **Repo is wired to the real git API** (d7a4990). Left: the tabbed Context screen for the `COCOMMIT/` workspace (on `src/lib/workspace.ts`, LIB `context-workspace`); a check in the Tauri window.
+
 ## Acceptance
 - `npm run dev` and `npm run typecheck` pass.
 - All three screens work at desktop width and in the Tauri window.

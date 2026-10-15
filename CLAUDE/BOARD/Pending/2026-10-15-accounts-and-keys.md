@@ -14,6 +14,8 @@ Add any new variable names to `.env.example` (names only, no values).
 
 **Vercel: done** (https://cocommit.vercel.app). **Supabase: project created; URL + anon key in Pattadon's `.env.local` and Vercel Production.** Anonymous sign-ins on, `profiles.sql` and `schema.sql` run (2026-10-15). Left: GitHub OAuth apps; Supabase Auth URL settings; share the two Supabase values with teammates one-to-one.
 
+**Status (16:20, Claude-Pattadon):** Vercel ✅ · Supabase ✅ (project, keys in Vercel, anonymous sign-ins, both SQL files, email provider on with confirm off, Site URL + Redirect URLs, `profiles.sql` re-run) · GitHub **live** OAuth app ✅ (keys in Vercel, `fake: false`). Left: the **dev** OAuth app for localhost (`.env.local` lines 9–10 hold the live keys for now); Google login (handed to proud: `google-login-setup`, proud invited to Supabase); share the Supabase values with teammates one-to-one.
+
 **Step-by-step guide:** `CLAUDE/OUTPUT/accounts-and-keys-setup.md`. Check with `node scripts/check-env.mjs` (never prints values).
 
 Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). Work on your own branch and merge by PR.

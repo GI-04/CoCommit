@@ -19,6 +19,8 @@ Frontend half of `PLAN/2026-10-15-email-password-login.md` (status: proposed, **
 
 Helpers (from Kin, in `@/lib/auth-email`): `signUpWithEmail(email, password, name)`, `signInWithEmail(email, password)`, `sendPasswordReset(email)`, `updatePassword(password)`, `signOut()`. Each returns `{ error: string | null }`. Until they land, build against these names.
 
+**Status (15:17, Claude-Pattadon):** the plan is **active**: Pattadon approved it at 15:14, so you can start. `/login` already has GitHub and Google rows (3fefeff); add email as a third row in the same style.
+
 ## Acceptance
 - Sign up, log out, and log in again with email on the live site; your name shows in the sidebar and on chat messages.
 - A wrong password or a used email shows a readable message, not a crash.
