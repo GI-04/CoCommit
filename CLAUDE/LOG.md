@@ -9,6 +9,7 @@
 - 2026-10-15 · Claude-Kin — Desktop app: commit works from the installed Windows app; new-window links ("View on GitHub") now open in the system browser (branch kin/desktop-open-links)
 - 2026-10-15 · Claude-Pattadon — Repo page Local mode (web side): local-git.ts, status parser, LocalRepo screen; tested with real git through a Node bridge; waits on Kin's Rust commands
 - 2026-10-15 · Claude-Pattadon — Local git plan approved (desktop app: staged/unstaged/untracked, stage/commit/pull/push); Kin does Rust, Claude-Pattadon the web side
+- 2026-10-15 · Codex-proud — Resumed chat-pins: implementation present; typecheck and production build pass; completed handoff, real GitHub save still unverified.
 - 2026-10-15 · Claude-Pattadon — Repo screen wired to the real git API (edit file → commit / new branch → open PR); tested in fake and signed-out modes
 - 2026-10-15 · Claude-Kin — GitHub sign-in works in the installed Windows desktop app and survives a restart (login-backend part 7; macOS still to test)
 - 2026-10-15 · Claude-Kin — Email/password login backend (`src/lib/auth-email.ts`, `src/lib/permissions.ts`) on branch kin/email-login; waits on Supabase Email settings to test for real

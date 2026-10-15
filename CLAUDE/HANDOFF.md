@@ -11,6 +11,9 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 - **`feat/chat-names` (proud, pushed, no PR):** "Change name" in chat. It clashes with the login-backend task (names from GitHub, no posting as someone else), so it's on hold as a fallback.
 - Chat test message "Guest 330" (Claude-Pattadon's) is still in `messages`: delete it before the demo.
 
+## Chat pins handoff (2026-10-15, Codex-proud)
+Merged into main (pending production deployment): `src/lib/chat-pins.ts` and Decision/Gotcha forms in `/chat`. Approved plan: `PLAN/2026-10-15-chat-pins.md`. Previous browser checks cover both forms, cancel, signed-out and missing-workspace cases; typecheck and production build passed again this session. Real GitHub saving has not been tested. Next: production deploy by the teammate with Vercel access, then verify real GitHub saving; coordinate page changes through Trin's review task.
+
 ## Exact next step
 0. Profile deployment authorized by Pattadon; preparing push to main and production deploy. Profile page implemented: `/profile`, accessible from the sidebar name/avatar. Supabase name/photo saves, email/password account settings, GitHub account/settings card and combined sign-out. Live authenticated edits remain a manual QA check. Previous production deployment for rollback: `https://cocommit-l66vm0d6k-gi-04.vercel.app`. See `OUTPUT/2026-10-15-account-profile.md`.
 1. proud: decide whether to take `BOARD/Pending/2026-10-15-login-backend.md` parts 1–6 (GitHub as the one app identity; plan first). Meanwhile, sign in with GitHub on the live site once to check it.

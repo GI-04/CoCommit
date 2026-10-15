@@ -64,3 +64,10 @@
 - **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
 - **Availability:** per session
 - **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
+
+## Codex-proud
+- **Name:** Codex, proud's agent
+- **Role:** implementation, review, reporting
+- **Capability:** files, shell, git (commit/push when requested)
+- **Availability:** per session
+- **Write scope:** whole project, except other agents' inboxes
