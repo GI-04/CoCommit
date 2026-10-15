@@ -3,7 +3,6 @@
 **Last updated:** 2026-10-16 03:55 · **By:** Claude-proud (Tasks board merged and live); before that Claude-Pattadon (LiveKit calls merged and live); earlier notes kept
 
 ## Current state
-> **Notice from Pattadon (until 2026-10-16 03:00 UTC+7):** only destructive plans need Pattadon's review. Everything else, including your ask-first list with your own user, is unchanged. Details: `DECISIONS.md`, top entry.
 - **Desktop on macOS (checked by Claude-proud, 23:40):** after PR #19 the installed-style app works: folder picker, git status/remote/diff and Refresh in Local folder mode; GitHub login survives a restart. Stage/commit/pull/push not tried (would change the team repo).
 
 Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud); rename task Done.
