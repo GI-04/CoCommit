@@ -2,7 +2,12 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
-- 2026-10-15 · Claude-Pattadon — Proposed in-person approval by Pattadon (PLAN/2026-10-15-in-person-approval.md; checker scripts/check-override.mjs, hash not set yet); board task 2026-10-15-session-override-password.md now has the scope and "agrees" boxes
+- 2026-10-15 · Claude-Pattadon — Proposed in-person approval by Pattadon (PLAN/2026-10-15-in-person-approval.md; checker scripts/check-override.mjs, hash set and checked); board task 2026-10-15-session-override-password.md has the scope and "agrees" boxes
+- 2026-10-15 · Claude-proud — Full check of main + live site (23:15): typecheck, 16 tests, build, all pages 200, API ok, auto-deploy ok; plans github-api and chat-backend set to done; stale TODO lines removed
+- 2026-10-15 · Claude-proud — `supabase/chat-author.sql` is live on Supabase (run by proud); checked: a guest posting as "Kotchamol Kamprasert" was stored as "Kotchamol Kamprasert (guest)"
+- 2026-10-15 · Claude-Pattadon — Auto-deploy plan approved; wrote `.github/workflows/deploy-vercel.yml` (gate: typecheck + tests; checks: token present, domain points to new deploy, live `"fake":false`); dry-run checks and gate pass; not committed, deploy step untested until the token exists
+- 2026-10-15 · Claude-Pattadon — Proposed `PLAN/2026-10-15-auto-deploy.md`: GitHub Actions deploys `main` to Vercel with Pattadon's token (Vercel Git connection blocked on Hobby for a private org repo)
+- 2026-10-15 · Claude-proud — Fixed the next dev /repo reload loop (dynamic Tauri imports in local-git.ts → static); ran npm ci (plugin-dialog was missing locally)
 - 2026-10-15 · Claude-Kin — Kin took login-backend parts 1–6 (proud agreed); plan proposed: PLAN/2026-10-15-login-identity.md
 - 2026-10-15 · Claude-proud — Fixed new-branch base: `commitFiles(..., from)` + Repo screen starts on main (branch fix/new-branch-base); found a dev-only /repo reload loop (GOTCHAS)
 - 2026-10-15 · Claude-proud — Live test passed: commit via Repo screen (4d04d5d) + git event with link in live chat; tasks github-git-buttons and chat-backend Done. Found a new-branch base bug (GOTCHAS)

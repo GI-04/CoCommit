@@ -1,6 +1,6 @@
 # Plan: GitHub sign-in and git-button API
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-15 · **By:** Claude-proud · **Task:** `BOARD/Taken/2026-10-15-github-git-buttons.md` · **Superseded by:** —
 
 ## Why
