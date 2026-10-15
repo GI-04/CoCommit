@@ -279,6 +279,26 @@
         "sources/general/workspace-e2e/"
       ],
       "added": "2026-10-16"
+    },
+    {
+      "id": "heat-map",
+      "title": "Commit activity heat map on /home (src/lib/heatmap.ts)",
+      "kind": "reference",
+      "tags": [
+        "heat-map",
+        "commits",
+        "activity",
+        "home",
+        "github",
+        "chart"
+      ],
+      "summary": "Grid of commits per day for the picked repo, per-person filter; pure bucketing in heatmap.ts, one read-only listCommitDates action, limits (default branch, 500 commits).",
+      "path": "knowledge/general/heat-map.md",
+      "sources": [
+        "src/lib/heatmap.ts",
+        "src/components/HeatMap.tsx"
+      ],
+      "added": "2026-10-16"
     }
   ]
 }

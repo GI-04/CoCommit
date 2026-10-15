@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Pattadon — Heat map built (PLAN/2026-10-16-heat-map.md, active, approved by Pattadon): commit activity grid on `/home` with a person filter; 71/71 tests, typecheck, build; browser-checked on fake data only. PR opened, not merged
 - 2026-10-16 · Claude-proud — Tasks board built on proud/tasks-board (worktree `.claude/worktrees/proud-tasks-board`): `/tasks` over COCOMMIT/BOARD/, one commit per move; 65/65 tests, typecheck, build; browser-tested against the stateful mock GitHub. Committed and sent as a PR to main (not merged). Report OUTPUT/2026-10-16-0315-tasks-board.md
 - 2026-10-16 · Claude-proud — proud approved the Tasks board plan (now active)
 - 2026-10-16 · Claude-proud — Proposed a Tasks board on `COCOMMIT/BOARD/` for `/tasks` (PLAN/2026-10-16-tasks-board.md, status proposed; no packages, no schema change); waiting for proud's OK
