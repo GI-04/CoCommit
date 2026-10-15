@@ -83,8 +83,8 @@ export async function updatePassword(password: string): Promise<AuthResult> {
 /** Signs out of everything: the Supabase session (email, Google, chat) and the GitHub cookie. */
 export async function signOut(): Promise<AuthResult> {
   const supabase = getSupabase();
-  const [supa] = await Promise.allSettled([supabase?.auth.signOut(), signOutOfGitHub()]);
-  if (supa.status === "rejected") return { error: "Couldn't sign out. Check the connection and try again." };
+  const [supa, github] = await Promise.allSettled([supabase?.auth.signOut(), signOutOfGitHub()]);
+  if (supa.status === "rejected" || github.status === "rejected") return { error: "Couldn't sign out. Check the connection and try again." };
   const error = supa.value?.error;
   return { error: error ? friendly(error) : null };
 }

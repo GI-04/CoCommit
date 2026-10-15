@@ -44,6 +44,13 @@
 - **Availability:** per session
 - **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
 
+## Codex-Pattadon
+- **Name:** Codex, Pattadon's agent
+- **Role:** project reading, implementation and review
+- **Capability:** repository inspection, coding and verification; commits/pushes only when asked
+- **Availability:** per session
+- **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
+
 ## Trin
 - **Name:** Trin
 - **Role:** frontend and UI design

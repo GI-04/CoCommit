@@ -2,6 +2,10 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Codex-Pattadon — Added account profile/settings page, sidebar access, fresh chat names and mobile navigation; typecheck, Webpack build and 16 controlled tests pass; signed-out browser checked at 390px/1280px
+
+- 2026-10-15 · Codex-Pattadon — Read project source, configuration, SQL, plans and pointer-linked fixtures at 24137f0; typecheck passed; documented integration gaps and refreshed stale handoff/LIB notes
+
 - 2026-10-15 · Claude-Pattadon — Repo page Local mode (web side): local-git.ts, status parser, LocalRepo screen; tested with real git through a Node bridge; waits on Kin's Rust commands
 - 2026-10-15 · Claude-Pattadon — Local git plan approved (desktop app: staged/unstaged/untracked, stage/commit/pull/push); Kin does Rust, Claude-Pattadon the web side
 - 2026-10-15 · Claude-Pattadon — Repo screen wired to the real git API (edit file → commit / new branch → open PR); tested in fake and signed-out modes

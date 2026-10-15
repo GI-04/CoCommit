@@ -76,5 +76,6 @@ export function signInHref(returnTo = typeof location === "undefined" ? "/repo" 
 }
 
 export async function signOutOfGitHub(): Promise<void> {
-  await fetch("/api/github/logout", { method: "POST" });
+  const res = await fetch("/api/github/logout", { method: "POST" });
+  if (!res.ok) throw new GitHubRequestError(res.status, "Couldn't sign out of GitHub. Try again.");
 }

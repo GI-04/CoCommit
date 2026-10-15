@@ -1,78 +1,78 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getSession, signOutOfGitHub } from "@/lib/github-client";
-import { getSupabase, supabaseConfigured } from "@/lib/supabase";
+import { Avatar } from "@/components/Avatar";
+import { loadAccounts, PROFILE_CHANGED, type Accounts } from "@/lib/profile";
+import { getSupabase } from "@/lib/supabase";
+import { signOut } from "@/lib/auth-email";
 
-type Who = { name: string; avatar?: string; via: "github" | "google" };
-
-// Bottom of the sidebar: a "Log in" button (to /login, where people pick GitHub or Google),
-// or the signed-in user with a sign-out button. Renders nothing when no login method can exist.
 export function UserChip() {
-  const [github, setGithub] = useState<{ who: Who | null; fake: boolean } | null>(null);
-  const [google, setGoogle] = useState<Who | null>(null);
+  const pathname = usePathname();
+  const [accounts, setAccounts] = useState<Accounts | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getSession()
-      .then((s) =>
-        setGithub({
-          fake: s.fake,
-          who: s.user && !s.fake ? { name: s.user.name || s.user.login, avatar: s.user.avatarUrl, via: "github" } : null,
-        }),
-      )
-      .catch(() => setGithub({ who: null, fake: true }));
-
-    const supabase = getSupabase();
-    if (!supabase) return;
-    // Anonymous users (chat signs people in that way) have no name or account to show.
-    const read = (user: { email?: string; is_anonymous?: boolean; user_metadata?: Record<string, string> } | null | undefined) =>
-      setGoogle(
-        user && !user.is_anonymous
-          ? { name: user.user_metadata?.full_name ?? user.email ?? "You", avatar: user.user_metadata?.avatar_url, via: "google" }
-          : null,
-      );
-    supabase.auth.getUser().then(({ data }) => read(data.user));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => read(session?.user));
-    return () => sub.subscription.unsubscribe();
+    let active = true;
+    let request = 0;
+    const refresh = () => {
+      const current = ++request;
+      void loadAccounts().then((value) => {
+        if (active && current === request) setAccounts(value);
+      }).catch(() => {
+        if (active && current === request) setAccounts({ profile: null, github: null, warnings: ["Couldn't load account."] });
+      });
+    };
+    refresh();
+    window.addEventListener(PROFILE_CHANGED, refresh);
+    // Run account reads after the auth callback releases Supabase's session lock.
+    const subscription = getSupabase()?.auth.onAuthStateChange(() => { setTimeout(refresh, 0); });
+    return () => {
+      active = false;
+      window.removeEventListener(PROFILE_CHANGED, refresh);
+      subscription?.data.subscription.unsubscribe();
+    };
   }, []);
 
-  const who = github?.who ?? google;
-
-  if (!who) {
-    // Show "Log in" once any login method could exist; /login lists the ones that are set up.
-    if (!github || (github.fake && !supabaseConfigured)) return null;
-    const here = typeof location === "undefined" ? "/" : location.pathname;
-    return (
-      <a
-        href={`/login?returnTo=${encodeURIComponent(here)}`}
-        className="mt-auto flex items-center justify-center rounded-md bg-fg px-3 py-2 text-sm font-medium text-bg hover:opacity-90"
-      >
-        Log in
-      </a>
-    );
-  }
-
-  const signOut = async () => {
-    if (who.via === "github") {
-      await signOutOfGitHub();
-      location.reload();
-    }
-  };
+  if (!accounts) return <div className="mt-auto h-12 animate-pulse rounded-md bg-line/50" aria-label="Loading account" />;
+  const who = accounts.profile ?? (accounts.github && {
+    name: accounts.github.name || accounts.github.login,
+    avatarUrl: accounts.github.avatarUrl,
+  });
+  if (!who) return (
+    <Link href={`/login?returnTo=${encodeURIComponent(pathname)}`} className="mt-auto rounded-md bg-fg px-3 py-2 text-center text-sm font-medium text-bg hover:opacity-90">
+      Log in
+    </Link>
+  );
 
   return (
-    <div className="mt-auto flex items-center gap-2 border-t border-line pt-3">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      {who.avatar && <img src={who.avatar} alt="" className="h-7 w-7 rounded-full" />}
-      <span className="min-w-0 flex-1 truncate text-sm">{who.name}</span>
-      {who.via === "github" ? (
-        <button onClick={signOut} className="text-xs text-muted hover:text-fg">
-          Sign out
-        </button>
-      ) : (
-        <form action="/auth/signout" method="post">
-          <button className="text-xs text-muted hover:text-fg">Sign out</button>
-        </form>
-      )}
+    <div className="w-full border-t border-line pt-3 md:mt-auto">
+      <Link href="/profile" className="flex items-center gap-2 rounded-md p-1 hover:bg-line/60" aria-label={`View profile for ${who.name}`}>
+        <Avatar name={who.name} url={who.avatarUrl} className="h-8 w-8" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium">{who.name}</span>
+          <span className="block text-xs text-muted">View profile</span>
+        </span>
+      </Link>
+      <button
+        disabled={busy}
+        className="mt-2 px-1 text-xs text-muted hover:text-fg disabled:opacity-50"
+        onClick={async () => {
+          setBusy(true);
+          setError(null);
+          try {
+            const result = await signOut();
+            if (result.error) throw new Error(result.error);
+            location.assign("/login");
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Couldn't sign out. Try again.");
+            setBusy(false);
+          }
+        }}
+      >{busy ? "Signing out…" : "Sign out"}</button>
+      {error && <p role="alert" className="mt-1 text-xs text-removed">{error}</p>}
     </div>
   );
 }
