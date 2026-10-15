@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-git-check"
+description = "Enables the git_check command without any pre-configured scope."
+commands.allow = ["git_check"]
+
+[[permission]]
+identifier = "deny-git-check"
+description = "Denies the git_check command without any pre-configured scope."
+commands.deny = ["git_check"]

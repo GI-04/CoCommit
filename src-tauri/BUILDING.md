@@ -13,6 +13,10 @@ Each OS builds its own installer: build the `.msi` on Windows and the `.dmg` on 
 
 Links with `target="_blank"` (like "View on GitHub") and `window.open` open in the system browser, not in the app. That's `on_new_window` in `src-tauri/src/lib.rs`, with `tauri-plugin-opener`. Only `http`/`https` links are opened; anything else is blocked.
 
+## Local git (Repo page, "Local folder")
+
+The page can run the user's own `git` on a folder they pick, through 12 commands in `src-tauri/src/git.rs` (no shell, every path and branch checked). `capabilities/remote.json` lets only https://cocommit.vercel.app call them; `http://localhost:3000` is allowed in dev builds only (`lib.rs`). Git never asks for a password here: without a working git login, push and pull return an error.
+
 ## Which site the installed app shows
 
 The installed app loads https://cocommit.vercel.app, so it shows whatever is deployed there, not your local code. Pushing to GitHub does not redeploy it yet: Pattadon deploys with `vercel deploy --prod`. A web change shows up in the desktop app after that deploy, with no rebuild needed. Rebuild only when `src-tauri/` changes or the URL moves.
