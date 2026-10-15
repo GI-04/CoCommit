@@ -1,12 +1,12 @@
 # Handoff
 
-**Last updated:** 2026-10-15 · **By:** Claude
+**Last updated:** 2026-10-15 · **By:** Claude-Pattadon
 
 ## Current state
-Stack plan approved (`PLAN/2026-10-15-stack.md`, active). Project skeleton is **structure only**: every code file in `src/` and `src-tauri/src/` (plus `src-tauri/build.rs`) is an empty placeholder, by Pattadon's request. Config files are filled in (`package.json`, `tsconfig.json`, `next.config.ts`, `postcss.config.mjs`, `src-tauri/tauri.conf.json`, `Cargo.toml`, `.env.example`, PWA manifest). Pattadon is running `npm install`. Nothing committed yet.
+Stack plan approved (`PLAN/2026-10-15-stack.md`, active). Project skeleton is **structure only**: every code file in `src/` and `src-tauri/src/` (plus `src-tauri/build.rs`) is an empty placeholder, by Pattadon's request. Config files are filled in (`package.json`, `tsconfig.json`, `next.config.ts`, `postcss.config.mjs`, `src-tauri/tauri.conf.json`, `Cargo.toml`, `.env.example`, PWA manifest). Skeleton is merged to `main` (PR #1). Agents are named `<Agent>-<Owner>`. Board: `Pending/2026-10-15-rename-to-proud.md` is for tiramisucake0127 only.
 
 ## Exact next step
-Fill in the empty files, starting with `src/app/layout.tsx` and `src/app/page.tsx`. `npm run dev` errors until both have a default export. Then commit the skeleton (ask first).
+Fill in the empty files, starting with `src/app/layout.tsx` and `src/app/page.tsx`. `npm run dev` errors until both have a default export. Commit and push with Pattadon's OK.
 
 ## Watch out
 - Ask before commit, push, package installs or deleting files.
