@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Tauri merges this into the macOS app's Info.plist. Needed for calls (/calls, LiveKit). -->
+  <key>NSCameraUsageDescription</key>
+  <string>CoCommit uses your camera for video calls with your team.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>CoCommit uses your microphone for calls with your team.</string>
+</dict>
+</plist>

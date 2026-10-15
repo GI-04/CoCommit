@@ -11,10 +11,13 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.24",
+    "@livekit/components-styles": "^1.2.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.3",
     "@tauri-apps/api": "^2.12.4",
     "@tauri-apps/plugin-dialog": "^2.8.3",
+    "livekit-client": "^2.22.4",
     "next": "^16.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
