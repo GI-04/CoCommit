@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — Deploying from the repo folder would upload `.claude/worktrees/`
+- **What failed:** nothing yet, but the risk is real. `.claude/worktrees/` (other sessions' git worktrees, 418 MB, possibly with their own `.env.local`) is git-ignored, but there's no `.vercelignore`, so a plain `vercel deploy --prod` from the repo folder may upload it.
+- **Evidence:** `du -sh .claude/worktrees` → 418M; `ls -a` shows no `.vercelignore`.
+- **Workaround:** deploy from a clean export: `git archive HEAD | tar -x -C <dir>`, copy `.vercel/project.json` into `<dir>/.vercel/`, run `vercel deploy --prod --yes` there. Env vars come from Vercel, not `.env.local`. Longer-term fix: add a `.vercelignore` (ask first).
+
 ## 2026-10-15 — Turbopack build blocked by local port restriction
 - **What failed:** `npm run build` failed while evaluating globals.css, including after retrying outside the sandbox.
 - **Evidence:** creating new process → binding to a port → Operation not permitted (os error 1).
