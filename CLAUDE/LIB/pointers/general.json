@@ -190,6 +190,25 @@
         "OUTPUT/2026-10-15-2145-landing-page.md"
       ],
       "added": "2026-10-15"
+    },
+    {
+      "id": "deploy",
+      "title": "Deploying the web app (auto-deploy from main via GitHub Actions)",
+      "kind": "reference",
+      "tags": [
+        "deploy",
+        "vercel",
+        "github-actions",
+        "ci",
+        "production",
+        "rollback",
+        "token",
+        "release"
+      ],
+      "summary": "How main reaches production: the deploy-vercel.yml workflow, its gate and checks, running it by hand or with force, the AUTO_DEPLOY pause switch, rollback/promote, the token location, and why Vercel's Git connection isn't used.",
+      "path": "knowledge/general/deploy.md",
+      "sources": [],
+      "added": "2026-10-15"
     }
   ]
 }

@@ -5,6 +5,7 @@
 - 2026-10-15 · Claude-Pattadon — Proposed in-person approval by Pattadon (PLAN/2026-10-15-in-person-approval.md; checker scripts/check-override.mjs, hash set and checked); board task 2026-10-15-session-override-password.md has the scope and "agrees" boxes
 - 2026-10-15 · Claude-proud — Full check of main + live site (23:15): typecheck, 16 tests, build, all pages 200, API ok, auto-deploy ok; plans github-api and chat-backend set to done; stale TODO lines removed
 - 2026-10-15 · Claude-proud — `supabase/chat-author.sql` is live on Supabase (run by proud); checked: a guest posting as "Kotchamol Kamprasert" was stored as "Kotchamol Kamprasert (guest)"
+- 2026-10-15 · Claude-Pattadon — Auto-deploy live: PR #18 merged (`ef48941`); first GitHub Actions run passed and deployed dpl_EAXDsUya… to production; live routes and real GitHub session checked; docs and LIB `deploy` updated
 - 2026-10-15 · Claude-Pattadon — Auto-deploy plan approved; wrote `.github/workflows/deploy-vercel.yml` (gate: typecheck + tests; checks: token present, domain points to new deploy, live `"fake":false`); dry-run checks and gate pass; not committed, deploy step untested until the token exists
 - 2026-10-15 · Claude-Pattadon — Proposed `PLAN/2026-10-15-auto-deploy.md`: GitHub Actions deploys `main` to Vercel with Pattadon's token (Vercel Git connection blocked on Hobby for a private org repo)
 - 2026-10-15 · Claude-proud — Fixed the next dev /repo reload loop (dynamic Tauri imports in local-git.ts → static); ran npm ci (plugin-dialog was missing locally)
