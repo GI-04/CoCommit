@@ -8,8 +8,7 @@ export type Download = {
 };
 
 export const downloads: Download[] = [
-  // Set href to "/downloads/CoCommit-macos.dmg" once the file is in public/downloads/.
-  { id: "macos", label: "macOS", href: null },
+  { id: "macos", label: "macOS", href: "/downloads/CoCommit-macos.dmg" },
   { id: "windows", label: "Windows", href: null },
 ];
 
