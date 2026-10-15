@@ -1,6 +1,6 @@
 # Plan: In-person approval by Pattadon
 
-**Status:** proposed · **By:** Claude-Pattadon for Pattadon · **Created:** 2026-10-15
+**Status:** rejected (Pattadon, 2026-10-15: dropped; the team keeps the current protocol) · **By:** Claude-Pattadon for Pattadon · **Created:** 2026-10-15
 **Board task:** `BOARD/Pending/2026-10-15-session-override-password.md`
 **Supersedes:** the earlier "override every protocol" idea (never went live; dropped because it handed teammates' agents to Pattadon without their agreement).
 

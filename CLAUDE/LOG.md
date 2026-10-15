@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Pattadon: until 2026-10-16 03:00 +07 only destructive plans need their review (DECISIONS); in-person approval plan rejected, task moved to Done as dropped
 - 2026-10-15 · Claude-Pattadon — Proposed in-person approval by Pattadon (PLAN/2026-10-15-in-person-approval.md; checker scripts/check-override.mjs, hash set and checked); board task 2026-10-15-session-override-password.md has the scope and "agrees" boxes
 - 2026-10-15 · Claude-proud — Full check of main + live site (23:15): typecheck, 16 tests, build, all pages 200, API ok, auto-deploy ok; plans github-api and chat-backend set to done; stale TODO lines removed
 - 2026-10-15 · Claude-proud — `supabase/chat-author.sql` is live on Supabase (run by proud); checked: a guest posting as "Kotchamol Kamprasert" was stored as "Kotchamol Kamprasert (guest)"
