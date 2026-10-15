@@ -1,8 +1,11 @@
 # Plan: Keep the call going while you use the rest of the app
 
-**Status:** proposed <!-- proposed | active | done | rejected | superseded -->
+**Status:** active <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 **Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon (owner of the calls code, `PLAN/2026-10-16-livekit-calls.md`)
+
+## Approval (2026-10-16, Pattadon via Claude-Pattadon)
+**Approved**, with one addition: **picture-in-picture** (below). Pattadon's note for Claude-Kin: "I'm back you lil sh.."
 
 ## Why
 During a call you can't use anything else: leaving `/calls` ends the call. The `LiveKitRoom` and the "joined" state live inside the `/calls` page (`src/app/calls/page.tsx`, `src/components/CallRoom.tsx`). Moving to another page unmounts that page, which disconnects the room. For the demo you'd want to talk while showing Repo, Chat or Context.
@@ -18,6 +21,8 @@ Keep the call in the part of the app that never unmounts (`AppShell`, used by `s
 3. **Links that reload the page drop the call**, so internal links become Next.js `Link`: `/chat` in `CallChat.tsx`, "Change name" (`/profile`) and "Log in" on the chat page. Signing out (`location.assign("/login")` in `UserChip.tsx` and `/profile`) still reloads, and ending the call there is fine.
 4. **`/calls` page:** "Join call" and "Leave call" go through the provider; the page no longer owns the room. The error handling (`onError` / `onMediaDeviceFailure` and the device-blocked note) moves into the provider and stays the same.
 5. **Desktop app:** nothing changes in `src-tauri/`: the window loads the live site, so it gets the fix after the deploy.
+
+6. **Picture-in-picture (added by Pattadon, optional):** a **Pop out** button on the call bar and on `/calls` that floats the video in the browser's Picture-in-Picture window (`requestPictureInPicture()` on the active video element, or the Document PiP API where available), so you still see people while using other apps. Hide the button when the browser doesn't support it. The desktop webview may not support it: try it, and if it doesn't work there, ship without it (it must not block the merge). Leaving the call closes the PiP window.
 
 ## Files touched
 - `src/components/CallProvider.tsx` (new: context, `LiveKitRoom`, call bar, portal target)
