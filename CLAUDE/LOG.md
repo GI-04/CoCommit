@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Codex-Pattadon — Pushed profile via merge-only integration to main (d245b86), deployed to production; live /profile and real GitHub session config verified; previous deployment retained for rollback
+
 - 2026-10-15 · Codex-Pattadon — Added account profile/settings page, sidebar access, fresh chat names and mobile navigation; typecheck, Webpack build and 16 controlled tests pass; signed-out browser checked at 390px/1280px
 
 - 2026-10-15 · Codex-Pattadon — Read project source, configuration, SQL, plans and pointer-linked fixtures at 24137f0; typecheck passed; documented integration gaps and refreshed stale handoff/LIB notes

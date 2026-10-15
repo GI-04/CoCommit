@@ -1,6 +1,6 @@
 # Deliverable: Account profile and settings
 
-**Date:** 2026-10-15 · **By:** Codex-Pattadon · **Result:** implemented and locally verified
+**Date:** 2026-10-15 · **By:** Codex-Pattadon · **Result:** pushed to main and deployed to production
 **Plan:** `PLAN/2026-10-15-account-profile.md` · **Task:** `BOARD/Done/2026-10-15-account-profile.md`
 
 ## Goal
@@ -54,3 +54,15 @@ npm run build -- --webpack
 
 ## Uncommitted work
 Pattadon authorized committing, pushing to main and deploying on 2026-10-15. Release preparation includes this feature and supporting project notes. Rollback deployment before this release: `https://cocommit-l66vm0d6k-gi-04.vercel.app`. Deployment outcome will be recorded in the handoff.
+
+
+## Production release
+- Authorized by Pattadon in this chat on 2026-10-15; merge chosen explicitly instead of rebase.
+- Feature commit `c0c7b94`; merge commits `c631ad4` and `d245b86` preserve incoming desktop and chat-actions work. Normal push to main succeeded; no rebase or force push performed.
+- Deployed source `d245b86` with Vercel CLI. Deployment `dpl_5Zp6oE1uLzTTtErQykPJkPgNuvVK` is READY and aliased to `https://cocommit.vercel.app`.
+- Immutable release URL: `https://cocommit-4frfib617-gi-04.vercel.app`.
+- Vercel production Turbopack build passed (including TypeScript). Post-merge local typecheck and all 16 controlled tests passed.
+- Live `/profile` loaded in browser, resolved to the expected signed-out card, and had no captured console errors. Unauthenticated GitHub session endpoint returned `{"user":null,"fake":false}`.
+- Real authenticated profile/credential changes remain untested; no user account details were modified.
+- Previous deployment retained for rollback: `https://cocommit-l66vm0d6k-gi-04.vercel.app` (`dpl_7FcqV3mcsLCrReHMW6DVssvAp6kd`).
+- Mac app loads the production URL; quit and reopen it to receive the web feature, without rebuilding the DMG.
