@@ -299,6 +299,27 @@
         "src/components/HeatMap.tsx"
       ],
       "added": "2026-10-16"
+    },
+    {
+      "id": "files",
+      "title": "Shared files (/files, COCOMMIT/files/)",
+      "kind": "reference",
+      "tags": [
+        "files",
+        "upload",
+        "download",
+        "sharing",
+        "binary",
+        "base64",
+        "blob",
+        "cocommit-folder"
+      ],
+      "summary": "How /files works: files committed to COCOMMIT/files/ on the default branch, base64 blobs in commitFiles, listSharedFiles/downloadFile actions, 3 MB limit, fake mode and tests.",
+      "path": "knowledge/general/files.md",
+      "sources": [
+        "PLAN/2026-10-16-files.md"
+      ],
+      "added": "2026-10-16"
     }
   ]
 }

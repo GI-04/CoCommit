@@ -15,7 +15,7 @@ CoCommit replaces the messy Discord-to-GitHub workflow with one platform. It mak
 - **Approved 2026-10-15** (`PLAN/2026-10-15-stack.md`), as built: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind 4 · GitHub REST API (no Octokit) · Supabase (auth, Postgres, Realtime) · Tauri 2 (desktop) · Vercel (hosting).
 - **Calls** (added 2026-10-16, `PLAN/2026-10-16-livekit-calls.md`): LiveKit in `/calls`, live since PR #26.
 - **Tasks board** (added 2026-10-16, `PLAN/2026-10-16-tasks-board.md`): `/tasks` reads and moves the repo's `COCOMMIT/BOARD/` files through the GitHub API; no new service.
-- **Not in the demo** (`PLAN/2026-10-15-demo-scope.md`): file sharing (coming-soon page) and phone install.
+- **Not in the demo** (`PLAN/2026-10-15-demo-scope.md`): phone install. File sharing was added after (`/files`, `PLAN/2026-10-16-files.md`; files saved in `COCOMMIT/files/`).
 
 ## Architecture
 Three parts:

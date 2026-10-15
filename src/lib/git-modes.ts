@@ -14,6 +14,7 @@ export type TreeListing = { path: string; mode: string; type?: string };
 /** One entry of the tree to create (GitHub's POST git/trees). */
 export type TreeEntry =
   | { path: string; mode: string; type: "blob"; content: string }
+  | { path: string; mode: string; type: "blob"; sha: string }
   | { path: string; mode: string; type: "blob"; sha: null };
 
 /** A file the app shouldn't change: a symlink or a submodule. */
@@ -35,13 +36,16 @@ export function modesByPath(tree: TreeListing[]): Map<string, string> {
  * - a new file, or one a truncated listing didn't include, is a plain file (100644);
  * - a deleted file is removed with its own mode;
  * - symlinks (120000) and submodules (160000) are refused, so they're never overwritten as plain files.
+ * - a file whose bytes were already uploaded as a blob (`blobs`: path → blob id, used for binary files) points at that blob.
  */
-export function treeEntries(files: FileEdit[], modes: Map<string, string>): TreeEntry[] {
+export function treeEntries(files: FileEdit[], modes: Map<string, string>, blobs: Map<string, string> = new Map()): TreeEntry[] {
   return files.map((f) => {
     const mode = modes.get(f.path);
     if (mode === MODE_SYMLINK) throw new GitModeError(`${f.path} is a symlink: edit it with git, not in the app.`);
     if (mode === MODE_SUBMODULE) throw new GitModeError(`${f.path} is a submodule: change it with git, not in the app.`);
     const keep = mode === MODE_EXECUTABLE ? MODE_EXECUTABLE : MODE_FILE;
+    const blob = blobs.get(f.path);
+    if (blob && f.content !== null) return { path: f.path, mode: keep, type: "blob", sha: blob };
     return f.content === null ? { path: f.path, mode: keep, type: "blob", sha: null } : { path: f.path, mode: keep, type: "blob", content: f.content };
   });
 }
