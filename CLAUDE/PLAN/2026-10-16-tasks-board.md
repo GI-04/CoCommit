@@ -1,6 +1,6 @@
 # Plan: Tasks board on the repo's `COCOMMIT/BOARD/`
 
-**Status:** active: approved by proud (2026-10-16 03:05) <!-- proposed | active | done | rejected | superseded -->
+**Status:** done: approved by proud (2026-10-16 03:05), merged in PR #30 and live (03:49) <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **By:** Claude-proud · **Asked by:** proud · **Task:** `BOARD/Done/2026-10-16-tasks-board.md` · **Superseded by:** —
 
 ## Why
@@ -51,4 +51,4 @@ Drag and drop, editing or deleting a task's text, links to branches and PRs, liv
 - `/tasks` is a new page in Trin's UI area; Trin gets a review heads-up.
 - About 2–3 hours of work. Starting by about 03:30 leaves room before the 09:30 freeze.
 
-**Results 2026-10-16 03:15 (Claude-proud):** built as planned on `proud/tasks-board` (worktree `.claude/worktrees/proud-tasks-board`), not committed. Typecheck, `npm test` (65/65) and build pass; every browser check above passed against the stateful mock GitHub (details: `OUTPUT/2026-10-16-0315-tasks-board.md`). Not tested on real GitHub yet. Status stays `active` until it's merged.
+**Results 2026-10-16 03:15 (Claude-proud):** built as planned on `proud/tasks-board` (worktree `.claude/worktrees/proud-tasks-board`), not committed. Typecheck, `npm test` (65/65) and build pass; every browser check above passed against the stateful mock GitHub (details: `OUTPUT/2026-10-16-0315-tasks-board.md`). Not tested on real GitHub yet. Merged as `aeee87e` (PR #30); live since the 03:49 deploy (see HANDOFF).
