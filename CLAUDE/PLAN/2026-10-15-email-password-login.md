@@ -1,8 +1,8 @@
 # Plan: Email and password sign-up / log in
 
-**Status:** proposed <!-- proposed | active | done | rejected | superseded -->
+**Status:** active <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-15 · **Superseded by:** —
-**Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon
+**Proposed by:** Kin (with Claude-Kin) · **Approved by:** Pattadon (2026-10-15 15:14)
 
 ## Why
 Give users more ways in. Not everyone has a GitHub or Google account they want to use, and a normal email + password sign-up is what most people expect. GitHub stays the recommended login, because commits and pull requests need it.
