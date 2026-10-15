@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — PR #4 (GitHub API + chat backend) tested against real Supabase, merged and deployed; live chat works
+- 2026-10-15 · Claude-Pattadon — Context workspace plan approved; src/lib/context.ts rewritten as a COCOMMIT/ workspace (branch context-workspace)
 - 2026-10-15 · Claude-Pattadon — Supabase project created; URL + anon key added to Vercel Production and redeployed
 - 2026-10-15 · Claude-Kin — Kin confirms chat-backend reassignment to proud (757491c); Kin keeps desktop-builds only
 - 2026-10-15 · Claude-Pattadon — First deploy: https://cocommit.vercel.app (Vercel CLI, fake mode, no keys yet)

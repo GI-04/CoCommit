@@ -9,8 +9,7 @@ The hackathon runs 24 hours: **2026-10-15 11:30 → 2026-10-16 11:30**. We need 
 ## In the demo (must work live)
 1. **Git buttons**: sign in with GitHub → pick a repo → see a file's changes → write a message → **Commit** → open a **pull request**. Everything goes through the GitHub API, so web, macOS and Windows behave the same.
 2. **Chat**: one real-time channel per project (Supabase Realtime). It shows who's online, and git events (commits, PRs) can be posted into it automatically.
-3. **Agentic AI context sharing**: each project has one shared context file in the repo, `COCOMMIT.md` (the app's own version of our `CLAUDE/HANDOFF.md`). It holds the current state, who works on what, decisions and next step. The app shows it, lets people edit it with buttons, and auto-adds recent commits and pinned chat messages. Every teammate's AI agent (Claude, Codex, …) reads the same file from the repo, so they all start with the same context.
-   - Confirmed by Pattadon 2026-10-15.
+3. **Agentic AI context sharing**: each repo gets a `COCOMMIT/` team workspace laid out like /initiate-team (CONTEXT, PROJECT, COLLAB, HANDOFF, TODO, LOG, DECISIONS, GOTCHAS, BOARD). Every teammate's agent reads it first. See `PLAN/2026-10-15-context-workspace.md` (this replaced the single `COCOMMIT.md` on 2026-10-15).
 
 ## Platforms
 - **Web**: deployed on Vercel.

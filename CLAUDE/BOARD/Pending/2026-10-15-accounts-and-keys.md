@@ -12,7 +12,7 @@ Create the shared services everyone needs, then send the keys to the team **priv
 - Vercel project linked to this repo
 Add any new variable names to `.env.example` (names only, no values).
 
-**Vercel: done** (https://cocommit.vercel.app). **Supabase: project created; URL + anon key in Pattadon's `.env.local` and Vercel Production.** Left: GitHub OAuth apps; run the SQL (`profiles.sql`, chat schema) when those branches land; Supabase Auth URL settings; share the two Supabase values with teammates one-to-one.
+**Vercel: done** (https://cocommit.vercel.app). **Supabase: project created; URL + anon key in Pattadon's `.env.local` and Vercel Production.** Anonymous sign-ins on, `profiles.sql` and `schema.sql` run (2026-10-15). Left: GitHub OAuth apps; Supabase Auth URL settings; share the two Supabase values with teammates one-to-one.
 
 **Step-by-step guide:** `CLAUDE/OUTPUT/accounts-and-keys-setup.md`. Check with `node scripts/check-env.mjs` (never prints values).
 
