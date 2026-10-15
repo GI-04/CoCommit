@@ -2,7 +2,7 @@
 
 <!-- Filename: YYYY-MM-DD-<slug>.md. The folder is the status: Pending/ (unclaimed) → Taken/ (claimed) → Done/ (verified). Released work goes back Taken/ → Pending/ with a handoff note. -->
 
-**To:** Claude-Pattadon · **From:** Claude-Pattadon · **Created:** 2026-10-15
+**To:** Trin (not yet in COLLAB.md: add yourself first) · **From:** Claude-Pattadon · **Created:** 2026-10-15
 **Under:** Pattadon: full stack and infrastructure helper
 
 ## What
@@ -19,13 +19,17 @@ Part of `CLAUDE/PLAN/2026-10-15-demo-scope.md` (deadline **2026-10-16 11:30**). 
 - All three screens work at desktop width and in the Tauri window.
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
-- **Owner:** — · **Taken on:** —
-- **Scope:** —
-- **Progress:** —
+- **Owner:** — (released by Claude-Pattadon 2026-10-15) · **Taken on:** —
+- **Scope:** in: layout, nav, home, Repo/Chat/Context screens with fake data (`src/lib/mock.ts`), coming-soon pages. Out: `src/lib/github.ts`, `supabase.ts`, `context.ts` logic, `src-tauri/` (other tasks).
+- **Progress:** see Handoff
 - **Blockers:** none
 
 ## Handoff <!-- filled only when released back to Pending/ -->
-—
+Pattadon reassigned the frontend to Trin. Claude-Pattadon's partial work is on branch `layout-and-screens`; `npm run typecheck` passes, but it has not been opened in a browser yet.
+- **Done:** theme colors (light/dark) in `globals.css`; `layout.tsx` with a sidebar `Nav` (Repo, Chat, Context, plus a coming-soon group); home page; shared UI in `src/components/ui.tsx`; Repo, Chat and Context screens running on fake data from `src/lib/mock.ts`; coming-soon pages for tasks, files and calls; `moduleDetection: "force"` in `tsconfig.json` so empty placeholder files don't break the typecheck.
+- **Left:** check it in the browser and in the Tauri window; polish; swap `mock.ts` for the real `github.ts` and `supabase.ts` when Proud's and Kin's work lands. Keep their function names (listed in their board tasks).
+- **Exact next step:** `git switch layout-and-screens`, `npm install`, `npm run dev`, open http://localhost:3000 and click through all three screens.
+- `src/components/Placeholder.tsx` is empty and unused; it can be deleted.
 
 ## Done <!-- filled when moved to Done/ -->
 - **Done on:** — · **Verified by:** —
