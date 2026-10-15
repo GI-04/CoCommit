@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — First deploy: https://cocommit.vercel.app (Vercel CLI, fake mode, no keys yet)
 - 2026-10-15 · Claude-Pattadon — Accounts-and-keys setup guide + scripts/check-env.mjs written (Pattadon creates the accounts)
 - 2026-10-15 · Claude-Kin — First Windows desktop build (.msi + setup .exe) on branch kin/desktop-builds; app loads a URL, no static export
 - 2026-10-15 · Claude-Pattadon — COCOMMIT.md format and src/lib/context.ts written and tested (branch ai-context-sharing)

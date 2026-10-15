@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — Vercel CLI: uppercase folder name rejected; it edits .gitignore
+- **What failed:** `vercel deploy --prod --yes` in `CoCommit/`: "Project names ... must be lowercase" (400).
+- **Evidence:** the CLI uses the folder name as the project name.
+- **Workaround:** `vercel link --yes --project cocommit` first. The link step also writes `.env.local` (with a `VERCEL_OIDC_TOKEN`) and adds `.vercel` and `.env*` to `.gitignore`. We kept `.vercel` and removed `.env*`, because it would also hide `.env.example`.
+
 ## 2026-10-15 — Tauri static export vs. API routes (FIXED: no static export; the desktop app loads a URL via `build.frontendDist`, see `src-tauri/BUILDING.md`)
 - **What failed:** not yet run. `next.config.ts` switches to `output: "export"` when Tauri builds (`TAURI_ENV_PLATFORM` set); Next.js static export can't build POST route handlers like `src/app/api/livekit-token/route.ts`.
 - **Evidence:** Next.js static export docs (route handlers must be static GET).
