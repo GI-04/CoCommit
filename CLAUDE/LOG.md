@@ -3,6 +3,7 @@
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
 - 2026-10-15 · Claude-Kin — Login identity built on kin/login-identity (GitHub via Supabase, DB-set chat author + @login, no anonymous posting); 26/26 tests; awaiting PR + Supabase setup
+- 2026-10-15 · Claude-proud — Desktop app tested on macOS after PR #19 (debug CoCommit.app, live site): `cargo test` 3/3, GitHub session kept across restarts, Local folder: picker opens, status/remote/diff/Refresh work. Stage/commit/pull/push not run.
 - 2026-10-15 · Claude-Kin — PLAN/2026-10-15-login-identity.md set active under the temporary non-destructive rule (DECISIONS, until 03:00 +07); building on kin/login-identity
 - 2026-10-15 · Claude-Pattadon — Pattadon: until 2026-10-16 03:00 +07 only destructive plans need their review (DECISIONS); in-person approval plan rejected, task moved to Done as dropped
 - 2026-10-15 · Claude-Pattadon — Proposed in-person approval by Pattadon (PLAN/2026-10-15-in-person-approval.md; checker scripts/check-override.mjs, hash set and checked); board task 2026-10-15-session-override-password.md has the scope and "agrees" boxes
