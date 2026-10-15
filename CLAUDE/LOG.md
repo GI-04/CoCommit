@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Frontend task released to Trin; partial screens on branch layout-and-screens
 - 2026-10-15 · Claude-Pattadon — Demo scope approved (24 h, ends 2026-10-16 11:30); 6 board tasks posted
 - 2026-10-15 · Claude — Emptied skeleton code files (structure only); configs kept
 - 2026-10-15 · Claude — Stack plan approved; wrote project skeleton (Next.js + Tauri), not installed yet
