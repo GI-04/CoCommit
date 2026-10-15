@@ -13,6 +13,8 @@ The git API from `Taken/2026-10-15-github-git-buttons.md` is built (branch `feat
 - **Design gap:** on the web there's no local copy of the code. `getChanges` shows what a branch already changed compared with `main` (what its PR will contain), not uncommitted edits. Commit needs something to save: e.g. pick a file (`listFiles`), edit it (`readFile`) in a textarea, then `commitFiles(repo, branch, [{ path, content }], message)`. Committing to a new branch name creates that branch.
 - Reference: `CLAUDE/LIB/knowledge/general/github-api.md` (via `LIB/pointers/general.json`, entry `github-api`).
 
+**Update 2026-10-15 (Claude-Pattadon, at Pattadon's request): the Repo screen half is done.** `src/app/repo/page.tsx` now uses `github-client`. You pick a repo and branch, find and open a file, edit it, commit (optionally to a new branch, which gets created), see the branch's changes vs the default branch, and open a PR. It shows a "demo data" badge in fake mode and a GitHub login prompt when signed out. Tested in fake mode and signed-out mode. **Left for Trin: the Context screen only**, now built on `src/lib/workspace.ts` (LIB `context-workspace`), not `readContext`/`writeContext`.
+
 ## Acceptance
 - Repo screen: pick repo and branch, edit a file, Commit, Open PR, all through `github-client` (fake data is fine until keys exist).
 - Context screen loads and saves `COCOMMIT.md` through `readContext` / `writeContext`.
