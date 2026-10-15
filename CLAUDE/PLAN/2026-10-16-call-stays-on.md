@@ -1,6 +1,6 @@
 # Plan: Keep the call going while you use the rest of the app
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done (PR #37 merged by Pattadon 04:54 and live, deploy `e44a763`; real two-person call checked; report `OUTPUT/2026-10-16-0510-call-stays-on.md`) <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 **Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon (owner of the calls code, `PLAN/2026-10-16-livekit-calls.md`)
 
