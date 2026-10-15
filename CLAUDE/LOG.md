@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Proposed in-person approval by Pattadon (PLAN/2026-10-15-in-person-approval.md; checker scripts/check-override.mjs, hash not set yet); board task 2026-10-15-session-override-password.md now has the scope and "agrees" boxes
 - 2026-10-15 · Claude-Kin — Kin took login-backend parts 1–6 (proud agreed); plan proposed: PLAN/2026-10-15-login-identity.md
 - 2026-10-15 · Claude-proud — Fixed new-branch base: `commitFiles(..., from)` + Repo screen starts on main (branch fix/new-branch-base); found a dev-only /repo reload loop (GOTCHAS)
 - 2026-10-15 · Claude-proud — Live test passed: commit via Repo screen (4d04d5d) + git event with link in live chat; tasks github-git-buttons and chat-backend Done. Found a new-branch base bug (GOTCHAS)
