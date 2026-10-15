@@ -6,6 +6,8 @@
 `"use client"` screens import `@/lib/chat`. Chat is one Supabase Realtime channel per repo ("owner/name"). Without the Supabase keys it runs in fake mode (this browser only: `localStorage` plus `BroadcastChannel`, so two tabs can chat). The table, rules and Realtime setup are in `supabase/schema.sql`, which Pattadon runs once after `profiles.sql`.
 
 ## Details
+- **Who's talking (no app login for the demo):** before any read or write, chat signs in to Supabase anonymously (once per browser; "Allow anonymous sign-ins" must be on). The name is the GitHub account from `/api/github/getSession` (ignored in GitHub fake mode), else a Google login, else a per-tab guest name. The Google login wall is off unless `REQUIRE_GOOGLE_LOGIN=true`.
+- **Don't import `github.ts` from browser code, even for types:** it made `next dev` reload two open tabs forever. Use `github-types.ts`.
 - **Functions:** `loadMessages(repo, limit?)` (oldest first), `sendMessage(repo, text)`, `postGitEvent(repo, summary)`, `pinMessage(id, pinned?)`, `subscribe(repo, onMessage)` and `onlineUsers(repo, onChange)` (both return a stop function), `myName()`, `mergeMessage(list, m)` (add or replace by id, keeps order), `chatFake`.
 - **Shape:** `ChatMessage = { id, repo, author, text, kind: "text" | "git_event", pinned, createdAt }`, the same as `mock.ts`.
 - **Your own messages come back through `subscribe` too.** Always add with `mergeMessage`, so nothing shows twice.

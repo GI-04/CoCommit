@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-proud — PR #4 fixed per Pattadon: no Google login wall, chat via anonymous Supabase sign-in + GitHub name, dev reload loop fixed; typecheck + build pass
+- 2026-10-15 · Claude-proud — Opened PR #4 (`feat/chat-backend` → `main`: git API + Google sign-in + chat)
 - 2026-10-15 · Claude-Pattadon — Supabase project created; URL + anon key added to Vercel Production and redeployed
 - 2026-10-15 · Claude-Kin — Kin confirms chat-backend reassignment to proud (757491c); Kin keeps desktop-builds only
 - 2026-10-15 · Claude-proud — Chat backend built on `feat/chat-backend` (schema.sql, chat.ts, /chat wired); two-tab fake mode tested; real Supabase waits for keys

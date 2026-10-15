@@ -12,9 +12,10 @@ export function UserChip() {
   useEffect(() => {
     const supabase = getSupabase();
     if (!supabase) return;
-    const read = (user: { email?: string; user_metadata?: Record<string, string> } | null | undefined) =>
+    // Anonymous users (chat signs people in that way) have no name or account to show.
+    const read = (user: { email?: string; is_anonymous?: boolean; user_metadata?: Record<string, string> } | null | undefined) =>
       setWho(
-        user
+        user && !user.is_anonymous
           ? { name: user.user_metadata?.full_name ?? user.email ?? "You", avatar: user.user_metadata?.avatar_url }
           : null,
       );

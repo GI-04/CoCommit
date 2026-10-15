@@ -1,5 +1,7 @@
 -- Chat: one channel per repo. Run once in the Supabase SQL editor (Pattadon), after profiles.sql.
 -- Safe to re-run.
+-- Also turn on Authentication > Sign In / Providers > "Allow anonymous sign-ins": with no app login
+-- for the demo, chat signs people in anonymously (they still count as "authenticated" below).
 
 create table if not exists public.messages (
   id uuid primary key default gen_random_uuid(),

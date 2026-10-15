@@ -3,7 +3,8 @@
 <!-- Backlog and open questions. Not claimed work: when someone commits to an item, it becomes a task on BOARD/. Prune done items. -->
 
 ## Backlog
-- [ ] Real chat test once Supabase keys exist and `supabase/schema.sql` is run: two browsers signed in with Google. (proud)
+- [ ] Supabase setup for chat: turn on "Allow anonymous sign-ins", run `supabase/profiles.sql` then `supabase/schema.sql`. (Pattadon)
+- [ ] Real chat test after that: two browsers (no login needed) chat live on the deployed site. (proud)
 - [ ] Share the picked repo between the Repo and Chat screens (Chat uses `repos[0]` from `mock.ts` for now). (Trin)
 - [ ] Real end-to-end test of the git API once the OAuth keys exist: sign in, commit to a test repo, open a PR. (proud)
 - [ ] `commitFiles` writes every file as mode `100644`, so committing an executable script drops its +x bit. Fine for the demo.

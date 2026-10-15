@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-15 — Demo uses GitHub sign-in only; chat signs in to Supabase anonymously
+- **Status:** active
+- **Decision:** `src/proxy.ts` skips the Google login wall unless `REQUIRE_GOOGLE_LOGIN=true`. Chat signs in to Supabase anonymously and shows the GitHub account's name. `UserChip` hides anonymous users.
+- **Why:** Pattadon wants GitHub sign-in only for the demo (board task `open-pr-github-api`), and the live site already has Supabase keys, so the wall would block everyone. Anonymous users still count as `authenticated`, so the chat table rules work unchanged.
+- **Alternatives:** keep Google (needs its own setup); open the table to `anon` (anyone with the public key could post as anyone); chat in browser-only demo mode.
+- **Supersedes / superseded by:** none (the Google sign-in plan stays; the wall is just switched off)
+
 ## 2026-10-15 — Chat: own file, stored author name, pin-only updates, browser fake mode
 - **Status:** active
 - **Decision:** Chat functions live in `src/lib/chat.ts` (not `supabase.ts`, now the shared client from Google sign-in). `messages` stores the author's display name; RLS lets users post only as themselves and update only `pinned`. `onlineUsers` takes a callback. Without keys, chat runs in the browser (localStorage + BroadcastChannel). `github-client` posts git events. proud wired `/chat` (plan option A). See `PLAN/2026-10-15-chat-backend.md`.

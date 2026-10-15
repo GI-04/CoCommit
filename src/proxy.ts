@@ -1,12 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Refreshes the Supabase session on every request and sends signed-out users to /login.
-// Demo mode: with no Supabase keys, everything passes through.
+// Google login wall: refreshes the Supabase session on every request and sends signed-out users to /login.
+// Off for the demo (Pattadon: GitHub sign-in only); set REQUIRE_GOOGLE_LOGIN=true to turn it back on.
+// With no Supabase keys, everything passes through too.
 export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return NextResponse.next();
+  if (!url || !anonKey || process.env.REQUIRE_GOOGLE_LOGIN !== "true") return NextResponse.next();
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, anonKey, {
@@ -21,16 +22,18 @@ export async function proxy(request: NextRequest) {
   });
 
   const { data } = await supabase.auth.getUser();
+  // Chat signs people in anonymously; that doesn't count as a Google login.
+  const user = data.user && !data.user.is_anonymous ? data.user : null;
   const path = request.nextUrl.pathname;
   const isPublic = path === "/login" || path.startsWith("/auth/");
 
-  if (!data.user && !isPublic) {
+  if (!user && !isPublic) {
     const to = request.nextUrl.clone();
     to.pathname = "/login";
     to.search = "";
     return NextResponse.redirect(to);
   }
-  if (data.user && path === "/login") {
+  if (user && path === "/login") {
     const to = request.nextUrl.clone();
     to.pathname = "/";
     return NextResponse.redirect(to);

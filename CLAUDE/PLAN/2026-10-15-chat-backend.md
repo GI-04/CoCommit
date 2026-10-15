@@ -28,6 +28,9 @@ Same shape as `ChatMessage` in `mock.ts`: `{ id, repo, author, text, kind, pinne
 - `onlineUsers(repo, onChange)`: who's online, live (Realtime Presence); returns a stop function. The task wrote `onlineUsers(repo)`, but "online" changes over time, so it takes a callback.
 - `myName()`: the signed-in user's name, to replace `me` in `mock.ts`.
 
+## Change 2026-10-15: no app login for the demo
+Pattadon asked for GitHub sign-in only (board task `open-pr-github-api`), so `proxy.ts` no longer forces the Google login (`REQUIRE_GOOGLE_LOGIN=true` turns it back on). Chat now signs in to Supabase **anonymously** (once per browser, before any read or write) so the table rules still apply, and the name shown is the GitHub account (then a Google login, then a per-tab guest name). Pattadon turns on "Allow anonymous sign-ins" in Supabase. Approved by proud (option A).
+
 ## Fake mode (no Supabase keys)
 Messages are kept in the browser (`localStorage`) and shared live between tabs (`BroadcastChannel`). Two tabs on the same computer see each other instantly, and "online" shows the open tabs. The screen and the demo work before the keys exist; it switches to Supabase by itself once `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set.
 

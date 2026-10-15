@@ -6,11 +6,9 @@
 //   catch (e) { if (e instanceof GitHubRequestError && e.status === 401) location.href = signInHref(); }
 
 import { postGitEvent } from "./chat";
-import type { actions } from "./github";
+import type { GitHubActions as Actions } from "./github-types";
 
-export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github";
-
-type Actions = typeof actions;
+export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
 
 export class GitHubRequestError extends Error {
   status: number;

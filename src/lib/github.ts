@@ -5,6 +5,9 @@
 
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import type { Change, Commit, FileEdit, GitHubActions, PullRequest, Repo, Session, User } from "./github-types";
+
+export type { Change, Commit, FileEdit, PullRequest, Repo, Session, User } from "./github-types";
 
 const API = (process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, "");
 const WEB = (process.env.GITHUB_WEB_URL || "https://github.com").replace(/\/$/, "");
@@ -23,23 +26,6 @@ const cookieOptions = {
 
 export const fakeMode = !CLIENT_ID;
 if (fakeMode) console.warn("[github] GITHUB_CLIENT_ID is empty, so GitHub calls return fake data.");
-
-// Shapes match src/lib/mock.ts so the screens can swap imports.
-export type Repo = { fullName: string; defaultBranch: string; private: boolean; updatedAt: string };
-export type Change = {
-  path: string;
-  status: "added" | "modified" | "deleted";
-  additions: number;
-  deletions: number;
-  patch: string;
-  previousPath?: string;
-};
-/** One file to commit. `content: null` deletes the file. */
-export type FileEdit = { path: string; content: string | null };
-export type Commit = { sha: string; url: string; branch: string };
-export type PullRequest = { number: number; url: string; title: string; head: string; base: string };
-export type User = { login: string; name: string | null; avatarUrl: string };
-export type Session = { user: User | null; fake: boolean };
 
 export class GitHubError extends Error {
   status: number;
@@ -327,7 +313,7 @@ export async function writeContext(repo: string, text: string, message: string):
 }
 
 /** What browser code may call through POST /api/github/<name> (see github-client.ts). */
-export const actions = {
+export const actions: GitHubActions = {
   getSession,
   listRepos,
   listBranches,
