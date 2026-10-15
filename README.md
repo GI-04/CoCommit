@@ -10,7 +10,7 @@ Git without the terminal, plus team chat and one shared context for everyone's A
 |---|---|---|
 | **Login** | ✅ live | **Log in** → GitHub (needed for git) or Google. Remembered on the device. Profile page at `/profile`. Email/password: backend done, form not built yet. |
 | **Repo: GitHub mode** | ✅ live | Pick a repo and branch, edit a file, commit (optionally to a new branch), see the branch's changes, open a pull request. Everything goes through the GitHub API, on web and desktop. |
-| **Repo: Local folder mode** | 🟡 desktop only, waiting on Rust side | Open a clone on your computer: Staged / Changes / Untracked, stage, discard, diffs, commit, pull, push. The web side is merged; it switches on once the Tauri git commands land. |
+| **Repo: Local folder mode** | ✅ desktop only | Open a clone on your computer: Staged / Changes / Untracked, stage, discard, diffs, commit, pull, push. Uses your own `git` and its login; not shown on the website. |
 | **Chat** | ✅ live | One live channel per repo (Supabase Realtime). Commits and PRs post themselves into chat. Pin messages, or save one as a **decision** or **gotcha**. |
 | **Context** | 🟡 logic done, screen on demo data | Each repo gets a `COCOMMIT/` team workspace (handoff, team, decisions, gotchas, log, todo, task board) that every teammate's AI agent reads first. Load/save and the auto-filled log work; the tabbed screen is in progress. |
 | **Desktop app** | ✅ Windows, 🟡 macOS | A Tauri window that loads the live site. Links open in your browser. Windows installer builds; the macOS `.dmg` builds on GitHub Actions. |

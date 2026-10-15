@@ -18,7 +18,7 @@ CoCommit replaces the messy Discord-to-GitHub workflow with one platform. It mak
 ## Architecture
 Three parts:
 - **Web app** on Vercel: https://cocommit.vercel.app. Deployed by hand with `vercel deploy --prod`; pushes don't auto-deploy.
-- **Desktop app** (Tauri): a window that loads the live site. Links that open a new window go to the system browser. In the desktop app only, the Repo page's **Local folder** mode runs the user's own `git` on a picked folder through Rust commands (`src-tauri/src/git.rs`, PR #11).
+- **Desktop app** (Tauri): a window that loads the live site. Links that open a new window go to the system browser. In the desktop app only, the Repo page's **Local folder** mode runs the user's own `git` on a picked folder through Rust commands (`src-tauri/src/git.rs`).
 - **Hosted services:** GitHub (OAuth sign-in + REST API for repos, commits, PRs) and Supabase (email/Google sign-in, profiles, chat with Realtime).
 
 The full feature list is in `README.md` ("What works today").
@@ -30,6 +30,6 @@ The full feature list is in `README.md` ("What works today").
 - `src/proxy.ts`: Supabase session refresh (and the optional login wall).
 - `supabase/`: SQL to run once in Supabase.
 - `src-tauri/`: desktop shell (Rust): `src/lib.rs` (window, links), `src/git.rs` (local git), `BUILDING.md` (builds and installers).
-- `.github/workflows/`: desktop builds on GitHub Actions (`desktop-macos.yml`; `desktop-windows.yml` in PR #12).
+- `.github/workflows/`: desktop builds on GitHub Actions (`desktop-macos.yml`, `desktop-windows.yml`); installers for the site's download button in `public/downloads/`.
 - `tests/`: Node tests (`npm test`).
 - `CLAUDE/`: agent workspace (instructions, board, memory). LIB index: `CLAUDE/LIB/pointers/general.json`.

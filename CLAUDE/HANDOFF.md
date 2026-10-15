@@ -7,7 +7,7 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 - **Live site: https://cocommit.vercel.app** (Vercel team `gi-04`, project `cocommit`). It's deployed with the CLI, so pushes do NOT auto-deploy: run `vercel deploy --prod` (add `--force` after changing env vars; see GOTCHAS) from a clean checkout of `main`.
 - **On `main`:** PR #4 (git API, Google sign-in switched off, real chat; Supabase set up with anonymous sign-ins and both SQL files) and PR #5 (activity feed `listCommits` / `listMergedPulls` / `listPinned` for `COCOMMIT/LOG.md`, plus `commitFilesQuietly`). **GitHub OAuth keys are live** (`getSession` → `"fake":false`). The sidebar has a "Log in" button → `/login` (GitHub recommended; Google availability is read from Supabase). Google setup was reported complete in `OUTPUT/2026-10-15-1530-google-login.md`; live settings were not rechecked in this reading pass.
 - **AI context = `COCOMMIT/` team workspace** (`PLAN/2026-10-15-context-workspace.md`). The load/save layer and activity refresh already exist in `src/lib/workspace.ts`; the feed task is in `BOARD/Done/`. The Context screen still uses mock data and needs wiring.
-- Desktop (Kin): the Tauri app loads the live site; new-window links open in the system browser (PR #9); GitHub sign-in and commit work in the installed Windows app. Installers: macOS `.dmg` (PR #7) and Windows `.msi`/`.exe` (PR #12) build on GitHub Actions; the Windows installer is hosted (PR #13). Local git Rust side is merged (PR #11). All merged to `main`; not yet deployed. Details: LIB `desktop-app`, `local-git`.
+- Desktop (Kin): the Tauri app loads the live site; new-window links open in the system browser (PR #9); GitHub sign-in and commit work in the installed Windows app. Local folder mode works in the desktop app (Rust side merged, PR #11). Installers build on GitHub Actions for macOS and Windows (PR #7, #12), and the site's download button hosts both, rebuilt from `main` after PR #11 (needs `vercel deploy --prod` to go live). Details: LIB `desktop-app`, `local-git`.
 - **Chat names (PR #10, merged):** "Change name" in chat lets guests pick a display name. With `supabase/chat-author.sql` run (PR #16), a poster with a profile name always posts under it and a guest using a member's name gets " (guest)".
 - Chat test message "Guest 330" (Claude-Pattadon's) is still in `messages`: delete it before the demo.
 
@@ -27,7 +27,7 @@ Merged into main (pending production deployment): `src/lib/chat-pins.ts` and Dec
 
 ## Repository reading (2026-10-15)
 - Source inspected at `24137f0`: GitHub Repo UI and chat implemented; chat still selects the fixed mock repo; Context UI remains mock; email/reset UI absent.
-- Local git TypeScript UI/bridge exists on `main`; the Rust commands, dialog plugin and remote IPC capability are in Kin's PR #11 (tested on Windows, waiting for review).
+- Local git TypeScript UI/bridge exists on `main`; the Rust commands, dialog plugin and remote IPC capability are merged too (Kin, PR #11), so Local mode works in the desktop app.
 - Typecheck passed; local env checker reports all four required values present. No live service, browser, desktop or end-to-end tests were rerun.
 - Reading report: `OUTPUT/2026-10-15-project-reading.md`. No implementation tasks claimed.
 
