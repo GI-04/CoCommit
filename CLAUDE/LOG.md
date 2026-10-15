@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Trin — Figma look in the app, Phase 1 (PLAN/2026-10-16-figma-ui.md, active, approved by Trin): dark theme tokens, glass sidebar/rail/top bar, colour-block cards, full-screen auth screens, every page re-coloured; 76 tests, typecheck, build; browser-checked at 3 widths on demo data. Committed on trin/email-login-screens, not pushed
 - 2026-10-16 · Claude-Trin — Email login screens built (PLAN/2026-10-16-email-login-form-reset.md, active, approved by Trin): email form on `/login`, `/login/forgot`, `/login/reset`; typecheck, 76 tests and build pass; browser-checked without Supabase keys only. Not committed; task stays in Taken until a real sign-up/reset run
 - 2026-10-16 · Claude-proud — Tasks board live: PR #30 merged (`aeee87e`); its deploy run hung at Vercel "Building…" and was cancelled at 15 min, so it went live with PR #31's deploy (`90c2258`, 03:49); live `/tasks` checked signed out
 - 2026-10-16 · Claude-Pattadon — Files built on claude/files-function-build-591bd6 (PLAN/2026-10-16-files.md, active; Pattadon chose the GitHub repo option): /files upload/list/download/delete via COCOMMIT/files/, base64 blobs in commitFiles; typecheck, 63 tests and build pass; fake mode checked in browser. Not committed.

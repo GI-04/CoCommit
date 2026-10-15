@@ -63,7 +63,7 @@ export function HeatMap() {
         <p className="text-sm text-muted">
           {error.text}{" "}
           {error.href && (
-            <a href={error.href} className="text-accent underline">
+            <a href={error.href} className="text-accent-soft underline">
               Log in
             </a>
           )}

@@ -1,29 +1,36 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f7f8fa;
-  --surface: #ffffff;
-  --foreground: #111827;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --accent: #4f46e5;
-  --accent-fg: #ffffff;
-  --added: #16a34a;
-  --removed: #dc2626;
-}
+/* CoCommit look, from the Figma file "CO-Commit" (page "test 4"): a dark canvas with chunky colour blocks
+   (pink, cyan, mustard, green), paper-white rows, black outlines and "liquid glass" navigation.
+   Dark only (PLAN/2026-10-16-figma-ui.md). The semantic tokens below are what every page already uses;
+   inside a card (.bg-surface or a .block-*) they switch to the dark-on-light set. */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0f17;
-    --surface: #131926;
-    --foreground: #e6e8ee;
-    --muted: #9aa3b2;
-    --border: #252d3d;
-    --accent: #818cf8;
-    --accent-fg: #0b0f17;
-    --added: #4ade80;
-    --removed: #f87171;
-  }
+:root {
+  color-scheme: dark;
+
+  /* Figma variables */
+  --canvas: #1f1f1f;
+  --ink: #000000;
+  --paper: #fffdf8;
+  --pink: #ff79bf;
+  --cyan: #00a9d8;
+  --mustard: #d8a500;
+  --green: #68ca27;
+  --clay: #e07a5f;
+  --blue: #1f4ae0;
+  --blue-soft: #8fa9fa;
+
+  /* semantic tokens on the dark canvas */
+  --background: var(--canvas);
+  --surface: var(--paper);
+  --foreground: #ffffff;
+  --muted: #b0b0b0;
+  --border: rgba(255, 255, 255, 0.2);
+  --accent: var(--blue);
+  --accent-fg: #ffffff;
+  --accent-soft: var(--blue-soft);
+  --added: var(--green);
+  --removed: var(--clay);
 }
 
 @theme inline {
@@ -34,13 +41,82 @@
   --color-line: var(--border);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
   --color-added: var(--added);
   --color-removed: var(--removed);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-pink: var(--pink);
+  --color-cyan: var(--cyan);
+  --color-mustard: var(--mustard);
+  --color-green: var(--green);
+  --color-clay: var(--clay);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Rounder corners than Tailwind's defaults, as in Figma. */
+@theme {
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
+/* A card: paper-white (.bg-surface) or a colour block. Inside it the tokens flip to dark-on-light, so
+   text-fg, text-muted, border-line, bg-bg (inputs) and bg-accent (primary button) need no changes. */
+.bg-surface,
+.block-paper,
+.block-pink,
+.block-cyan,
+.block-mustard,
+.block-green,
+.block-clay {
+  --foreground: #000000;
+  --muted: #3b3833;
+  --border: #000000;
+  --background: var(--paper);
+  --accent: #000000;
+  --accent-fg: #ffffff;
+  --accent-soft: var(--blue);
+  --added: #2c7a0c;
+  --removed: #a5321a;
+  color: var(--foreground);
+}
+.block-paper { background: var(--paper); }
+.block-pink { background: var(--pink); }
+.block-cyan { background: var(--cyan); }
+.block-mustard { background: var(--mustard); }
+.block-green { background: var(--green); }
+.block-clay { background: var(--clay); }
+.block-pink, .block-cyan, .block-mustard, .block-green, .block-clay, .block-paper {
+  border: 1px solid #000;
+  border-radius: var(--radius-lg);
+}
+
+/* Liquid glass: sidebar, rail, top bar, tab tracks and pills. CSS stand-in for Figma's glass effect. */
+.glass {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.09));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 4px 40px rgba(0, 0, 0, 0.25), 0 4px 4px rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+.glass-thumb {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.16));
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.22), 0 4px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Calls: hide LiveKit's built-in chat button; the CoCommit chat panel sits beside the call (src/components/CallRoom.tsx). */

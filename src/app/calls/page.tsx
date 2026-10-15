@@ -58,15 +58,15 @@ export default function CallsPage() {
           }}
         />
       ) : (
-        <Card className="max-w-xl">
+        <Card tone="cyan" className="max-w-xl">
           <p className="mb-4 text-sm text-muted">
             Everyone on the team joins the same room. You start with your mic on and camera off; turn them on or share your screen
             from the bar at the bottom.
           </p>
-          <Button onClick={join} disabled={joining}>
+          <Button variant="blue" onClick={join} disabled={joining}>
             {joining ? "Joining…" : "Join call"}
           </Button>
-          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+          {error && <p className="mt-3 text-sm font-medium text-removed">{error}</p>}
         </Card>
       )}
     </div>

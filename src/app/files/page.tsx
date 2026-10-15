@@ -112,16 +112,16 @@ export default function FilesPage() {
           setDragging(false);
           if (!needsLogin && !busy) void upload(e.dataTransfer.files);
         }}
-        className={`mb-4 rounded-lg border-2 border-dashed p-6 text-center text-sm text-muted ${dragging ? "border-accent bg-line/40" : "border-line"}`}
+        className={`mb-4 border-2 !border-dashed p-8 text-center text-sm font-medium ${dragging ? "block-green" : "block-cyan"}`}
       >
         Drop files here, up to {formatSize(MAX_FILE_BYTES)} each.
       </div>
 
       {busy && <p className="mb-3 text-sm text-muted">{busy}</p>}
       {notice && <p className="mb-3 text-sm text-added">{notice}</p>}
-      {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
+      {error && <p className="mb-3 text-sm text-removed">{error}</p>}
 
-      <Card title="Team files">
+      <Card tone="paper" title="Team files">
         {files === null ? (
           <p className="text-sm text-muted">Loading…</p>
         ) : files.length === 0 ? (

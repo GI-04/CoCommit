@@ -17,7 +17,7 @@ function Option({ item, primary }: { item: Download; primary: boolean }) {
     <a
       href={item.href}
       download
-      className={`${base} ${primary ? "bg-accent text-accent-fg" : "border border-line hover:bg-line/60"}`}
+      className={`${base} ${primary ? "bg-accent text-accent-fg" : "border border-line hover:bg-fg/10"}`}
     >
       Download for {item.label}
     </a>

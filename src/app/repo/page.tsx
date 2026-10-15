@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LocalRepo } from "@/components/LocalRepo";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { Button, Card, PageHeader, Tabs } from "@/components/ui";
 import { setCurrentRepo } from "@/lib/current-repo";
 import { isDesktop } from "@/lib/local-git";
 import {
@@ -20,8 +20,9 @@ import {
   type Repo,
 } from "@/lib/github-client";
 
-const badge: Record<Change["status"], string> = { added: "text-added", modified: "text-accent", deleted: "text-removed" };
+const badge: Record<Change["status"], string> = { added: "text-added", modified: "text-accent-soft", deleted: "text-removed" };
 const field = "rounded-md border border-line bg-surface px-2 py-2 text-sm";
+const glassSelect = "glass max-w-[14rem] rounded-full bg-transparent py-2.5 pl-4 pr-9 text-sm text-white";
 
 type Note = { kind: "ok" | "error"; text: string; href?: string };
 
@@ -45,38 +46,30 @@ export default function RepoPage() {
   };
 
   const tabs = desktop && (
-    <div className="mb-4 inline-flex rounded-md border border-line bg-surface p-0.5 text-sm" role="tablist">
-      {(["github", "local"] as const).map((m) => (
-        <button
-          key={m}
-          role="tab"
-          aria-selected={mode === m}
-          onClick={() => choose(m)}
-          className={`rounded px-3 py-1 ${mode === m ? "bg-accent text-accent-fg" : "hover:bg-line/60"}`}
-        >
-          {m === "github" ? "GitHub" : "Local folder"}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      label="Repository mode"
+      value={mode}
+      onChange={(id) => choose(id as "github" | "local")}
+      tabs={[
+        { id: "github", label: "Web" },
+        { id: "local", label: "Local folder" },
+      ]}
+    />
   );
 
   if (mode === "local")
     return (
       <div className="max-w-6xl">
-        <PageHeader title="Repo" subtitle="Your clone on this computer: stage, commit, pull and push with buttons." />
-        {tabs}
+        <PageHeader title="Repository" subtitle="Your clone on this computer: stage, commit, pull and push with buttons.">
+          {tabs}
+        </PageHeader>
         <LocalRepo />
       </div>
     );
-  return (
-    <>
-      {desktop && <div className="max-w-6xl">{tabs}</div>}
-      <GitHubRepo />
-    </>
-  );
+  return <GitHubRepo modeTabs={tabs || null} />;
 }
 
-function GitHubRepo() {
+function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const [fake, setFake] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [repos, setRepos] = useState<Repo[]>([]);
@@ -201,7 +194,7 @@ function GitHubRepo() {
   if (needsLogin)
     return (
       <div className="max-w-xl">
-        <PageHeader title="Repo" subtitle="Commit and open pull requests with buttons." />
+        <PageHeader title="Repository" subtitle="Commit and open pull requests with buttons." />
         <Card>
           <p className="mb-4 text-sm">Log in with GitHub to see your repositories.</p>
           <a href={signInHref("/repo")} className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
@@ -213,9 +206,10 @@ function GitHubRepo() {
 
   return (
     <div className="max-w-6xl">
-      <PageHeader title="Repo" subtitle="Pick a branch, edit a file, commit, then open a pull request.">
+      <PageHeader title="Repository" subtitle="Pick a branch, edit a file, commit, then open a pull request.">
+        {modeTabs}
         <div className="flex flex-wrap items-center gap-2">
-          {fake && <span className="rounded-full border border-line px-2 py-1 text-xs text-muted">demo data</span>}
+          {fake && <span className="rounded-full border border-line px-2.5 py-1 text-xs text-muted">demo data</span>}
           <select
             value={repo}
             onChange={(e) => {
@@ -223,14 +217,14 @@ function GitHubRepo() {
               // Chat opens this repo's chat next time, but never one from the signed-out sample list.
               if (!fake) setCurrentRepo(e.target.value);
             }}
-            className={field}
+            className={glassSelect}
             aria-label="Repository"
           >
             {repos.map((r) => (
               <option key={r.fullName}>{r.fullName}</option>
             ))}
           </select>
-          <select value={branch} onChange={(e) => setBranch(e.target.value)} className={field} aria-label="Branch">
+          <select value={branch} onChange={(e) => setBranch(e.target.value)} className={glassSelect} aria-label="Branch">
             {branches.map((b) => (
               <option key={b}>{b}</option>
             ))}
@@ -262,7 +256,7 @@ function GitHubRepo() {
               <li key={f}>
                 <button
                   onClick={() => openFile(f)}
-                  className={`w-full truncate rounded px-2 py-1 text-left text-sm ${path === f ? "bg-accent text-accent-fg" : "hover:bg-line/60"}`}
+                  className={`w-full truncate rounded-md border px-2 py-1.5 text-left text-sm ${path === f ? "border-black bg-cyan font-medium" : "border-transparent hover:bg-fg/10"}`}
                 >
                   {f}
                 </button>
@@ -273,7 +267,7 @@ function GitHubRepo() {
         </Card>
 
         <div className="min-w-0 space-y-4">
-          <Card title={path ? `Editing ${path}` : "Edit a file"}>
+          <Card tone="pink" title={path ? `Editing ${path}` : "Edit a file"}>
             {path === null ? (
               <p className="text-sm text-muted">{busy === "file" ? "Opening…" : "Pick a file on the left to change it."}</p>
             ) : (
@@ -302,7 +296,7 @@ function GitHubRepo() {
             )}
           </Card>
 
-          <Card title={branch === base ? `Changes (you're on ${base})` : `Changes on ${branch} compared with ${base} (${changes.length})`}>
+          <Card tone="dark" title={branch === base ? `Changes (you're on ${base})` : `Changes on ${branch} compared with ${base} (${changes.length})`}>
             {branch === base || !changes.length ? (
               <p className="text-sm text-muted">{branch === base ? "Switch to another branch to see what its pull request would contain." : "No changes yet: commit something first."}</p>
             ) : (
@@ -312,14 +306,14 @@ function GitHubRepo() {
                     <button
                       key={c.path}
                       onClick={() => setOpen(c.path)}
-                      className={`rounded border px-2 py-1 text-xs ${open === c.path ? "border-accent" : "border-line"}`}
+                      className={`rounded-full border px-3 py-1 text-xs ${open === c.path ? "border-white bg-white/15" : "border-line hover:bg-fg/10"}`}
                     >
                       <span className={badge[c.status]}>{c.status[0].toUpperCase()}</span> {c.path}
                     </button>
                   ))}
                 </div>
                 {diff && (
-                  <pre className="mb-3 max-h-80 overflow-auto rounded-md bg-bg p-2 text-sm leading-6">
+                  <pre className="mb-3 max-h-80 overflow-auto rounded-md bg-black/30 p-2 font-mono text-[13px] leading-6">
                     {(diff.patch || "(no text changes to show)").split("\n").map((line, i) => (
                       <div
                         key={i}
@@ -333,7 +327,7 @@ function GitHubRepo() {
                   </pre>
                 )}
                 <div className="flex gap-2">
-                  <input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} placeholder={`Changes from ${branch}`} className={`${field} min-w-0 flex-1 bg-bg`} />
+                  <input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} placeholder={`Changes from ${branch}`} className="min-w-0 flex-1 rounded-md border border-line bg-black/30 px-3 py-2 text-sm text-white placeholder:text-muted" />
                   <Button onClick={openPr} disabled={busy !== null}>
                     {busy === "pr" ? "Opening…" : `Open PR into ${base}`}
                   </Button>

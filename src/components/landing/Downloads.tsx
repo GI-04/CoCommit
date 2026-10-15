@@ -22,7 +22,7 @@ export function Downloads() {
             key={d.id}
             href={d.href}
             download
-            className={`${base} ${i === 0 ? "bg-fg text-bg hover:opacity-90" : "border border-line bg-surface hover:bg-line/60"}`}
+            className={`${base} ${i === 0 ? "bg-fg text-bg hover:opacity-90" : "border border-line bg-surface hover:bg-fg/10"}`}
           >
             Download for {d.label}
           </a>
@@ -42,7 +42,7 @@ export function HeroDownload() {
   useEffect(() => setOs(detectOs(navigator.userAgent)), []);
 
   const mine = downloads.find((d) => d.id === os && d.href);
-  const cls = `${base} border border-line bg-surface hover:bg-line/60`;
+  const cls = `${base} border border-line bg-surface hover:bg-fg/10`;
   return mine?.href ? (
     <a href={mine.href} download className={cls}>
       Download for {mine.label}

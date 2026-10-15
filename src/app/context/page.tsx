@@ -38,13 +38,13 @@ export default function ContextPage() {
 
   return (
     <div className="max-w-4xl">
-      <PageHeader title="Context" subtitle="COCOMMIT.md: the one file every teammate's AI agent reads first." />
+      <PageHeader title="Agent Context" subtitle="COCOMMIT.md: the one file every teammate's AI agent reads first." />
       {saved && <p className="mb-4 rounded-md border border-added/40 bg-added/10 px-3 py-2 text-sm">{saved}</p>}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_16rem]">
         <div className="space-y-4">
-          {sections.map((s) => (
-            <Card key={s.heading}>
+          {sections.map((s, i) => (
+            <Card key={s.heading} tone={(["pink", "green", "cyan", "mustard"] as const)[i % 4]}>
               <div className="mb-2 flex items-center justify-between">
                 <h2 className="font-semibold">{s.heading}</h2>
                 {editing !== s.heading && (

@@ -22,7 +22,7 @@ const lead = "mt-5 max-w-[60ch] text-lg leading-relaxed text-muted md:text-xl";
 
 function Logo() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="size-6 text-accent">
+    <svg viewBox="0 0 24 24" aria-hidden className="size-6 text-accent-soft">
       <path d="M6 4v16M6 8c0 5 12 3 12 8" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
       <circle cx="6" cy="20" r="2.5" fill="currentColor" />
       <circle cx="18" cy="16" r="2.5" fill="currentColor" />
@@ -68,13 +68,13 @@ function RepoMock() {
 function ChatMock() {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4 text-sm">
-      <p className="self-start rounded-md bg-line/50 px-2 py-1 text-xs text-muted">Kin merged “Add sign-in page” into main</p>
+      <p className="self-start rounded-md bg-fg/10 px-2 py-1 text-xs text-muted">Kin merged “Add sign-in page” into main</p>
       <div>
         <p className="font-semibold">Mina</p>
         <p>Let’s keep Supabase for chat and stop testing Firebase.</p>
       </div>
       <div className="self-start rounded-lg border border-line bg-bg p-2 shadow-sm">
-        <p className="rounded px-2 py-1 font-semibold text-accent">Pin as decision</p>
+        <p className="rounded px-2 py-1 font-semibold text-accent-soft">Pin as decision</p>
         <p className="rounded px-2 py-1 text-muted">Pin as gotcha</p>
       </div>
       <p className="self-start rounded-md bg-added/15 px-2 py-1 text-xs">Saved to COCOMMIT/DECISIONS.md</p>
@@ -155,7 +155,7 @@ export default function Landing() {
             <a href="#faq" className={`rounded hover:text-fg ${focus}`}>FAQ</a>
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <Link href="/login?returnTo=/home" className={`hidden rounded-lg px-3 py-2 text-sm font-semibold hover:bg-line/60 sm:block ${focus}`}>
+            <Link href="/login?returnTo=/home" className={`hidden rounded-lg px-3 py-2 text-sm font-semibold hover:bg-fg/10 sm:block ${focus}`}>
               Sign in
             </Link>
             <Link href="/home" className={`rounded-lg bg-fg px-4 py-2 text-sm font-semibold text-bg hover:opacity-90 ${focus}`}>
@@ -242,7 +242,7 @@ export default function Landing() {
           <ol className="mt-10 grid gap-8 md:grid-cols-3">
             {steps.map(([title, text], i) => (
               <li key={title}>
-                <span className="flex size-9 items-center justify-center rounded-full bg-accent/10 font-bold text-accent">{i + 1}</span>
+                <span className="flex size-9 items-center justify-center rounded-full bg-accent/10 font-bold text-accent-soft">{i + 1}</span>
                 <p className="mt-4 text-xl font-bold">{title}</p>
                 <p className="mt-2 text-muted">{text}</p>
               </li>
@@ -282,7 +282,7 @@ export default function Landing() {
               <Link href="/home" className={primary}>
                 Open CoCommit
               </Link>
-              <Link href="/login?returnTo=/home" className={`inline-flex items-center justify-center rounded-lg border border-line bg-surface px-5 py-3 text-base font-semibold hover:bg-line/60 ${focus}`}>
+              <Link href="/login?returnTo=/home" className={`inline-flex items-center justify-center rounded-lg border border-line bg-surface px-5 py-3 text-base font-semibold hover:bg-fg/10 ${focus}`}>
                 Sign in with GitHub
               </Link>
             </div>

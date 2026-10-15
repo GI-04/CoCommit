@@ -26,10 +26,11 @@ type State = "loading" | "login" | "no-workspace" | "ready" | "error";
 type Action = { path: string; kind: "take" | "done" | "release"; who: string; text: string };
 type Note = { ok: boolean; text: string; href?: string };
 
-const COLUMNS: { status: TaskStatus; title: string; empty: string }[] = [
-  { status: "pending", title: "Pending", empty: "Nothing waiting. Add a task." },
-  { status: "taken", title: "Taken", empty: "Nobody is on a task right now." },
-  { status: "done", title: "Done", empty: "Nothing finished yet." },
+// The folder is the status (Pending / Taken / Done); "Taken" shows as "Doing", as in the Figma board.
+const COLUMNS: { status: TaskStatus; title: string; empty: string; tone: "pink" | "mustard" | "green" }[] = [
+  { status: "pending", title: "Pending", empty: "Nothing waiting. Add a task.", tone: "pink" },
+  { status: "taken", title: "Doing", empty: "Nobody is on a task right now.", tone: "mustard" },
+  { status: "done", title: "Done", empty: "Nothing finished yet.", tone: "green" },
 ];
 const input = "w-full rounded-md border border-line bg-bg px-2 py-1 text-sm";
 const blankTask: NewTaskForm = { title: "", to: "anyone", what: "", acceptance: "" };
@@ -154,7 +155,7 @@ export default function TasksPage() {
           )}
           {state === "error" && (
             <>
-              <p className="mb-3 text-sm text-red-600">{error}</p>
+              <p className="mb-3 text-sm text-removed">{error}</p>
               <Button variant="ghost" onClick={() => void load(repo)}>
                 Try again
               </Button>
@@ -169,7 +170,7 @@ export default function TasksPage() {
       {header}
 
       {note && (
-        <p className={`mb-4 text-sm ${note.ok ? "text-muted" : "text-red-600"}`} role="status">
+        <p className={`mb-4 text-sm ${note.ok ? "text-muted" : "text-removed"}`} role="status">
           {note.text}{" "}
           {note.href && (
             <a href={note.href} target="_blank" rel="noreferrer" className="underline">
@@ -234,14 +235,14 @@ export default function TasksPage() {
         {COLUMNS.map((col) => {
           const tasks = board.tasks.filter((t) => t.status === col.status);
           return (
-            <Card key={col.status} title={`${col.title} (${tasks.length})`}>
+            <Card key={col.status} tone={col.tone} title={`${col.title} (${tasks.length})`}>
               {tasks.length === 0 && <p className="text-sm text-muted">{col.empty}</p>}
               <ul className="space-y-3">
                 {tasks.map((task) => {
                   const isOpen = open === task.path;
                   const act = action?.path === task.path ? action : null;
                   return (
-                    <li key={task.path} className="rounded-md border border-line bg-bg p-3">
+                    <li key={task.path} className="rounded-lg border border-black bg-bg p-3">
                       <button type="button" className="w-full text-left text-sm font-semibold hover:underline" onClick={() => setOpen(isOpen ? null : task.path)} aria-expanded={isOpen}>
                         {task.title}
                       </button>

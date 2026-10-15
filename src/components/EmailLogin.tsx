@@ -3,11 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { signInWithEmail, signUpWithEmail, MIN_PASSWORD_LENGTH } from "@/lib/auth-email";
-import { Button } from "@/components/ui";
+import { authButtons, authField } from "@/components/AuthShell";
 
 type Mode = "login" | "signup";
-
-const input = "w-full rounded-md border border-line bg-bg px-3 py-2 text-sm disabled:opacity-50";
 
 // Email and password option on /login (Figma "Auth · Welcome back" and "Auth · Create account").
 // The helpers in src/lib/auth-email.ts return { error } with a message people can act on, so it is shown as is.
@@ -46,15 +44,15 @@ export function EmailLogin({ returnTo, available }: { returnTo: string; availabl
 
   if (checkEmail)
     return (
-      <div className="rounded-md border border-line p-4">
-        <h2 className="text-sm font-semibold">Check your email.</h2>
-        <p className="mt-1 text-sm text-muted">We sent a link to {email.trim()}. Open it to finish creating your account.</p>
+      <div className="rounded-2xl border border-black bg-paper p-4 text-center">
+        <h2 className="text-base font-semibold">Check your email.</h2>
+        <p className="mt-1 text-sm">We sent a link to {email.trim()}. Open it to finish creating your account.</p>
       </div>
     );
 
   return (
-    <form onSubmit={submit} noValidate className="rounded-md border border-line p-4">
-      <div className="mb-4 flex gap-1 rounded-md bg-bg p-1 text-sm" role="tablist" aria-label="Email login">
+    <form onSubmit={submit} noValidate>
+      <div className="mb-5 flex gap-1 rounded-full border border-black bg-paper p-1 text-sm" role="tablist" aria-label="Email login">
         {(["login", "signup"] as const).map((m) => (
           <button
             key={m}
@@ -62,77 +60,60 @@ export function EmailLogin({ returnTo, available }: { returnTo: string; availabl
             role="tab"
             aria-selected={mode === m}
             onClick={() => switchMode(m)}
-            className={`flex-1 rounded px-3 py-1.5 font-medium ${mode === m ? "bg-surface" : "text-muted hover:text-fg"}`}
+            className={`flex-1 rounded-full px-3 py-2 font-medium ${mode === m ? "bg-black text-white" : "text-black hover:bg-black/10"}`}
           >
             {m === "login" ? "Log in" : "Sign up"}
           </button>
         ))}
       </div>
 
-      {!available && <p className="mb-3 text-xs text-muted">Email login: not set up yet.</p>}
+      {!available && <p className="mb-3 text-center text-sm">Email login: not set up yet.</p>}
 
       <div className="space-y-3">
         {mode === "signup" && (
-          <div>
-            <label htmlFor="login-name" className="mb-1 block text-sm font-medium">
+          <>
+            <label htmlFor="login-name" className="sr-only">
               Name
             </label>
-            <input id="login-name" autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} disabled={!available} className={input} />
-          </div>
+            <input id="login-name" autoComplete="name" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} disabled={!available} className={authField} />
+          </>
         )}
-        <div>
-          <label htmlFor="login-email" className="mb-1 block text-sm font-medium">
-            E-mail
-          </label>
-          <input
-            id="login-email"
-            type="email"
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={!available}
-            className={input}
-          />
-        </div>
-        <div>
-          <div className="mb-1 flex items-baseline justify-between">
-            <label htmlFor="login-password" className="text-sm font-medium">
-              Password
-            </label>
-            {mode === "login" && (
-              <Link href="/login/forgot" className="text-xs text-muted underline hover:text-fg">
-                Forgot password?
-              </Link>
-            )}
-          </div>
-          <input
-            id="login-password"
-            type="password"
-            autoComplete={mode === "login" ? "current-password" : "new-password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={!available}
-            aria-describedby={mode === "signup" ? "login-password-hint" : undefined}
-            className={input}
-          />
-          {mode === "signup" && (
-            <p id="login-password-hint" className="mt-1 text-xs text-muted">
-              At least {MIN_PASSWORD_LENGTH} characters.
-            </p>
-          )}
-        </div>
+        <label htmlFor="login-email" className="sr-only">
+          E-mail
+        </label>
+        <input id="login-email" type="email" autoComplete="email" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!available} className={authField} />
+        <label htmlFor="login-password" className="sr-only">
+          Password
+        </label>
+        <input
+          id="login-password"
+          type="password"
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
+          placeholder={mode === "signup" ? `Password (at least ${MIN_PASSWORD_LENGTH} characters)` : "Password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={!available}
+          className={authField}
+        />
+        {mode === "login" && (
+          <p className="text-right text-sm">
+            <Link href="/login/forgot" className="underline hover:no-underline">
+              Forgot password?
+            </Link>
+          </p>
+        )}
       </div>
 
       {error && (
-        <p role="alert" className="mt-3 text-sm text-removed">
+        <p role="alert" className="mt-3 text-center text-sm font-medium text-removed">
           {error}
         </p>
       )}
 
-      <Button type="submit" disabled={busy || !available} className="mt-4 w-full">
+      <button type="submit" disabled={busy || !available} className={`${authButtons.next} mt-6 w-full`}>
         {busy ? "One moment…" : mode === "login" ? "Log in" : "Create account"}
-      </Button>
-      <p className="mt-3 text-xs text-muted">Chat and files only. Sign in with GitHub to commit.</p>
+      </button>
+      <p className="mt-3 text-center text-sm">Chat and files only. Sign in with GitHub to commit.</p>
     </form>
   );
 }

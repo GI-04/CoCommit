@@ -4,10 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import { Icon } from "@/components/icons";
 import { loadAccounts, PROFILE_CHANGED, type Accounts } from "@/lib/profile";
 import { getSupabase } from "@/lib/supabase";
 import { signOut } from "@/lib/auth-email";
 
+// The account at the bottom of the navigation: avatar and name on phone and desktop, avatar only on the tablet rail.
 export function UserChip() {
   const pathname = usePathname();
   const [accounts, setAccounts] = useState<Accounts | null>(null);
@@ -36,29 +38,37 @@ export function UserChip() {
     };
   }, []);
 
-  if (!accounts) return <div className="mt-auto h-12 animate-pulse rounded-md bg-line/50" aria-label="Loading account" />;
+  if (!accounts) return <div className="h-12 animate-pulse rounded-full bg-white/10 md:size-12 lg:size-auto lg:h-14 lg:w-full" aria-label="Loading account" />;
   const who = accounts.profile ?? (accounts.github && {
     name: accounts.github.name || accounts.github.login,
     avatarUrl: accounts.github.avatarUrl,
   });
   if (!who) return (
-    <Link href={`/login?returnTo=${encodeURIComponent(pathname)}`} className="mt-auto rounded-md bg-fg px-3 py-2 text-center text-sm font-medium text-bg hover:opacity-90">
-      Log in
+    <Link
+      href={`/login?returnTo=${encodeURIComponent(pathname)}`}
+      className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-black hover:opacity-90 md:size-12 md:p-0 lg:size-auto lg:px-4 lg:py-3"
+    >
+      <Icon name="user" />
+      <span className="md:sr-only lg:not-sr-only">Log in</span>
     </Link>
   );
 
   return (
-    <div className="w-full border-t border-line pt-3 md:mt-auto">
-      <Link href="/profile" className="flex items-center gap-2 rounded-md p-1 hover:bg-line/60" aria-label={`View profile for ${who.name}`}>
-        <Avatar name={who.name} url={who.avatarUrl} className="h-8 w-8" />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium">{who.name}</span>
-          <span className="block text-xs text-muted">View profile</span>
+    <div className="w-full">
+      <Link
+        href="/profile"
+        aria-label={`View profile for ${who.name}`}
+        className={`flex items-center gap-3 rounded-full p-1.5 pr-4 hover:bg-white/10 md:justify-center md:p-0 md:pr-0 lg:justify-start lg:p-1.5 lg:pr-4 ${pathname.startsWith("/profile") ? "glass-thumb" : ""}`}
+      >
+        <Avatar name={who.name} url={who.avatarUrl} className="size-10" />
+        <span className="min-w-0 flex-1 md:hidden lg:block">
+          <span className="block truncate text-sm font-semibold text-white">{who.name}</span>
+          <span className="block text-xs text-white/70">View profile</span>
         </span>
       </Link>
       <button
         disabled={busy}
-        className="mt-2 px-1 text-xs text-muted hover:text-fg disabled:opacity-50"
+        className="mt-2 flex items-center gap-2 px-3 text-xs text-white/70 hover:text-white disabled:opacity-50 md:hidden lg:flex"
         onClick={async () => {
           setBusy(true);
           setError(null);
@@ -71,8 +81,11 @@ export function UserChip() {
             setBusy(false);
           }
         }}
-      >{busy ? "Signing out…" : "Sign out"}</button>
-      {error && <p role="alert" className="mt-1 text-xs text-removed">{error}</p>}
+      >
+        <Icon name="logout" className="size-4" />
+        {busy ? "Signing out…" : "Sign out"}
+      </button>
+      {error && <p role="alert" className="mt-1 px-3 text-xs text-removed">{error}</p>}
     </div>
   );
 }
