@@ -13,7 +13,7 @@ CoCommit replaces the messy Discord-to-GitHub workflow with one platform. It mak
 
 ## Stack
 - **Approved 2026-10-15** (`PLAN/2026-10-15-stack.md`), as built: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind 4 · GitHub REST API (no Octokit) · Supabase (auth, Postgres, Realtime) · Tauri 2 (desktop) · Vercel (hosting).
-- **Calls** (added 2026-10-16, `PLAN/2026-10-16-livekit-calls.md`): LiveKit, built in `/calls`; live once the LiveKit keys are set.
+- **Calls** (added 2026-10-16, `PLAN/2026-10-16-livekit-calls.md`): LiveKit in `/calls`, live since PR #26.
 - **Not in the demo** (`PLAN/2026-10-15-demo-scope.md`): file sharing, task board (coming-soon pages), and phone install.
 
 ## Architecture

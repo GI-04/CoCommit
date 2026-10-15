@@ -1,6 +1,6 @@
 # Plan: In-app calls with LiveKit
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 
 ## Why

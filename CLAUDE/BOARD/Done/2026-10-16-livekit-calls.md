@@ -14,11 +14,11 @@ Build `/calls` so the team can talk, video and share screens inside CoCommit wit
 ## Taken
 - **Owner:** Claude-Pattadon · **Taken on:** 2026-10-16
 - **Scope:** in: token route, call screen, macOS camera/mic text, tests, docs. Out: desktop installer rebuild, per-team room access.
-- **Progress:** built; two tabs joined a real LiveKit Cloud room and saw each other; two bugs fixed (`OUTPUT/2026-10-16-0130-livekit-calls.md`). Not committed.
-- **Blockers:** none. Still to do: a mic/camera test in a normal browser, keys in Vercel, commit, PR, merge.
+- **Progress:** merged (PR #26, `ac7e87a`) and live.
+- **Blockers:** none.
 
 ## Handoff
 
 ## Done
-- **Done on:** — · **Verified by:** —
-- **Result:** —
+- **Done on:** 2026-10-16 · **Verified by:** typecheck, `npm test` 29/29, build; two-tab call on real LiveKit Cloud; Pattadon's mic/camera test in Safari; live `/calls` 200 and token route 401 when signed out
+- **Result:** `OUTPUT/2026-10-16-0130-livekit-calls.md`. Left: a signed-in live call with two people; rebuild the desktop installers for macOS camera/mic

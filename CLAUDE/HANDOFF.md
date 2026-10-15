@@ -1,6 +1,6 @@
 # Handoff
 
-**Last updated:** 2026-10-16 · **By:** Claude-proud (@cocommit bot) and Claude-Pattadon (LiveKit calls, merged in PR #26); earlier notes kept
+**Last updated:** 2026-10-16 02:20 · **By:** Claude-Pattadon (LiveKit calls merged and live) and Claude-proud (@cocommit bot, merged in PR #25); earlier notes kept
 
 ## Current state
 > **Notice from Pattadon (until 2026-10-16 03:00 UTC+7):** only destructive plans need Pattadon's review. Everything else, including your ask-first list with your own user, is unchanged. Details: `DECISIONS.md`, top entry.
@@ -14,8 +14,12 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 - **Chat names (PR #10, merged):** "Change name" in chat lets guests pick a display name. With `supabase/chat-author.sql` run (PR #16), a poster with a profile name always posts under it and a guest using a member's name gets " (guest)".
 - Chat test messages ("Guest 330", "[test by Claude-proud]") deleted from `messages` by Pattadon in the Supabase SQL Editor (2026-10-16).
 
-## Calls with LiveKit (2026-10-16 01:30, Claude-Pattadon): built, not committed
-On branch `claude/discord-api-chat-call-c18c19` (worktree), uncommitted. `/calls` → **Join call** runs a LiveKit call inside CoCommit (one room per repo, signed-in only); token route `src/app/api/livekit-token/route.ts`; LIB `calls`; report `OUTPUT/2026-10-16-0130-livekit-calls.md`. Typecheck, 29/29 tests and build pass; real LiveKit Cloud test done (keys in the main checkout's and this worktree's `.env.local`): two tabs saw each other, and Leave works. Requested by proud; Pattadon OK'd the 3 LiveKit packages. **Next:** try mic/camera in Chrome or Safari at `localhost:3001/calls` → add the three `LIVEKIT_*` keys to Vercel Production → commit, PR, merge (merging deploys). Desktop needs rebuilt installers for macOS camera/mic.
+## Calls with LiveKit (2026-10-16, Claude-Pattadon): merged and live
+`/calls` → **Join call** runs a LiveKit call (voice, video, screen share) inside CoCommit: one room per repo, signed-in people only. PR #26 merged as `ac7e87a`; deploy run `38789668599` passed. Live checks: `/calls` 200; `POST /api/livekit-token` signed out → 401 "Log in to join the call." (so the keys are set). The three `LIVEKIT_*` keys are in Vercel Production and in `.env.local` (main checkout). Pattadon tested mic and camera in Safari locally. Details: LIB `calls`, report `OUTPUT/2026-10-16-0130-livekit-calls.md`. **Next:**
+1. A signed-in call on the live site with two people.
+2. Rebuild the desktop installers so the macOS app gets camera/mic access (`src-tauri/Info.plist`).
+3. Optional: per-team room access; the call uses the same fixed repo as chat for now.
+Also: `proud/file-bot` (PR #25) had docs-only conflicts with main; they're resolved in `6968f14` and the PR is mergeable.
 
 ## Landing page (2026-10-15, Claude-Pattadon): merged and live
 `/` is the landing page (no sidebar); the app home is `/home` (LIB `landing-page`). PR #14 merged (`7bcca02`) and deployed to production: `dpl_jXkpb26snya48KinrcfpW1obxHD9` (`https://cocommit-3nxhnank1-gi-04.vercel.app`). This deploy also put PRs #11–#13 live (Windows installer download, desktop local-git support). Live checks: `/`, `/home`, `/repo`, `/chat`, `/login`, the manifest and the Windows installer all return 200; `/home` has the sidebar; `getSession` → `"fake":false`; no console errors on `/`. Rollback target: `https://cocommit-p0yrxcans-gi-04.vercel.app` (`dpl_3HHFkzN1jVRQrTSABXhFVYuozeCy`). Deployed from a `git archive` export of `main` because `.claude/worktrees/` (418 MB) sits in the repo folder and there's no `.vercelignore`. **Next:** open the installed desktop app once to confirm it lands on `/home`. Any new "go home" link should use `/home`.
