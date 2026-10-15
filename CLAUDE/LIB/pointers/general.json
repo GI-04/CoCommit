@@ -320,6 +320,35 @@
         "PLAN/2026-10-16-files.md"
       ],
       "added": "2026-10-16"
+    },
+    {
+      "id": "figma-ui",
+      "title": "Figma look in the app: theme tokens, glass navigation, Home tabs",
+      "kind": "reference",
+      "tags": [
+        "figma",
+        "design",
+        "theme",
+        "dark",
+        "tokens",
+        "navigation",
+        "sidebar",
+        "home",
+        "customize",
+        "tabs",
+        "ui",
+        "cards"
+      ],
+      "summary": "How the app got the Figma design: colour tokens flip inside cards, glass nav in three sizes, shared ui components (Card tone, Tabs), full-screen auth, and the Home tabs (Cards, Overview, Activity, Customize) with real data and honest empty states; what was left out because it has no data.",
+      "path": "knowledge/general/figma-ui.md",
+      "sources": [
+        "src/app/globals.css",
+        "src/components/Nav.tsx",
+        "src/components/ui.tsx",
+        "src/components/home/data.ts",
+        "src/lib/home.ts"
+      ],
+      "added": "2026-10-16"
     }
   ]
 }

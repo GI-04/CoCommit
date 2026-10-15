@@ -1,53 +1,33 @@
 "use client";
 
 // Commit activity grid for the picked repo (PLAN/2026-10-16-heat-map.md): one square per day, darker = more commits.
-import { useEffect, useMemo, useState } from "react";
-import { getCurrentRepo } from "@/lib/current-repo";
-import { GitHubRequestError, listCommitDates, signInHref } from "@/lib/github-client";
-import { buildHeatMap, dayKey, windowStart, type CommitDate, type HeatCell } from "@/lib/heatmap";
+// Figma look: a pink card with a black opacity ramp. The commits come from the Home screen, so the Overview tab can
+// reuse the same load for its numbers.
+import Link from "next/link";
+import { Fragment, useMemo, useState } from "react";
+import { problem, WEEKS, type Load } from "@/components/home/data";
+import { signInHref } from "@/lib/github-client";
+import { buildHeatMap, dayKey, type CommitDate, type HeatCell } from "@/lib/heatmap";
 import { Card } from "./ui";
 
-const WEEKS = 13;
 const DAYS = ["", "Mon", "", "Wed", "", "Fri", ""];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const LEVEL_PERCENT = [0, 25, 45, 70, 100];
+const RAMP = [0.1, 0.28, 0.5, 0.75, 1];
 
-const shade = (level: HeatCell["level"]) =>
-  level === 0 ? "var(--border)" : `color-mix(in srgb, var(--accent) ${LEVEL_PERCENT[level]}%, transparent)`;
+const shade = (level: HeatCell["level"]) => `rgba(0, 0, 0, ${RAMP[level]})`;
 
 const describe = (c: HeatCell) =>
   `${c.count} ${c.count === 1 ? "commit" : "commits"} on ${new Date(`${c.date}T12:00:00`).toDateString()}`;
 
-export function HeatMap() {
-  const [repo, setRepo] = useState<string | null>(null);
-  const [commits, setCommits] = useState<CommitDate[] | null>(null);
-  const [error, setError] = useState<{ text: string; href?: string } | null>(null);
+export function HeatMap({ repo, state }: { repo: string | null; state: Load<CommitDate[]> }) {
   const [who, setWho] = useState("");
   const [picked, setPicked] = useState<HeatCell | null>(null);
 
-  useEffect(() => setRepo(getCurrentRepo()), []);
-
-  useEffect(() => {
-    if (!repo) return;
-    let live = true;
-    setCommits(null);
-    setError(null);
-    setWho("");
-    setPicked(null);
-    listCommitDates(repo, windowStart(WEEKS, new Date()).toISOString())
-      .then((list) => live && setCommits(list))
-      .catch((e) => {
-        if (!live) return;
-        if (e instanceof GitHubRequestError && e.status === 401) setError({ text: "Log in with GitHub to see commit activity.", href: signInHref("/home") });
-        else setError({ text: e instanceof Error ? e.message : "Couldn't load commit activity." });
-      });
-    return () => {
-      live = false;
-    };
-  }, [repo]);
-
+  const commits = state.status === "ready" ? state.data : null;
   const map = useMemo(() => (commits ? buildHeatMap(commits, WEEKS, new Date(), who || undefined) : null), [commits, who]);
   const today = dayKey(new Date());
+  const trouble = problem(state);
+
   // A month label above the first week that starts in that month.
   const monthAt = (week: (HeatCell | null)[], i: number) => {
     const first = week[0];
@@ -58,32 +38,28 @@ export function HeatMap() {
   };
 
   return (
-    <Card title={`Commit activity${repo ? ` · ${repo}` : ""}`} className="mt-8">
-      {error && (
-        <p className="text-sm text-muted">
-          {error.text}{" "}
-          {error.href && (
-            <a href={error.href} className="text-accent-soft underline">
+    <Card tone="pink" title={`Commit activity${repo ? ` · ${repo}` : ""}`}>
+      {trouble && (
+        <p className="text-sm">
+          {trouble}{" "}
+          {state.status === "login" && (
+            <Link href={signInHref("/home")} className="font-medium underline">
               Log in
-            </a>
+            </Link>
           )}
         </p>
       )}
-      {!error && !map && <p className="text-sm text-muted">Loading…</p>}
+      {!trouble && !map && <p className="text-sm">Loading…</p>}
       {map && (
         <>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-            <span className="text-muted">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+            <span>
               {map.total} {map.total === 1 ? "commit" : "commits"} in the last {WEEKS} weeks
             </span>
             {map.authors.length > 0 && (
-              <label className="flex items-center gap-2 text-muted">
+              <label className="flex items-center gap-2">
                 Person
-                <select
-                  value={who}
-                  onChange={(e) => setWho(e.target.value)}
-                  className="rounded-md border border-line bg-surface px-2 py-1 text-fg"
-                >
+                <select value={who} onChange={(e) => setWho(e.target.value)} className="rounded-full border border-black bg-paper px-3 py-1 text-black">
                   <option value="">Everyone</option>
                   {map.authors.map((a) => (
                     <option key={a} value={a}>
@@ -94,43 +70,45 @@ export function HeatMap() {
               </label>
             )}
           </div>
-          <div className="overflow-x-auto pb-1">
-            <div className="inline-flex gap-1" role="img" aria-label={`Commit activity, ${map.total} commits in the last ${WEEKS} weeks`}>
-              <div className="flex flex-col gap-1 pt-4 pr-1 text-[10px] leading-3 text-muted">
-                {DAYS.map((d, i) => (
-                  <span key={i} className="h-3">
-                    {d}
-                  </span>
-                ))}
-              </div>
-              {map.weeks.map((week, i) => (
-                <div key={i} className="flex flex-col gap-1">
-                  <span className="h-3 text-[10px] leading-3 text-muted">{monthAt(week, i)}</span>
-                  {week.map((cell, d) =>
-                    cell ? (
-                      <button
-                        key={d}
-                        type="button"
-                        title={describe(cell)}
-                        aria-label={describe(cell)}
-                        onClick={() => setPicked(cell)}
-                        className={`h-3 w-3 rounded-sm ${cell.date === today ? "outline outline-1 outline-fg/50" : ""}`}
-                        style={{ background: shade(cell.level) }}
-                      />
-                    ) : (
-                      <span key={d} className="h-3 w-3" />
-                    ),
-                  )}
-                </div>
-              ))}
-            </div>
+          <div
+            className="grid grid-cols-[2rem_repeat(13,minmax(0,1fr))] gap-1 text-[11px] sm:gap-1.5"
+            role="img"
+            aria-label={`Commit activity, ${map.total} commits in the last ${WEEKS} weeks`}
+          >
+            <span />
+            {map.weeks.map((week, i) => (
+              <span key={i} className="h-4 whitespace-nowrap leading-4">
+                {monthAt(week, i)}
+              </span>
+            ))}
+            {DAYS.map((label, d) => (
+              <Fragment key={d}>
+                <span className="self-center">{label}</span>
+                {map.weeks.map((week, i) => {
+                  const cell = week[d];
+                  return cell ? (
+                    <button
+                      key={i}
+                      type="button"
+                      title={describe(cell)}
+                      aria-label={describe(cell)}
+                      onClick={() => setPicked(cell)}
+                      className={`h-5 w-full rounded-md sm:h-7 ${cell.date === today ? "outline outline-2 outline-offset-1 outline-black" : ""}`}
+                      style={{ background: shade(cell.level) }}
+                    />
+                  ) : (
+                    <span key={i} />
+                  );
+                })}
+              </Fragment>
+            ))}
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
             <span aria-live="polite">{picked ? describe(picked) : map.total === 0 ? "No commits in this window yet." : "Tap a square for details."}</span>
             <span className="flex items-center gap-1">
               Less
               {([0, 1, 2, 3, 4] as const).map((l) => (
-                <span key={l} className="h-3 w-3 rounded-sm" style={{ background: shade(l) }} />
+                <span key={l} className="h-3.5 w-3.5 rounded-sm" style={{ background: shade(l) }} />
               ))}
               More
             </span>
