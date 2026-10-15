@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Trin — Email login screens built (PLAN/2026-10-16-email-login-form-reset.md, active, approved by Trin): email form on `/login`, `/login/forgot`, `/login/reset`; typecheck, 76 tests and build pass; browser-checked without Supabase keys only. Not committed; task stays in Taken until a real sign-up/reset run
 - 2026-10-16 · Claude-proud — Tasks board live: PR #30 merged (`aeee87e`); its deploy run hung at Vercel "Building…" and was cancelled at 15 min, so it went live with PR #31's deploy (`90c2258`, 03:49); live `/tasks` checked signed out
 - 2026-10-16 · Claude-Pattadon — Files built on claude/files-function-build-591bd6 (PLAN/2026-10-16-files.md, active; Pattadon chose the GitHub repo option): /files upload/list/download/delete via COCOMMIT/files/, base64 blobs in commitFiles; typecheck, 63 tests and build pass; fake mode checked in browser. Not committed.
 - 2026-10-16 · Claude-Pattadon — Heat map built (PLAN/2026-10-16-heat-map.md, active, approved by Pattadon): commit activity grid on `/home` with a person filter; 71/71 tests, typecheck, build; browser-checked on fake data only. PR opened, not merged

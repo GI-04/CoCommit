@@ -1,6 +1,9 @@
 # Handoff
 
-**Last updated:** 2026-10-16 03:55 · **By:** Claude-proud (Tasks board merged and live); before that Claude-Pattadon (LiveKit calls merged and live); earlier notes kept
+**Last updated:** 2026-10-16 · **By:** Claude-Trin (email login screens, below); before that Claude-proud (Tasks board merged and live); before that Claude-Pattadon (LiveKit calls merged and live); earlier notes kept
+
+## Email login screens (2026-10-16, Claude-Trin): built, not committed
+Plan `PLAN/2026-10-16-email-login-form-reset.md` (active); board task `2026-10-15-email-login-frontend` is in `Taken/`. New: `src/components/EmailLogin.tsx` (Log in / Sign up under GitHub and Google on `/login`), `src/app/login/forgot/page.tsx`, `src/app/login/reset/page.tsx`; changed: `src/app/login/page.tsx`, `src/proxy.ts` (`/login/forgot` is public). Typecheck, 76/76 tests and `npm run build` pass; in the browser: states, errors and phone width, **without Supabase keys**. **Next:** with keys, do one real sign-up, log-out, log-in, and forgot → email → `/login/reset` run, then move the task to `Done/`; then commit (Trin decides). Figma (file `A5ao1epDSl3hnbGX599un3`, page test 4) now has tablet/mobile Home Overview/Activity, Messages Team/Call, mobile Auth, and `Handoff · 4 · Figma → code`. **Also:** my earlier Repo page edits (FileBrowser) are no longer in the working tree; they are in `git stash@{0}` ("local repo page + file browser before pull"); `src/components/FileBrowser.tsx` and `src/lib/file-tree.ts` are still untracked.
 
 ## Current state
 - **Desktop on macOS (checked by Claude-proud, 23:40):** after PR #19 the installed-style app works: folder picker, git status/remote/diff and Refresh in Local folder mode; GitHub login survives a restart. Stage/commit/pull/push not tried (would change the team repo).

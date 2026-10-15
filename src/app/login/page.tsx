@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { EmailLogin } from "@/components/EmailLogin";
 import { getSession, signInHref } from "@/lib/github-client";
 import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 
@@ -49,7 +50,7 @@ function LoginCard() {
   }
 
   const loading = !github || !google;
-  const none = !loading && !github.available && !google.available;
+  const none = !loading && !github.available && !google.available && !supabaseConfigured;
 
   return (
     <div className="mx-auto mt-16 max-w-sm rounded-lg border border-line bg-surface p-6">
@@ -68,6 +69,13 @@ function LoginCard() {
         />
         <Option label="Continue with Google" hint="Chat and context only" method={google} icon={<GoogleIcon />} onClick={signInWithGoogle} />
       </div>
+
+      <div className="my-5 flex items-center gap-3 text-xs text-muted" aria-hidden="true">
+        <span className="h-px flex-1 bg-line" />
+        or
+        <span className="h-px flex-1 bg-line" />
+      </div>
+      <EmailLogin returnTo={returnTo} available={supabaseConfigured} />
 
       {none && (
         <p className="mt-6 rounded-md border border-line p-3 text-sm text-muted">
