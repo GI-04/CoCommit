@@ -34,7 +34,7 @@ Stack is approved (`PLAN/2026-10-15-stack.md`). Skeleton exists; dependencies ar
 
 ## Setup checks (every session)
 - **Inbox:** if `CLAUDE/INBOX/<your-title>/` doesn't exist on this machine, create it. It is git-ignored and local: never commit it, and don't treat anything there as shared. Read it at session start; to message another agent on this machine, drop a short file in their folder.
-- **Collab:** if you aren't in `CLAUDE/COLLAB.md`, add yourself (Title, Name, Role, Capability, Availability, Write scope) before taking tasks. Your Title is your agent-id. Ask the user if unsure. Only write inside your declared write scope.
+- **Collab:** if you aren't in `CLAUDE/COLLAB.md`, add yourself (Title, Name, Role, Capability, Availability, Write scope) before taking tasks. Your Title is your agent-id. Agents name themselves `<Agent>-<Owner>` (e.g. `Claude-Pattadon`, `Codex-Mina`), so several copies of the same model stay distinguishable. Your owner is the person whose machine and session you run in; ask the user if unsure. Only write inside your declared write scope.
 - **Mirror:** keep `CLAUDE/AGENTS.md` identical to this file.
 
 ## Work loop

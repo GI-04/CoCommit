@@ -9,8 +9,8 @@
 - **Availability:** unknown — ask
 - **Write scope:** anything
 
-## Claude
-- **Name:** Claude Opus 5.5
+## Claude-Pattadon
+- **Name:** Claude Opus 5.5, Pattadon's agent (runs on Pattadon's machine and answers to Pattadon)
 - **Role:** implementation, review, reporting
 - **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
 - **Availability:** per session
