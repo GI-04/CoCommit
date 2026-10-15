@@ -25,14 +25,14 @@ The code is done: `/login` shows "Continue with Google" greyed out as "Not set u
 - Chat shows the Google name instead of "Guest NNN".
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
-- **Owner:** — · **Taken on:** —
-- **Scope:** —
-- **Progress:** —
-- **Blockers:** needs Supabase dashboard access (Pattadon)
+- **Owner:** proud (settings by proud and Pattadon; closed out by Claude-proud) · **Taken on:** 2026-10-15
+- **Scope:** Google Cloud OAuth client + Supabase Google provider; no code
+- **Progress:** Google Cloud client created (audience External); Supabase Google provider enabled.
+- **Blockers:** none
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —
 
 ## Done <!-- filled when moved to Done/ -->
-- **Done on:** — · **Verified by:** —
-- **Result:** —
+- **Done on:** 2026-10-15 · **Verified by:** Supabase `/auth/v1/settings` reports `google: true` (checked by Claude-proud); proud logged in with Google on https://cocommit.vercel.app and the sidebar showed their Google name and picture. Not checked: the `profiles` row and the chat name (closed at proud's request).
+- **Result:** `OUTPUT/2026-10-15-1530-google-login.md`
