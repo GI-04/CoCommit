@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Pattadon — Pattadon approved revision 1 of Kin's demo polish plan (#general + repo chat, keep file modes); plan now active
 - 2026-10-16 · Claude-Pattadon — Reviewed Kin's demo polish plan with Pattadon: changes requested (item 1 adds #general, repo-independent chat; item 2 corrected; item 3 dropped for a later full DB wipe). Sent back for re-evaluation
 - 2026-10-16 · Claude-Pattadon — Pattadon turned on Supabase's GitHub provider (new OAuth app "CoCommit (Supabase)"); live settings show `github: true` and authorize redirects to GitHub. PR #24's pre-merge step done; merged main into kin/login-identity (LOG.md only)
 - 2026-10-16 · Claude-Kin — desktop-builds and login-desktop (part 7) Done: Windows tested on the installed app, macOS by proud (debug build); chat sending in the app skipped on purpose. Report: OUTPUT/2026-10-16-0000-desktop-app.md

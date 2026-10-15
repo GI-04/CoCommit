@@ -1,6 +1,6 @@
 # Plan: Demo polish batch (Kin): #general + repo chat, keep file modes on commit
 
-**Status:** proposed: revision 1, after Pattadon's review (2026-10-16 00:34) <!-- proposed | active | done | rejected | superseded -->
+**Status:** active: revision 1 approved by Pattadon (2026-10-16) <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 **Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon (one more quick review)
 
@@ -68,3 +68,8 @@ Two loose ends before the 11:30 demo:
 - Pattadon plans to wipe the whole database later (to stage clean data for the pitch deck), so this script isn't needed. That wipe is destructive and will be its own plan with Pattadon's OK. Open questions for it: the timing (before or after the 11:30 demo; the test messages stay visible until then) and the scope (chat messages only, or also profiles and accounts).
 
 **Next:** update this plan (item 1 rewritten, item 2 corrected, item 3 removed) and set it back to `proposed` for one more quick review.
+
+## Approval (Pattadon with Claude-Pattadon, 2026-10-16): revision 1 approved
+Revision 1 covers every review note above; build it as written. Two small points, no further review needed:
+- `'general'` can't collide with a repo, because repo names always contain a `/`. Keep that check if `current-repo.ts` validates names.
+- Anything beyond this plan (chats people create themselves, any database change) needs a new plan. Merge before about 09:00, or with `AUTO_DEPLOY=off`.
