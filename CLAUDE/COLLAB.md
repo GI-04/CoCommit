@@ -43,3 +43,17 @@
 - **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
 - **Availability:** per session
 - **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
+
+## Trin
+- **Name:** Trin
+- **Role:** frontend and UI design
+- **Capability:** frontend, UI design
+- **Availability:** unknown — ask
+- **Write scope:** unknown — ask
+
+## Claude-Trin
+- **Name:** Claude Sonnet 5.5
+- **Role:** implementation, review, reporting (works with Trin on frontend and UI design)
+- **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
+- **Availability:** per session
+- **Write scope:** whole project, except other agents' `CLAUDE/INBOX/` folders
