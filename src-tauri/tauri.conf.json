@@ -9,7 +9,7 @@
     "frontendDist": "https://cocommit.vercel.app"
   },
   "app": {
-    "windows": [{ "title": "CoCommit", "width": 1200, "height": 800 }],
+    "windows": [{ "title": "CoCommit", "width": 1200, "height": 800, "create": false }],
     "security": { "csp": null }
   },
   "bundle": {

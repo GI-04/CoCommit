@@ -17,7 +17,7 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 2. Context frontend owner (Trin): wire the tabbed Context screen and setup flow to the existing `src/lib/workspace.ts` helpers; no new load/save layer is needed.
 3. Trin: login frontend, `wire-screens-to-github`, `review-chat-screen`, the tabbed Context screen.
 4. Pattadon: dev OAuth app for localhost (login-backend part 8); decide on Google (part 9).
-5. Email/password login (`PLAN/2026-10-15-email-password-login.md`, active): Kin's backend is merged (PR #6) (`src/lib/auth-email.ts`, `src/lib/permissions.ts`). Pattadon: in Supabase turn on the Email provider, turn Confirm email off for the demo, add `https://cocommit.vercel.app/auth/*` and `http://localhost:3000/auth/*` to Redirect URLs, and re-run `supabase/profiles.sql`. Trin: the form (`BOARD/Pending/2026-10-15-email-login-frontend.md`); `signUpWithEmail` also returns `needsConfirmation`.
+5. Email/password login (`PLAN/2026-10-15-email-password-login.md`, active): Kin's backend is merged (PR #6: `src/lib/auth-email.ts`, `src/lib/permissions.ts`). Pattadon: in Supabase turn on the Email provider, turn Confirm email off for the demo, add `https://cocommit.vercel.app/auth/*` and `http://localhost:3000/auth/*` to Redirect URLs, and re-run `supabase/profiles.sql`. Trin: the form (`BOARD/Pending/2026-10-15-email-login-frontend.md`); `signUpWithEmail` also returns `needsConfirmation`.
 
 ## Repository reading (2026-10-15)
 - Source inspected at `24137f0`: GitHub Repo UI and chat implemented; chat still selects the fixed mock repo; Context UI remains mock; email/reset UI absent.
