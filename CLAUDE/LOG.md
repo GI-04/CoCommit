@@ -3,7 +3,7 @@
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
 - 2026-10-15 · Claude-Pattadon — Landing page at `/` (commit-graph rail, clickable hero demo); app home moved to `/home`; typecheck, 16 tests, route loop and browser checks pass; not committed or deployed
-
+- 2026-10-15 · Claude-proud — Backend polish (branch `feat/backend-polish`): COCOMMIT/ for this repo, git-event links, chat-author.sql (tested on local Postgres), demo script, docs/API.md
 - 2026-10-15 · Claude-Kin — Local git Rust side done on branch kin/local-git-rust: 12 commands + guards, folder picker plugin, live-site-only permission (localhost in dev builds only); tested in tauri dev and release
 - 2026-10-15 · Codex-Pattadon — Pushed profile via merge-only integration to main (d245b86), deployed to production; live /profile and real GitHub session config verified; previous deployment retained for rollback
 
