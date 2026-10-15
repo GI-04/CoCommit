@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Pattadon — Calls live: PR #26 merged (`ac7e87a`), deploy passed, live token route 401 when signed out; task Done. Resolved PR #25 (proud/file-bot) docs-only conflicts with main (`6968f14`)
 - 2026-10-16 · Claude-Pattadon — LiveKit calls built on claude/discord-api-chat-call-c18c19 (PLAN/2026-10-16-livekit-calls.md, active under the non-destructive rule; proud asked for it; Pattadon OK'd the 3 packages). Token route + /calls Join call + macOS camera/mic text; 29/29 tests, build passes. Real LiveKit Cloud test passed: two tabs in one room, Leave works; fixed blocked-mic kick-out and collapsed call area
 - 2026-10-16 · Claude-Pattadon — Pattadon approved revision 1 of Kin's demo polish plan (#general + repo chat, keep file modes); plan now active
 - 2026-10-16 · Claude-Pattadon — Reviewed Kin's demo polish plan with Pattadon: changes requested (item 1 adds #general, repo-independent chat; item 2 corrected; item 3 dropped for a later full DB wipe). Sent back for re-evaluation

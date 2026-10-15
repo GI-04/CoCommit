@@ -17,7 +17,7 @@
   - You join with the mic on and the camera off.
   - A failed connection (`onError` with a `ConnectionError`) returns to the Join button with the error message. Any other `onError` (for example a refused mic) keeps you in the call, listening only, with a note.
   - The size sits on a wrapper `div`, because LiveKit's CSS overrides Tailwind classes on the room (GOTCHAS 2026-10-16).
-- **Tested 2026-10-16** against the real LiveKit Cloud project (region India South): two tabs in room `cocommit-gi-04-cocommit` saw each other, and Leave works. Real mic/camera audio and video are not tested yet (the in-app browser blocks devices).
+- **Tested 2026-10-16** against the real LiveKit Cloud project (region India South): two tabs in room `cocommit-gi-04-cocommit` saw each other, and Leave works. Pattadon tested mic and camera in Safari. Live since PR #26 (`ac7e87a`); signed out, the live token route returns 401.
 - **Keys:** `NEXT_PUBLIC_LIVEKIT_URL` (`wss://<project>.livekit.cloud`), `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET`, from a LiveKit Cloud project → Settings → Keys. Put them in `.env.local` and in Vercel (Production). Then redeploy, because `NEXT_PUBLIC_*` is baked in at build time.
 - **Desktop:** `src-tauri/Info.plist` adds camera/mic usage text for macOS, but the installers must be rebuilt for it to apply. Windows WebView2 asks for permission by itself. Not tested in the desktop app yet.
 

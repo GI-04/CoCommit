@@ -14,7 +14,7 @@ Git without the terminal, plus team chat and one shared context for everyone's A
 | **Chat** | ✅ live | One live channel per repo (Supabase Realtime). Commits and PRs post themselves into chat. Pin messages, or save one as a **decision** or **gotcha**. |
 | **Context** | 🟡 logic done, screen on demo data | Each repo gets a `COCOMMIT/` team workspace (handoff, team, decisions, gotchas, log, todo, task board) that every teammate's AI agent reads first. Load/save and the auto-filled log work; the tabbed screen is in progress. |
 | **Desktop app** | ✅ Windows, 🟡 macOS | A Tauri window that loads the live site. Links open in your browser. Windows installer builds; the macOS `.dmg` builds on GitHub Actions. |
-| **Calls** | 🟡 built, needs LiveKit keys | `/calls` → **Join call**: voice, video and screen sharing inside CoCommit (LiveKit), one room per repo, signed-in people only. Needs the three `LIVEKIT_*` keys. |
+| **Calls** | ✅ live | `/calls` → **Join call**: voice, video and screen sharing inside CoCommit (LiveKit), one room per repo, signed-in people only. Needs the three `LIVEKIT_*` keys locally. |
 | Tasks, Files | ⏳ coming soon | Placeholder pages. |
 
 ## Stack
