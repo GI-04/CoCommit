@@ -12,6 +12,7 @@
 - [ ] Tasks board, later: links to branches/PRs, live updates (Realtime or polling), drag and drop, editing a task's text.
 
 ## Open questions
+- Review `PLAN/2026-10-16-call-stays-on.md` (Kin): keep the call going when you leave `/calls` (call in the app shell + a small call bar). Needs your LiveKit keys or the live site for a two-person test. (Pattadon)
 - Which hackathon and submission format? Deadline: 2026-10-16 11:30 (24 h from 2026-10-15 11:30). (Pattadon)
 - What are the non-goals for v1? (Pattadon)
 - A GitHub OAuth app may allow only one callback URL. Do we need two apps (localhost dev keys and Vercel prod keys)? Callback path: `/api/github/callback`. (Pattadon, accounts-and-keys)
