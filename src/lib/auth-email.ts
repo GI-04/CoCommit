@@ -13,7 +13,7 @@ export const MIN_PASSWORD_LENGTH = 8;
 const NOT_SET_UP = "Email login isn't set up yet.";
 
 // Only same-site paths, so a link can't send people to another site.
-const safePath = (p: string | undefined) => (p && p.startsWith("/") && !p.startsWith("//") ? p : "/");
+const safePath = (p: string | undefined) => (p && p.startsWith("/") && !p.startsWith("//") ? p : "/home");
 
 const callbackUrl = (next: string) => `${location.origin}/auth/callback?next=${encodeURIComponent(safePath(next))}`;
 
@@ -26,7 +26,7 @@ function checkPassword(password: string): string | null {
 }
 
 /** Creates an account and signs in. `returnTo` is where the confirmation email link lands, if confirmation is on. */
-export async function signUpWithEmail(email: string, password: string, name: string, returnTo = "/"): Promise<AuthResult & { needsConfirmation: boolean }> {
+export async function signUpWithEmail(email: string, password: string, name: string, returnTo = "/home"): Promise<AuthResult & { needsConfirmation: boolean }> {
   const supabase = getSupabase();
   const fail = (error: string) => ({ error, needsConfirmation: false });
   if (!supabase) return fail(NOT_SET_UP);

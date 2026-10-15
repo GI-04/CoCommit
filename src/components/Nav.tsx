@@ -13,7 +13,7 @@ export function Nav() {
 
   return (
     <nav aria-label="Main navigation" className="flex w-full shrink-0 flex-wrap items-center gap-1 border-b border-line bg-surface p-3 md:sticky md:top-0 md:h-dvh md:w-52 md:flex-col md:items-stretch md:border-b-0 md:border-r md:p-4">
-      <Link href="/" className="mr-auto px-3 text-lg font-bold md:mb-4 md:mr-0">
+      <Link href="/home" className="mr-auto px-3 text-lg font-bold md:mb-4 md:mr-0">
         CoCommit
       </Link>
       {sections.map((s) => (

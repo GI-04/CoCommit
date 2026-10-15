@@ -93,7 +93,9 @@ After changing environment variables in Vercel, add `--force` so the build doesn
 | `src/lib/local-git.ts`, `git-status.ts` | Local git for the desktop app |
 | `src/lib/auth-email.ts`, `profile.ts`, `permissions.ts` | Email login, profile, who may use git |
 | `src/proxy.ts` | Supabase session refresh (and the optional login wall) |
-| `supabase/` | SQL to run once in Supabase |
+| `supabase/` | SQL to run once in Supabase (`profiles.sql`, `schema.sql`, then `chat-author.sql`) |
+| `docs/API.md` | How screens call git, chat, pins and the team context (function list, errors, rules) |
+| `COCOMMIT/` | This repo's own team context, as CoCommit creates it (read by Pin as decision/gotcha and the activity log) |
 | `src-tauri/` | Desktop shell (Rust) and `BUILDING.md` |
 | `scripts/check-env.mjs` | Shows which keys are set, without printing them |
 | `CLAUDE/` | Team and agent workspace (see below) |

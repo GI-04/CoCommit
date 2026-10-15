@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-15 — Landing page at `/`, app home at `/home`, sidebar via AppShell
+- **Status:** active
+- **Decision:** `/` is a marketing landing page without the sidebar; the old dashboard moved to `/home`. A client `AppShell` in the root layout hides the sidebar only on `/`. Post-sign-in fallbacks, the PWA `start_url` and the sidebar logo point to `/home`. Desktop windows on `/` are redirected to `/home` client-side.
+- **Why:** Pattadon asked for a big-company-style landing page before the app. AppShell instead of route groups means no app page files move while teammates are editing them, and the desktop app needs no rebuild.
+- **Alternatives:** route groups `(marketing)` / `(app)` (cleaner, but moves every page); landing at `/welcome` (keeps `/` as the app, but visitors to the bare domain miss the landing page).
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-15 — CoCommit profile uses auth metadata; providers remain separate
 - **Status:** active
 - **Decision:** `/profile` saves full_name/avatar_url to Supabase Auth metadata, then mirrors only name/avatar_url to the authenticated user's existing profiles row. A mirror failure is reported as partial sync, not lost profile data. Email/password updates require the current password. GitHub-owned details link to GitHub settings.
