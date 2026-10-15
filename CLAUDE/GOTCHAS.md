@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-16 — LiveKit's CSS beats Tailwind classes; a blocked mic comes through `onError`
+- **What failed:** (1) `className="h-[70vh]"` on `LiveKitRoom` did nothing: the call area collapsed to 87px and the second person moved to page 2. (2) A refused microphone kicked the user out of the call.
+- **Evidence:** `@livekit/components-styles` sets `.lk-room-container { height: 100% }` unlayered, and Tailwind 4 utilities sit in `@layer utilities`, so LiveKit wins. `LiveKitRoom` calls `onError` with `NotAllowedError: Permission denied` when it can't turn on the mic, the same callback it uses for connection errors.
+- **Workaround:** size a wrapper `div` around `LiveKitRoom`, not the room itself. In `onError`, only `e.name === "ConnectionError"` is fatal; show a note for anything else (`src/components/CallRoom.tsx`).
+
 ## 2026-10-15 — After `vercel rollback`, auto-deploys build but don't go live
 - **What failed:** nothing yet. A rollback turns off Vercel's automatic production-domain assignment, so later deploys from `deploy-vercel.yml` finish "Ready" but `cocommit.vercel.app` stays on the old one.
 - **Evidence:** Vercel instant-rollback behaviour. The workflow's "Check the domain points to this deploy" step fails in this case (dry-run tested with an older deploy URL).
