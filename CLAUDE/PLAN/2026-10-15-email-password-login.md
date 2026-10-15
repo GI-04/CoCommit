@@ -22,12 +22,19 @@ Email/password is a third option on `/login`, next to GitHub and Google. It uses
    - Confirm and reset links reuse `src/app/auth/callback/route.ts` (code exchange).
 3. **Permissions (Kin):** a helper `canUseGit()` and server checks so email users get a clear "Sign in with GitHub to commit" message instead of an error. Chat insert policy stays `author_id = auth.uid()`. Make it require a non-anonymous user once login is required. When Files is built, its storage policy allows `authenticated`, non-anonymous users.
 4. **Frontend (Trin):** an email/password form on `/login` (sign up and log in tabs, name field on sign-up), a "Forgot password?" link, and a `/login/reset` page with a new-password form. It calls only the helpers above. Board task: `BOARD/Pending/2026-10-15-email-login-frontend.md`.
-5. **Profiles:** `supabase/profiles.sql` already fills `name` from `full_name`. Also store the email-users' `email` in `profiles`, so chat can show it when there's no name.
+5. **Profiles:** `supabase/profiles.sql` already fills `name` from `full_name`; with no name it now uses the part of the email before the @.
+
+**Changes while building (Claude-Kin, 2026-10-15):**
+- No `email` column in `profiles` after all: every signed-in user, anonymous chat users included, can read that table, so it would expose everyone's email. The name fallback covers display.
+- `signUpWithEmail(email, password, name, returnTo?)` returns `{ error, needsConfirmation }`. `needsConfirmation` is true when Supabase's Confirm email is on; the screen should say "Check your email" instead of signing in.
+- `signOut()` clears the Supabase session and the GitHub cookie (login-backend part 5).
+- `src/lib/permissions.ts`: `getPermissions()` → `{ via, chat, files, git }`, `canUseGit()`, and the messages `NEEDS_GITHUB` / `NEEDS_LOGIN` for the screens.
 
 ## Files touched
 - `src/lib/auth-email.ts`: new, email auth helpers (Kin)
 - `src/app/auth/callback/route.ts`: confirm/reset links land here (check only)
-- `supabase/profiles.sql`: add `email`, fill it in the trigger (Kin)
+- `supabase/profiles.sql`: name falls back to the email's first part; policies re-runnable (Kin)
+- `src/lib/permissions.ts`: new, who may chat / upload / use git (Kin)
 - `src/app/login/page.tsx`, `src/app/login/reset/page.tsx`: form and reset page (Trin)
 
 ## Risks / needs OK
