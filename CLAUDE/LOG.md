@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-proud — GitHub sign-in + git-button API built on `feat/github-api` (fake mode + mock-GitHub tested; not committed; real test waits for OAuth keys)
 - 2026-10-15 · Claude-Pattadon — Google sign-in (Supabase Auth) built in demo-safe mode; needs Supabase/Google keys to go live
 - 2026-10-15 · Claude-Pattadon — Frontend task released to Trin; partial screens on branch layout-and-screens
 - 2026-10-15 · Claude-Pattadon — Demo scope approved (24 h, ends 2026-10-16 11:30); 6 board tasks posted

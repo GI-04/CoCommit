@@ -3,5 +3,28 @@
   "type": "general",
   "about": "General project know-how: tooling, setup, conventions and anything not yet big enough for its own pointer type",
   "_rules": "Semantic routing for one type of context: match the task to an entry, read its subject summary, then check its sources if needed. Its notes live in knowledge/<type>/ and sources in sources/<type>/. Open only the files an entry points to. Never browse knowledge/ or sources/ directly.",
-  "entries": []
+  "entries": [
+    {
+      "id": "github-api",
+      "title": "GitHub sign-in and git API (src/lib/github.ts)",
+      "kind": "reference",
+      "tags": [
+        "github",
+        "oauth",
+        "git",
+        "commit",
+        "pull-request",
+        "api",
+        "fake-mode",
+        "testing",
+        "mock"
+      ],
+      "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes and cookie, fake mode, and how to test against a local fake GitHub.",
+      "path": "knowledge/general/github-api.md",
+      "sources": [
+        "sources/general/mock-github.mjs"
+      ],
+      "added": "2026-10-15"
+    }
+  ]
 }

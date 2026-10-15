@@ -2,6 +2,16 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-15 — Two agent chats in one folder share one branch
+- **What failed:** Claude-proud and Claude-Pattadon worked in the same checkout on Proud's machine. Claude-Pattadon's Google sign-in was committed onto `feat/github-api` (5d05bf3) and pushed, so one PR would mix two features. Switching branches in one chat changes the files under the other.
+- **Evidence:** `git log origin/main..feat/github-api` shows 5d05bf3 "Add Google sign-in…"; `HANDOFF.md` says it was built on `feat/github-api`.
+- **Workaround:** one feature per branch; before switching or committing, check `git status` and `git log`, and only stage your own files (`git add <paths>`). Better: give each chat its own git worktree (a second folder on its own branch).
+
+## 2026-10-15 — "owner/name" check let `..` through (fixed)
+- **What failed:** validating repo names with `/^[\w.-]+\/[\w.-]+$/` accepted `../evil`; `fetch` normalized `/repos/../evil/branches` to `/evil/branches`.
+- **Evidence:** mock GitHub log showed `GET /evil/branches` from `listBranches("../evil")`.
+- **Workaround:** `repoPath()` and `seg()` in `src/lib/github.ts` now reject `.`, `..` and empty path parts. Do the same for any user-supplied value put into a URL path.
+
 ## 2026-10-15 — Tauri static export vs. API routes (expected, not hit yet)
 - **What failed:** not yet run. `next.config.ts` switches to `output: "export"` when Tauri builds (`TAURI_ENV_PLATFORM` set); Next.js static export can't build POST route handlers like `src/app/api/livekit-token/route.ts`.
 - **Evidence:** Next.js static export docs (route handlers must be static GET).
