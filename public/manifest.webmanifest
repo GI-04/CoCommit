@@ -2,7 +2,7 @@
   "name": "CoCommit",
   "short_name": "CoCommit",
   "description": "Git, chat, calls and tasks for small teams.",
-  "start_url": "/",
+  "start_url": "/home",
   "display": "standalone",
   "background_color": "#0b0f17",
   "theme_color": "#0b0f17",
