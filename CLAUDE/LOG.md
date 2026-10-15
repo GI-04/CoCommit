@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Deployed main `3d2a5f3` (sidebar logo → landing page) to production (dpl_HCMXbH7W…); live routes, installers, GitHub session and logo/Home clicks checked
 - 2026-10-15 · Claude-Pattadon — Sidebar logo now links to the landing page `/`; new sidebar Home item keeps `/home` one click away; typecheck, 16 tests and browser checks pass
 - 2026-10-15 · Claude-Pattadon — Fixed PR #15's notes conflicts (merge `5a5747a`), then deployed main `af8f164` to production (dpl_BRCuARDX…; ships PRs #10, #15, #16); live routes, both installers and real GitHub session checked
 - 2026-10-15 · Claude-proud — PR #16 (backend polish) and PR #10 (chat names) merged; plans recent-activity, chat-pins, chat-names, backend-polish set to done
