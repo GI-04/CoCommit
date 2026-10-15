@@ -3,18 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Icon, type IconName } from "@/components/icons";
-import { sections } from "@/lib/sections";
+import { Icon } from "@/components/icons";
+import { useAssistant } from "@/components/Assistant";
+import { navItems } from "@/lib/sections";
 import { UserChip } from "@/components/UserChip";
 import { DownloadButton } from "@/components/DownloadButton";
 
-const items: { href: string; title: string; icon: IconName }[] = [{ href: "/home", title: "Home", icon: "home" }, ...sections];
 
 // One glass navigation in the three Figma sizes (one element, so the account is only loaded once):
 // phone = a top bar with a menu button, tablet = an icon rail, desktop = the full sidebar.
 export function Nav() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
+  const assistant = useAssistant();
   useEffect(() => setOpen(false), [path]);
 
   return (
@@ -39,8 +40,8 @@ export function Nav() {
       </div>
 
       <div id="main-links" className={`${open ? "flex" : "hidden"} flex-col gap-1 pb-2 pt-2 md:flex md:items-center md:gap-3 md:py-0 lg:items-stretch lg:gap-2`}>
-        {items.map((it) => {
-          const active = it.href === "/home" ? path === "/home" : path.startsWith(it.href);
+        {navItems.map((it) => {
+          const active = it.href === "/home" ? path === "/home" : it.match.some((m) => path.startsWith(m));
           return (
             <Link
               key={it.href}
@@ -56,6 +57,21 @@ export function Nav() {
             </Link>
           );
         })}
+        <button
+          type="button"
+          onClick={() => {
+            assistant.toggle();
+            setOpen(false);
+          }}
+          aria-pressed={assistant.size === "open"}
+          title="Assistant"
+          className={`flex items-center gap-4 rounded-full px-4 py-3 text-left text-[15px] font-medium md:size-12 md:justify-center md:gap-0 md:p-0 lg:size-auto lg:justify-start lg:gap-4 lg:px-4 lg:py-3.5 ${
+            assistant.size === "open" ? "glass-thumb text-white" : "text-white/85 hover:bg-white/10"
+          }`}
+        >
+          <Icon name="sparkle" />
+          <span className="md:sr-only lg:not-sr-only">Assistant</span>
+        </button>
       </div>
 
       <div className={`${open ? "block" : "hidden"} border-t border-white/15 pt-3 md:mt-auto md:block md:w-full md:border-0 md:pt-0`}>

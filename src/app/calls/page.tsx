@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import CallChat from "@/components/CallChat";
 import { useCall } from "@/components/CallProvider";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { MessagesShell } from "@/components/MessagesShell";
+import { Button, Card } from "@/components/ui";
 import { pipSupported } from "@/lib/call-session";
 import { repos } from "@/lib/mock";
 
@@ -23,21 +24,22 @@ export default function CallsPage() {
   const popOut = () => stage?.querySelector("video")?.requestPictureInPicture().catch(() => {});
 
   return (
-    <div>
-      <PageHeader title="Calls" subtitle={`Voice, video and screen sharing for ${call?.repo ?? repo}.`}>
-        {call && (
+    <MessagesShell active="call">
+      {call && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-muted">Voice, video and screen sharing for {call.repo}.</p>
           <div className="flex gap-2">
             {canPip && (
-              <Button variant="ghost" onClick={popOut}>
+              <Button variant="glass" onClick={popOut}>
                 Pop out
               </Button>
             )}
-            <Button variant="ghost" onClick={leave}>
+            <Button variant="glass" onClick={leave}>
               Leave call
             </Button>
           </div>
-        )}
-      </PageHeader>
+        </div>
+      )}
 
       {call ? (
         <div>
@@ -53,17 +55,19 @@ export default function CallsPage() {
           </div>
         </div>
       ) : (
-        <Card tone="cyan" className="max-w-xl">
-          <p className="mb-4 text-sm text-muted">
+        <Card tone="cyan" className="mx-auto flex min-h-[26rem] max-w-3xl flex-col items-center justify-center gap-3 text-center">
+          <span className="grid size-28 place-items-center rounded-full border border-black bg-paper text-3xl font-semibold">{(repo.split("/")[1] ?? repo).slice(0, 2).toUpperCase()}</span>
+          <h2 className="text-[28px] font-semibold leading-tight">{repo.split("/")[1] ?? repo}</h2>
+          <p className="max-w-md text-sm">
             Everyone on the team joins the same room. You start with your mic on and camera off; turn them on or share your screen
             from the bar at the bottom. You can keep using the rest of CoCommit during the call.
           </p>
-          <Button variant="blue" onClick={() => join(repo)} disabled={joining}>
+          <Button variant="blue" onClick={() => join(repo)} disabled={joining} className="mt-2 px-10 py-3">
             {joining ? "Joining…" : "Join call"}
           </Button>
-          {error && <p className="mt-3 text-sm font-medium text-removed">{error}</p>}
+          {error && <p className="text-sm font-medium text-removed">{error}</p>}
         </Card>
       )}
-    </div>
+    </MessagesShell>
   );
 }

@@ -39,6 +39,15 @@ const paths: Record<string, ReactNode> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  sparkle: (
+    <>
+      <path d="M11 3l1.9 5.6L18.5 10.5l-5.6 1.9L11 18l-1.9-5.6L3.5 10.5l5.6-1.9L11 3z" />
+      <path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15z" />
+    </>
+  ),
+  send: <path d="M21 3 10 14M21 3l-7 18-4-7-7-4 18-7z" />,
+  expand: <path d="M15 4h5v5M9 20H4v-5M20 4l-6 6M4 20l6-6" />,
+  minus: <path d="M6 12h12" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
 };
 

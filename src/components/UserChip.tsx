@@ -42,6 +42,7 @@ export function UserChip() {
   const who = accounts.profile ?? (accounts.github && {
     name: accounts.github.name || accounts.github.login,
     avatarUrl: accounts.github.avatarUrl,
+    email: `@${accounts.github.login}`,
   });
   if (!who) return (
     <Link
@@ -63,7 +64,7 @@ export function UserChip() {
         <Avatar name={who.name} url={who.avatarUrl} className="size-10" />
         <span className="min-w-0 flex-1 md:hidden lg:block">
           <span className="block truncate text-sm font-semibold text-white">{who.name}</span>
-          <span className="block text-xs text-white/70">View profile</span>
+          <span className="block truncate text-xs text-white/70">{who.email || "View profile"}</span>
         </span>
       </Link>
       <button

@@ -7,7 +7,7 @@ import { Icon } from "@/components/icons";
 import { Card, Pill } from "@/components/ui";
 import { HOME_LAYOUT_KEY, moveCard, resolveLayout, toggleCard, visibleCards, type HomeLayout } from "@/lib/home";
 import { signInHref } from "@/lib/github-client";
-import { sections } from "@/lib/sections";
+import { navItems } from "@/lib/sections";
 import type { Board, TaskStatus } from "@/lib/tasks";
 import { problem, useBoard, type Load } from "./data";
 
@@ -15,8 +15,10 @@ const TONES = ["pink", "cyan", "mustard", "green"] as const;
 const WORK = "work";
 const BOARD = "board";
 // Card ids: the screens' paths, then the two data cards.
-const ALL = [...sections.map((s) => s.href), WORK, BOARD];
-const TITLES: Record<string, string> = { [WORK]: "Work done", [BOARD]: "Team board", ...Object.fromEntries(sections.map((s) => [s.href, s.title])) };
+// Cards for the screens, in the Figma order (Repository, Messages, Agent Context, Drive).
+const SCREENS = ["/repo", "/chat", "/context", "/files"].map((href) => navItems.find((n) => n.href === href)!);
+const ALL = [...SCREENS.map((s) => s.href), WORK, BOARD];
+const TITLES: Record<string, string> = { [WORK]: "Work done", [BOARD]: "Team board", ...Object.fromEntries(SCREENS.map((s) => [s.href, s.title])) };
 
 const COLUMNS: { status: TaskStatus; title: string; tone: "pink" | "mustard" | "green" }[] = [
   { status: "pending", title: "Pending", tone: "pink" },
@@ -46,7 +48,7 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
   };
 
   const shown = customizing ? layout.order : visibleCards(layout);
-  const tone = (id: string) => TONES[Math.max(0, sections.findIndex((s) => s.href === id)) % TONES.length];
+  const tone = (id: string) => TONES[Math.max(0, SCREENS.findIndex((s) => s.href === id)) % TONES.length];
 
   return (
     <div>
@@ -61,7 +63,7 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {shown.map((id, i) => {
           const hidden = layout.hidden.includes(id);
-          const section = sections.find((s) => s.href === id);
+          const section = SCREENS.find((s) => s.href === id);
           const body = section ? (
             <GoTo section={section} tone={tone(id)} link={!customizing} />
           ) : id === WORK ? (
@@ -94,7 +96,7 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
   );
 }
 
-function GoTo({ section, tone, link }: { section: (typeof sections)[number]; tone: (typeof TONES)[number]; link: boolean }) {
+function GoTo({ section, tone, link }: { section: (typeof SCREENS)[number]; tone: (typeof TONES)[number]; link: boolean }) {
   const body = (
     <>
       <span className="grid size-14 shrink-0 place-items-center rounded-full border border-black bg-paper">

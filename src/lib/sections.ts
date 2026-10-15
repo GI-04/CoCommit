@@ -11,3 +11,13 @@ export const sections: { href: string; label: string; title: string; icon: IconN
 ];
 
 export const comingSoon: { href: string; label: string }[] = [];
+
+// The navigation as in Figma: Messages groups Chat, Team (/tasks) and Call (/calls), so it is active on all three.
+// `blurb` is the line on the Home card.
+export const navItems: { href: string; title: string; icon: IconName; match: string[]; blurb: string }[] = [
+  { href: "/home", title: "Home", icon: "home", match: ["/home"], blurb: "" },
+  { href: "/repo", title: "Repository", icon: "branch", match: ["/repo"], blurb: "Commit and open pull requests with buttons." },
+  { href: "/files", title: "Drive", icon: "folder", match: ["/files"], blurb: "Upload and share files with the team; saved in the repo." },
+  { href: "/chat", title: "Messages", icon: "message", match: ["/chat", "/tasks", "/calls"], blurb: "Chat, team tasks and calls with your team." },
+  { href: "/context", title: "Agent Context", icon: "bot", match: ["/context"], blurb: "One shared COCOMMIT.md for every teammate's AI agent." },
+];

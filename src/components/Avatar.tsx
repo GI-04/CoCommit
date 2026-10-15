@@ -21,3 +21,12 @@ export function Avatar({ name, url, className = "h-12 w-12" }: { name: string; u
     </span>
   );
 }
+
+// Two-letter round badge for a chat or team in the Messages lists (same colours as avatars).
+export function Initials({ text, className = "size-12 text-sm" }: { text: string; className?: string }) {
+  return (
+    <span className={`inline-flex shrink-0 items-center justify-center rounded-full border border-black font-semibold text-black ${toneFor(text)} ${className}`}>
+      {text.slice(0, 2).toUpperCase()}
+    </span>
+  );
+}

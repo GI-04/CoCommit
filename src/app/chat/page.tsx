@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Button, Card, PageHeader, Tabs } from "@/components/ui";
+import { Initials } from "@/components/Avatar";
+import { ListPanel, repoItem, type ListItem } from "@/components/ListPanel";
+import { MessagesShell } from "@/components/MessagesShell";
+import { Button, Card } from "@/components/ui";
+import { useRepos } from "@/components/useRepos";
 import { isBotMessage, shareText, stripTrigger, type BotAnswer } from "@/lib/bot";
 import { askBot, BotRequestError } from "@/lib/bot-client";
 import {
@@ -27,7 +31,7 @@ import {
   type DecisionFields,
   type GotchaFields,
 } from "@/lib/chat-pins";
-import { DEFAULT_REPO, GENERAL, getCurrentRepo } from "@/lib/current-repo";
+import { DEFAULT_REPO, GENERAL, getCurrentRepo, setCurrentRepo } from "@/lib/current-repo";
 import { GitHubRequestError, signInHref } from "@/lib/github-client";
 
 // The "Pin as decision / gotcha" form open under one message.
@@ -178,21 +182,36 @@ export default function ChatPage() {
     }
   };
 
+  // The chats on the left: #general, the picked repo, then the rest of the person's repos (each repo is its own live chat).
+  const { repos: myRepos, fake: demoRepos } = useRepos();
+  const chats: ListItem[] = [
+    { id: GENERAL, title: "# general", sub: "The whole team", short: "#" },
+    ...[repo, ...myRepos.map((r) => r.fullName).filter((n) => n !== repo)].slice(0, 12).map(repoItem),
+  ];
+  const openChat = (id: string) => {
+    if (id !== GENERAL) {
+      setRepo(id);
+      if (!demoRepos) setCurrentRepo(id);
+    }
+    setChat(id);
+  };
+  const current = chats.find((c) => c.id === chat) ?? chats[0];
+
   return (
-    <div className="flex h-[calc(100dvh-8.5rem)] max-w-5xl flex-col md:h-[calc(100dvh-4rem)]">
-      <PageHeader
-        title="Chat"
-        subtitle={`${chat === GENERAL ? "# general · the whole team" : `# ${chat}`}${chatFake ? " · demo mode: messages stay in this browser" : ""}`}
-      >
-        <Tabs
-          label="Chats"
-          value={chat}
-          onChange={setChat}
-          tabs={[GENERAL, repo].map((id) => ({ id, label: `# ${id}` }))}
-        />
-      </PageHeader>
-      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[1fr_12rem]">
+    <MessagesShell active="chat" fill>
+      <div className="grid h-full min-h-0 gap-4 lg:grid-cols-[20rem_1fr] max-lg:grid-rows-[auto_minmax(0,1fr)]">
+        <ListPanel title="Messages" items={chats} value={chat} onSelect={openChat} />
         <Card className="flex min-h-0 flex-col">
+          <div className="mb-3 flex items-center gap-3 border-b border-black/15 pb-3">
+            <Initials text={current.short} className="size-11 text-sm" />
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-base font-semibold">{chat === GENERAL ? "# general" : chat}</h2>
+              <p className="truncate text-xs text-muted">{chat === GENERAL ? "The whole team" : "Chat for this repo"}{chatFake ? " · demo mode: messages stay in this browser" : ""}</p>
+            </div>
+            <p className="flex shrink-0 items-center gap-1.5 text-xs" title={online.join(", ")}>
+              <span className="size-2.5 rounded-full border border-black bg-green" /> {online.length} online
+            </p>
+          </div>
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
             {messages.map((m) =>
               m.kind === "git_event" ? (
@@ -340,17 +359,8 @@ export default function ChatPage() {
             </Button>
           </form>
         </Card>
-        <Card tone="cyan" title={`Online (${online.length})`} className="hidden lg:block">
-          <ul className="space-y-2 text-sm">
-            {online.map((u) => (
-              <li key={u} className="flex items-center gap-2">
-                <span className="size-2.5 rounded-full border border-black bg-green" /> {u}
-              </li>
-            ))}
-          </ul>
-        </Card>
       </div>
-    </div>
+    </MessagesShell>
   );
 }
 

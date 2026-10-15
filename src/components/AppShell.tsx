@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { AssistantProvider } from "@/components/Assistant";
 import { CallProvider } from "@/components/CallProvider";
 import { Nav } from "@/components/Nav";
 
@@ -15,10 +16,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {fullScreen ? (
         children
       ) : (
-        <div className="min-h-dvh">
-          <Nav />
-          <main className="min-w-0 p-4 md:py-8 md:pl-[112px] md:pr-6 lg:pl-[316px] lg:pr-8 xl:pl-[340px] xl:pr-[58px]">{children}</main>
-        </div>
+        <AssistantProvider>
+          <div className="min-h-dvh">
+            <Nav />
+            <main className="min-w-0 p-4 md:py-8 md:pl-[112px] md:pr-6 lg:pl-[316px] lg:pr-8 xl:pl-[340px] xl:pr-[58px]">{children}</main>
+          </div>
+        </AssistantProvider>
       )}
     </CallProvider>
   );
