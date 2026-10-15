@@ -69,7 +69,7 @@ zsh or PowerShell, with the Rust toolchain installed:
 ```bash
 npm run tauri dev
 ```
-Windows installer: `npm run tauri build` on a Windows PC. macOS `.dmg`: GitHub → **Actions** → **Desktop app (macOS)** → **Run workflow**. Details in `src-tauri/BUILDING.md`.
+**Download the installers** from GitHub → **Actions** → **Desktop app (Windows)** (`.msi` and setup `.exe`) or **Desktop app (macOS)** (`.dmg`) → **Run workflow**, then the run's **Artifacts**. Or build Windows locally with `npm run tauri build`. Details in `src-tauri/BUILDING.md`.
 
 The installed app shows whatever is deployed at https://cocommit.vercel.app, so web changes reach it after a deploy, with no rebuild.
 
