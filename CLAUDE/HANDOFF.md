@@ -16,7 +16,7 @@ Merged into main (pending production deployment): `src/lib/chat-pins.ts` and Dec
 
 ## Exact next step
 0. Profile is live at `https://cocommit.vercel.app/profile`: source commit `d245b86` (profile commit `c0c7b94`, merged with desktop and chat-actions updates; no rebase/force push). Vercel deployment `dpl_5Zp6oE1uLzTTtErQykPJkPgNuvVK`, `https://cocommit-4frfib617-gi-04.vercel.app`. Production Turbopack build passed; live signed-out page loads with no console errors; GitHub session API returns `fake:false`. Next: verify profile edits with a real signed-in test account. Rollback target before this release: `https://cocommit-l66vm0d6k-gi-04.vercel.app`. See `OUTPUT/2026-10-15-account-profile.md`.
-1. proud: decide whether to take `BOARD/Pending/2026-10-15-login-backend.md` parts 1–6 (GitHub as the one app identity; plan first). Meanwhile, sign in with GitHub on the live site once to check it.
+1. proud: declined the login-backend task. Branch `feat/backend-polish` (PR to `main`): this repo's `COCOMMIT/` workspace, git-event links, `supabase/chat-author.sql`, demo script `OUTPUT/2026-10-15-2145-demo-script.md`, `docs/API.md`. After merge: deploy, then someone with Supabase access runs `chat-author.sql`; rehearse with the demo script. Still open: a real Commit test on the Repo screen (closes `github-git-buttons` and `chat-backend`).
 2. Context frontend owner (Trin): wire the tabbed Context screen and setup flow to the existing `src/lib/workspace.ts` helpers; no new load/save layer is needed.
 3. Trin: login frontend, `wire-screens-to-github`, `review-chat-screen`, the tabbed Context screen.
 4. Pattadon: dev OAuth app for localhost (login-backend part 8); decide on Google (part 9).
