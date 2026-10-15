@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Pattadon — Auto-deploy plan approved; wrote `.github/workflows/deploy-vercel.yml` (gate: typecheck + tests; checks: token present, domain points to new deploy, live `"fake":false`); dry-run checks and gate pass; not committed, deploy step untested until the token exists
+- 2026-10-15 · Claude-Pattadon — Proposed `PLAN/2026-10-15-auto-deploy.md`: GitHub Actions deploys `main` to Vercel with Pattadon's token (Vercel Git connection blocked on Hobby for a private org repo)
 - 2026-10-15 · Claude-Pattadon — Sidebar logo now links to the landing page `/`; new sidebar Home item keeps `/home` one click away; typecheck, 16 tests and browser checks pass
 - 2026-10-15 · Claude-Pattadon — Fixed PR #15's notes conflicts (merge `5a5747a`), then deployed main `af8f164` to production (dpl_BRCuARDX…; ships PRs #10, #15, #16); live routes, both installers and real GitHub session checked
 - 2026-10-15 · Claude-proud — PR #16 (backend polish) and PR #10 (chat names) merged; plans recent-activity, chat-pins, chat-names, backend-polish set to done

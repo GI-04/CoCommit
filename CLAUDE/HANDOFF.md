@@ -1,6 +1,6 @@
 # Handoff
 
-**Last updated:** 2026-10-15 21:58 · **By:** Claude-Pattadon (deployed `af8f164`; earlier notes kept)
+**Last updated:** 2026-10-15 22:45 · **By:** Claude-Pattadon (auto-deploy workflow written; earlier notes kept)
 
 ## Current state
 Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**). Agents are named `<Agent>-<Owner>`; tiramisucake0127 is now **proud** (Claude-proud); rename task Done.
@@ -13,6 +13,13 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 
 ## Landing page (2026-10-15, Claude-Pattadon): merged and live
 `/` is the landing page (no sidebar); the app home is `/home` (LIB `landing-page`). PR #14 merged (`7bcca02`) and deployed to production: `dpl_jXkpb26snya48KinrcfpW1obxHD9` (`https://cocommit-3nxhnank1-gi-04.vercel.app`). This deploy also put PRs #11–#13 live (Windows installer download, desktop local-git support). Live checks: `/`, `/home`, `/repo`, `/chat`, `/login`, the manifest and the Windows installer all return 200; `/home` has the sidebar; `getSession` → `"fake":false`; no console errors on `/`. Rollback target: `https://cocommit-p0yrxcans-gi-04.vercel.app` (`dpl_3HHFkzN1jVRQrTSABXhFVYuozeCy`). Deployed from a `git archive` export of `main` because `.claude/worktrees/` (418 MB) sits in the repo folder and there's no `.vercelignore`. **Next:** open the installed desktop app once to confirm it lands on `/home`. Any new "go home" link should use `/home`.
+
+## Auto-deploy (2026-10-15, Claude-Pattadon): workflow written, not merged or run
+`PLAN/2026-10-15-auto-deploy.md` (active): `.github/workflows/deploy-vercel.yml` deploys every push to `main` to Vercel production with Pattadon's token. Vercel's own Git connection is blocked on the Hobby plan for a private org repo. On branch `claude/vercel-auto-deploy-53b5dd`, not committed yet. The check steps were dry-run locally and the gate passes; the deploy step itself is untested until the token exists. **Next:**
+1. Pattadon creates the Vercel token and the GitHub environment `production` with secret `VERCEL_TOKEN` (plan, step 2).
+2. Commit, open a PR and merge it. The merge itself triggers the first deploy.
+3. Watch that first run, then update the docs (plan, step 3).
+For the demo, set `AUTO_DEPLOY=off` from about 09:00, or don't merge to `main` during it. Until this is merged, deploys stay manual.
 
 ## Latest deploy (2026-10-15 21:56, Claude-Pattadon)
 `main` at `af8f164` (PRs #10, #15, #16 on top of the landing page) is live: `dpl_BRCuARDXcBX77uzmbEoS3QfkAcww` (`https://cocommit-gqdlwx4yn-gi-04.vercel.app`), deployed from a `git archive` export. Same tree as the merge that passed typecheck and 16 tests. Live checks: `/`, `/home`, `/repo`, `/chat`, `/login`, `/profile`, `/context` and the manifest return 200; both installers return 200 with the rebuilt sizes (dmg 7540675, exe 2482905 bytes); `getSession` → `"fake":false`; no console errors on `/`. Rollback target: `https://cocommit-3nxhnank1-gi-04.vercel.app` (`dpl_jXkpb26snya48KinrcfpW1obxHD9`).

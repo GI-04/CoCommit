@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-15 — Auto-deploy `main` with a GitHub Actions workflow, not Vercel's Git connection
+- **Status:** active
+- **Decision:** `.github/workflows/deploy-vercel.yml` deploys every push to `main` (except notes/docs/desktop-only changes) with `vercel deploy --prod` and Pattadon's Vercel token. Typecheck and tests must pass first. The token is a secret in a GitHub environment `production` that only `main` can use. The repo variable `AUTO_DEPLOY=off` pauses push deploys. Plan: `PLAN/2026-10-15-auto-deploy.md`.
+- **Why:** Vercel's own Git connection can't deploy teammates' commits: the Vercel team `gi-04` is on Hobby, which blocks private organization repos unless the team owner wrote the commit. This keeps the repo private and costs nothing. The build still runs on Vercel, so env vars stay there.
+- **Alternatives:** make `GI-04/CoCommit` public and connect it in Vercel (gives PR previews, but the code goes public); upgrade `gi-04` to Pro ($20 per member per month); keep deploying by hand.
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-15 — Landing page at `/`, app home at `/home`, sidebar via AppShell
 - **Status:** active
 - **Decision:** `/` is a marketing landing page without the sidebar; the old dashboard moved to `/home`. A client `AppShell` in the root layout hides the sidebar only on `/`. Post-sign-in fallbacks, the PWA `start_url` and the sidebar logo point to `/home`. Desktop windows on `/` are redirected to `/home` client-side.
