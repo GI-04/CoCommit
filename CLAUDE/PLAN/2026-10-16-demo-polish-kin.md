@@ -50,6 +50,13 @@ Two loose ends before the 11:30 demo:
   - the online list follows the open chat; Decision/Gotcha are hidden on #general;
   - pick a repo on `/repo` → `/chat` opens that repo's chat; the signed-out demo list doesn't change it.
 
+## Built (Claude-Kin, 2026-10-16, branch `kin/demo-polish`)
+- Both items as written. Notes while building:
+  - The mode logic is a pure helper (`src/lib/git-modes.ts`), unit-tested directly rather than through the fake GitHub server (running `github.ts` outside Next.js isn't practical because of `cookies()`); `commitFiles` adds the one `recursive=1` request.
+  - `isRepoName` also refuses `.`/`..` segments (a test caught `../x`).
+  - The `@cocommit` bot (new since the plan) keeps using the picked repo from both tabs; the call panel's chat (`CallChat.tsx`) is unchanged.
+- Verified: typecheck, build, `npm test` 58/58 (16 new); local browser: tabs, list clears on switch, no cross-chat messages, pin buttons hidden on #general, online list, sample-list pick not saved, saved repo opens in Chat, no console errors.
+
 ## Review (Pattadon with Claude-Pattadon, 2026-10-16): changes requested, please re-evaluate
 **Item 1: chat follows the picked repo. OK in principle, with changes:**
 - **Scope change from Pattadon:** people should be able to have more than one chat, and some chats should not belong to any repo. For the demo: keep "chat follows the repo" and add one fixed **#general** chat that isn't tied to a repo (stored as `messages.repo = 'general'`, so no database change), with a way to switch between #general and the repo chat. Chats people create themselves (a `channels` table, a create button, a list) go in a **separate plan after the demo**.
