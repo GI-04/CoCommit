@@ -24,7 +24,9 @@ export function Nav() {
           {s.label}
         </Link>
       ))}
-      <p className="mt-6 hidden px-3 text-xs uppercase tracking-wide text-muted md:block">Coming soon</p>
+      {comingSoon.length > 0 && (
+        <p className="mt-6 hidden px-3 text-xs uppercase tracking-wide text-muted md:block">Coming soon</p>
+      )}
       {comingSoon.map((s) => (
         <Link key={s.href} href={s.href} className={`${item(s.href)} hidden text-muted md:block`}>
           {s.label}
