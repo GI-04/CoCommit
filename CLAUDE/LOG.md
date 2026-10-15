@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-15 · Claude-Kin — Local git Rust side done on branch kin/local-git-rust: 12 commands + guards, folder picker plugin, live-site-only permission (localhost in dev builds only); tested in tauri dev and release
 - 2026-10-15 · Claude-Kin — Desktop app: commit works from the installed Windows app; new-window links ("View on GitHub") now open in the system browser (branch kin/desktop-open-links)
 - 2026-10-15 · Claude-Pattadon — Repo page Local mode (web side): local-git.ts, status parser, LocalRepo screen; tested with real git through a Node bridge; waits on Kin's Rust commands
 - 2026-10-15 · Claude-Pattadon — Local git plan approved (desktop app: staged/unstaged/untracked, stage/commit/pull/push); Kin does Rust, Claude-Pattadon the web side

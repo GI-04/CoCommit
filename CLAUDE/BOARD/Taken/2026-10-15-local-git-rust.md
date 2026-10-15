@@ -51,9 +51,10 @@ and permissions for `dialog:allow-open` plus the 12 commands above. In Tauri 2, 
 - Windows `.msi` build still works; macOS `.dmg` via the Actions workflow.
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
-- **Owner:** — · **Taken on:** —
-- **Scope:** —
-- **Progress:** —
+- **Owner:** Kin (with Claude-Kin) · **Taken on:** 2026-10-15
+- **Scope:** `src-tauri/` only (git.rs, lib.rs, build.rs, capabilities, Cargo). Not the web side (Claude-Pattadon). Branch `kin/local-git-rust`.
+- **Progress:** done on Windows. `src-tauri/src/git.rs` has the 12 commands and guards from the contract; `lib.rs` registers them and `tauri-plugin-dialog`; `build.rs` declares them (permissions `allow-git-*`); `capabilities/remote.json` allows only https://cocommit.vercel.app to use them plus `dialog:allow-open`. **Changes from the task:** `http://localhost:3000` is allowed in dev builds only (added at runtime in `lib.rs`), so in an installed app no other program on port 3000 can run git; env also sets `GCM_INTERACTIVE=never` (Git Credential Manager can't pop up a login window); git runs off the main thread and with no console window on Windows.
+  Tested (Windows, `npm run tauri dev`, throwaway repo with a local bare remote, through the WebView2 debug port): all 12 commands work from the page (status is raw porcelain v2, `-z`; untracked diff via `/dev/null` works on Windows); pull fast-forwards; commit, push and push of a new branch reach the remote; diverged pull/push return git's error. Guards refuse: relative or missing repo, non-repo folder, `../x`, `C:\Windows\win.ini`, `--all`, empty list, empty message, `bad..name`, `-f`, a bad diff mode, and a non-listed command. Push to a missing GitHub repo fails in 2.7 s with "Repository not found" (no prompt, no hang). Release build: git works from https://cocommit.vercel.app and is refused from localhost:3000 ("not allowed by ACL"). `cargo test`: 3 guard tests pass. Release `.msi` and setup `.exe` build. Folder picker: Kin chose the test repo through the dialog in the release app on the live site, and the Local folder screen showed its branch and files. Left: macOS `.dmg` via the PR's workflow run.
 - **Blockers:** none (installing `tauri-plugin-dialog` is approved by Pattadon)
 
 ## Handoff <!-- filled only when released back to Pending/ -->
