@@ -16,7 +16,7 @@ Demo scope is active (`PLAN/2026-10-15-demo-scope.md`, ends **2026-10-16 11:30**
 2. Claude-Pattadon: `loadWorkspace` / `saveWorkspace` (context-workspace step 2), using the activity feed.
 3. Trin: login frontend, `wire-screens-to-github`, `review-chat-screen`, the tabbed Context screen.
 4. Pattadon: dev OAuth app for localhost (login-backend part 8); decide on Google (part 9).
-5. Email/password login (`PLAN/2026-10-15-email-password-login.md`, active): Kin's backend is on branch `kin/email-login` (`src/lib/auth-email.ts`, `src/lib/permissions.ts`). Pattadon: in Supabase turn on the Email provider, turn Confirm email off for the demo, add `https://cocommit.vercel.app/auth/*` and `http://localhost:3000/auth/*` to Redirect URLs, and re-run `supabase/profiles.sql`. Trin: the form (`BOARD/Pending/2026-10-15-email-login-frontend.md`); `signUpWithEmail` also returns `needsConfirmation`.
+5. Email/password login (`PLAN/2026-10-15-email-password-login.md`, active): Kin's backend is merged (PR #6: `src/lib/auth-email.ts`, `src/lib/permissions.ts`). Pattadon: in Supabase turn on the Email provider, turn Confirm email off for the demo, add `https://cocommit.vercel.app/auth/*` and `http://localhost:3000/auth/*` to Redirect URLs, and re-run `supabase/profiles.sql`. Trin: the form (`BOARD/Pending/2026-10-15-email-login-frontend.md`); `signUpWithEmail` also returns `needsConfirmation`.
 
 ## Watch out
 - Ask before commit, push, package installs or deleting files.
