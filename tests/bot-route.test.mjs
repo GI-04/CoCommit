@@ -28,7 +28,7 @@ const files = {
 };
 const bot = load("lib/bot.ts", {});
 
-function setup({ replies, signedIn = true, key = "sk-ant-test", snapshot = true, globalCache = {} }) {
+function setup({ replies, signedIn = true, key = "sk-ant-test", workspace = "", snapshot = true, globalCache = {} }) {
   const github = {
     GitHubError: class GitHubError extends Error {
       constructor(status, message) { super(message); this.status = status; }
@@ -53,7 +53,7 @@ function setup({ replies, signedIn = true, key = "sk-ant-test", snapshot = true,
       "@/lib/bot-tools": tools,
       "@/lib/github": github,
     },
-    { fetch, process: { env: key ? { ANTHROPIC_API_KEY: key } : {} } },
+    { fetch, process: { env: { ...(key ? { ANTHROPIC_API_KEY: key } : {}), ...(workspace ? { ANTHROPIC_WORKSPACE_ID: workspace } : {}) } } },
   );
   const post = (body) =>
     route.POST({ headers: { get: () => "application/json" }, json: async () => body });
@@ -149,4 +149,14 @@ test("chat lines are passed to get_chat_messages", async () => {
     ],
   });
   assert.equal(requests[1].body.messages[2].content[0].content, "[2026-10-16T02:00] Kin: builds done");
+});
+
+test("sends the workspace ID only when it is set", async () => {
+  const end = () => [{ stop_reason: "end_turn", content: [{ type: "text", text: "ok" }] }];
+  const withId = setup({ replies: end(), workspace: "wrkspc_test" });
+  await withId.post({ repo: "o/r", question: "x" });
+  assert.equal(withId.requests[0].headers["anthropic-workspace-id"], "wrkspc_test");
+  const without = setup({ replies: end() });
+  await without.post({ repo: "o/r", question: "x" });
+  assert.equal("anthropic-workspace-id" in without.requests[0].headers, false);
 });

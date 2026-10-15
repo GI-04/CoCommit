@@ -3,7 +3,7 @@
 **Added:** 2026-10-16 · **Kind:** reference
 
 ## Takeaway
-Typing `@cocommit <question>` in `/chat` sends it to `POST /api/bot` instead of the chat. Claude (`claude-haiku-5-5`, plain `fetch`, no SDK) reads the repo's `COCOMMIT/` folder with 9 read-only tools and answers with GitHub links. Only the asker sees the reply until **Share to chat**. Needs `ANTHROPIC_API_KEY` (server only); without it the route returns 503 and chat still works.
+Typing `@cocommit <question>` in `/chat` sends it to `POST /api/bot` instead of the chat. Claude (`claude-haiku-5-5`, plain `fetch`, no SDK) reads the repo's `COCOMMIT/` folder with 9 read-only tools and answers with GitHub links. Only the asker sees the reply until **Share to chat**. Needs `ANTHROPIC_API_KEY` (server only); without it the route returns 503 and chat still works. A key not scoped to a workspace (`sk-ant-usr-…`) also needs `ANTHROPIC_WORKSPACE_ID` (`wrkspc_…`), sent as the `anthropic-workspace-id` header; without it the API returns 400.
 
 ## Details
 - **Files:** `src/lib/bot.ts` (pure: trigger, search/score/snippet, overview, member work, log/chat filters, `shareText`, `SYSTEM_PROMPT`, `TOOLS`), `src/lib/bot-tools.ts` (server: `loadSnapshot`, `workspacePath`, `runTool`), `src/lib/bot-client.ts` (browser `askBot`), `src/app/api/bot/route.ts` (the loop), `src/app/chat/page.tsx` (UI).
