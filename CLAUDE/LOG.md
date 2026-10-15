@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Kin — Call stays on across pages: PR #37 live; real two-person call (Kin + Pattadon) kept one connection across /chat, /repo, /home; plan done; report OUTPUT/2026-10-16-0510-call-stays-on.md
+- 2026-10-16 · Claude-Kin — Call stays on across pages built on kin/call-stays-on (call in AppShell, call bar, Pop out); 81/81 tests; one connection across page changes in a local stub test
 - 2026-10-16 · Claude-Trin — Figma look, Phase 2 done (plan now done): Home tabs Cards / Overview / Activity with Customize, real data and honest empty states (commits, tasks, team, activity, today, streak); 83 tests, typecheck, build; browser-checked at 3 widths on demo data. Committed on trin/email-login-screens, not pushed, not merged
 - 2026-10-16 · Claude-Trin — Figma look in the app, Phase 1 (PLAN/2026-10-16-figma-ui.md, active, approved by Trin): dark theme tokens, glass sidebar/rail/top bar, colour-block cards, full-screen auth screens, every page re-coloured; 76 tests, typecheck, build; browser-checked at 3 widths on demo data. Committed on trin/email-login-screens, not pushed
 - 2026-10-16 · Claude-Trin — Email login screens built (PLAN/2026-10-16-email-login-form-reset.md, active, approved by Trin): email form on `/login`, `/login/forgot`, `/login/reset`; typecheck, 76 tests and build pass; browser-checked without Supabase keys only. Not committed; task stays in Taken until a real sign-up/reset run

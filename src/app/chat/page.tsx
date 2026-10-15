@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Button, Card, PageHeader, Tabs } from "@/components/ui";
 import { isBotMessage, shareText, stripTrigger, type BotAnswer } from "@/lib/bot";
@@ -314,16 +315,16 @@ export default function ChatPage() {
           {mayPost === false ? (
             <p className="mt-3 text-sm text-muted">
               {LOGIN_TO_CHAT}{" "}
-              <a href={`/login?returnTo=${encodeURIComponent("/chat")}`} className="font-medium text-fg underline">
+              <Link href={`/login?returnTo=${encodeURIComponent("/chat")}`} className="font-medium text-fg underline">
                 Log in
-              </a>
+              </Link>
             </p>
           ) : (
             <p className="mt-3 text-xs text-muted">
               You: <span className="font-medium text-fg">{name ?? "…"}</span>
-              <a href="/profile" className="ml-2 underline">
+              <Link href="/profile" className="ml-2 underline">
                 Change name
-              </a>
+              </Link>
             </p>
           )}
           <form onSubmit={send} className="mt-2 flex gap-2">

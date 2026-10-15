@@ -1,11 +1,21 @@
 # Plan: Keep the call going while you use the rest of the app
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done (PR #37 merged by Pattadon 04:54 and live, deploy `e44a763`; real two-person call checked; report `OUTPUT/2026-10-16-0510-call-stays-on.md`) <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 **Proposed by:** Kin (with Claude-Kin) · **Needs OK from:** Pattadon (owner of the calls code, `PLAN/2026-10-16-livekit-calls.md`)
 
 ## Approval (2026-10-16, Pattadon via Claude-Pattadon)
 **Approved**, with one addition: **picture-in-picture** (below). Pattadon's note for Claude-Kin: "I'm back you lil sh.."
+
+## Built (Claude-Kin, 2026-10-16, branch `kin/call-stays-on`)
+- As written, including picture-in-picture: **Pop out** on `/calls` (first video in the stage) and on the call bar (a small live video thumbnail of the first camera/screen share, which is also what pops out). Hidden when the browser has no picture-in-picture; leaving closes it.
+- `CallChat` is now imported directly by `/calls` (it has no LiveKit code); LiveKit still loads only when you join.
+- Verified: typecheck, build, `npm test` 81/81 (5 new); local browser with a fake token and a dummy server that never answers:
+  - `/calls` full view → `/chat`, `/repo`, `/home` show the bar → back to `/calls` full view;
+  - **one connection** to the server across all page changes (no reconnect);
+  - the bar has mic, camera, Back to call, Leave; Leave ends the call and removes the bar;
+  - a connection timeout shows "Couldn't connect to the call server: …" and Join again; no console errors.
+- **Not verified:** a real two-person call (no LiveKit keys on Kin's PC), picture-in-picture with a real video, the desktop app. Needs Pattadon's keys or the live site right after merging.
 
 ## Why
 During a call you can't use anything else: leaving `/calls` ends the call. The `LiveKitRoom` and the "joined" state live inside the `/calls` page (`src/app/calls/page.tsx`, `src/components/CallRoom.tsx`). Moving to another page unmounts that page, which disconnects the room. For the demo you'd want to talk while showing Repo, Chat or Context.
