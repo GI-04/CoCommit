@@ -232,6 +232,28 @@
       "path": "knowledge/general/file-bot.md",
       "sources": [],
       "added": "2026-10-16"
+    },
+    {
+      "id": "calls",
+      "title": "Calls with LiveKit (/calls, src/lib/livekit-token.ts)",
+      "kind": "reference",
+      "tags": [
+        "calls",
+        "livekit",
+        "video",
+        "voice",
+        "screen-share",
+        "webrtc",
+        "token",
+        "jwt",
+        "tauri",
+        "camera",
+        "microphone"
+      ],
+      "summary": "How in-app calls work: the token route (signed-in only, HS256 JWT via node:crypto, one room per repo), the /calls screen with LiveKit's VideoConference, the three env keys, the macOS Info.plist for camera/mic, and why Discord calls can't be embedded.",
+      "path": "knowledge/general/calls.md",
+      "sources": [],
+      "added": "2026-10-16"
     }
   ]
 }
