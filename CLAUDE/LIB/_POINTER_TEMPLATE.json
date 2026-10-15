@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "type": "general",
+  "about": "{{one line: what kind of context this pointer covers, loose is fine, e.g. 'build tooling and conventions' or 'research on payment APIs'}}",
+  "_rules": "Semantic routing for one type of context: match the task to an entry, read its subject summary, then check its sources if needed. Its notes live in knowledge/<type>/ and sources in sources/<type>/. Open only the files an entry points to. Never browse knowledge/ or sources/ directly.",
+  "entries": []
+}
