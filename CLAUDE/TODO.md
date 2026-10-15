@@ -9,6 +9,8 @@
 
 - [ ] `@cocommit` bot: add `ANTHROPIC_API_KEY` to `.env.local` and Vercel, then try a real question on `GI-04/CoCommit` (team status, a decision, today's chat). (Pattadon for Vercel; proud to test)
 - [ ] `@cocommit` bot: no per-user rate limit yet; add one if the key is shared beyond the team.
+- [ ] Tasks board: try one real task on `GI-04/CoCommit` (new → take → done) after it's merged; only tested against the mock GitHub. (proud)
+- [ ] Tasks board, later: links to branches/PRs, live updates (Realtime or polling), drag and drop, editing a task's text.
 
 ## Open questions
 - Run `supabase/profiles.sql`, `schema.sql`, `chat-author.sql` (login identity, PR #24 is live). (Pattadon)

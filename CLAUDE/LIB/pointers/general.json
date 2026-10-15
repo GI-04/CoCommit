@@ -254,6 +254,31 @@
       "path": "knowledge/general/calls.md",
       "sources": [],
       "added": "2026-10-16"
+    },
+    {
+      "id": "tasks-board",
+      "title": "Tasks board (/tasks on the repo's COCOMMIT/BOARD/)",
+      "kind": "reference",
+      "tags": [
+        "tasks",
+        "board",
+        "assign",
+        "track",
+        "pending",
+        "taken",
+        "done",
+        "cocommit",
+        "workspace",
+        "commit",
+        "testing",
+        "mock"
+      ],
+      "summary": "How /tasks reads and moves COCOMMIT/BOARD/ task files: one commit per move, edits that keep the rest of a hand-written file, Done adding a LOG.md line, file names (Thai titles), the 'already moved' check, fake mode, and how to test against the stateful mock GitHub.",
+      "path": "knowledge/general/tasks-board.md",
+      "sources": [
+        "sources/general/workspace-e2e/"
+      ],
+      "added": "2026-10-16"
     }
   ]
 }

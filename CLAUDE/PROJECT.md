@@ -14,7 +14,8 @@ CoCommit replaces the messy Discord-to-GitHub workflow with one platform. It mak
 ## Stack
 - **Approved 2026-10-15** (`PLAN/2026-10-15-stack.md`), as built: Next.js 16 (App Router) + React 19 + TypeScript + Tailwind 4 · GitHub REST API (no Octokit) · Supabase (auth, Postgres, Realtime) · Tauri 2 (desktop) · Vercel (hosting).
 - **Calls** (added 2026-10-16, `PLAN/2026-10-16-livekit-calls.md`): LiveKit in `/calls`, live since PR #26.
-- **Not in the demo** (`PLAN/2026-10-15-demo-scope.md`): file sharing, task board (coming-soon pages), and phone install.
+- **Tasks board** (added 2026-10-16, `PLAN/2026-10-16-tasks-board.md`): `/tasks` reads and moves the repo's `COCOMMIT/BOARD/` files through the GitHub API; no new service.
+- **Not in the demo** (`PLAN/2026-10-15-demo-scope.md`): file sharing (coming-soon page) and phone install.
 
 ## Architecture
 Three parts:
@@ -26,8 +27,8 @@ The full feature list is in `README.md` ("What works today").
 
 ## Key paths
 - `README.md`: features, setup, keys, desktop, deploy, layout.
-- `src/app/`: pages (`repo`, `chat`, `context`, `login`, `profile`, `calls`; coming soon: `tasks`, `files`), GitHub API routes in `api/github/`, Supabase auth callbacks in `auth/`.
-- `src/lib/`: `github.ts` (server only) / `github-client.ts` (browser) / `github-types.ts`; `chat*.ts`, `supabase*.ts`; `context.ts` + `workspace.ts` (`COCOMMIT/` team context); `local-git.ts` + `git-status.ts` (desktop Local mode); `auth-email.ts`, `profile.ts`, `permissions.ts`.
+- `src/app/`: pages (`repo`, `chat`, `context`, `login`, `profile`, `calls`, `tasks`; coming soon: `files`), GitHub API routes in `api/github/`, Supabase auth callbacks in `auth/`.
+- `src/lib/`: `github.ts` (server only) / `github-client.ts` (browser) / `github-types.ts`; `chat*.ts`, `supabase*.ts`; `context.ts` + `workspace.ts` (`COCOMMIT/` team context); `tasks.ts` + `tasks-text.ts` (Tasks board); `local-git.ts` + `git-status.ts` (desktop Local mode); `auth-email.ts`, `profile.ts`, `permissions.ts`.
 - `src/proxy.ts`: Supabase session refresh (and the optional login wall).
 - `supabase/`: SQL to run once in Supabase.
 - `src-tauri/`: desktop shell (Rust): `src/lib.rs` (window, links), `src/git.rs` (local git), `BUILDING.md` (builds and installers).

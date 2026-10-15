@@ -24,6 +24,11 @@ createServer(async (req, res) => {
   const p = decodeURIComponent(url.pathname);
   const m = req.method;
   if (p === "/__state") return send(res, 200, { files: Object.fromEntries(files), history, commitPosts });
+  // Test setup without a commit: POST {"path": "text", …} adds or replaces files on main.
+  if (m === "POST" && p === "/__seed") {
+    for (const [path, text] of Object.entries(JSON.parse(raw || "{}"))) files.set(path, String(text));
+    return send(res, 200, { files: [...files.keys()] });
+  }
   if (p === "/login/oauth/access_token") return send(res, 200, { access_token: TOKEN });
   if (req.headers.authorization !== `Bearer ${TOKEN}`) return send(res, 401, { message: "Bad credentials" });
 
@@ -34,6 +39,9 @@ createServer(async (req, res) => {
     return p.endsWith("/main") ? send(res, 200, { object: { sha: head } }) : send(res, 404, { message: "Not Found" });
   }
   if (m === "GET" && p.startsWith(`${R}/git/commits/`)) return send(res, 200, { tree: { sha: `tree-of-${p.split("/").pop()}` } });
+  // listFiles and commitFiles (file modes) read the whole tree; every file here is a plain file.
+  if (m === "GET" && p.startsWith(`${R}/git/trees/`))
+    return send(res, 200, { tree: [...files.keys()].map((path) => ({ path, mode: "100644", type: "blob" })), truncated: false });
   if (m === "POST" && p === `${R}/git/trees`) {
     const b = JSON.parse(raw);
     const sha = `tree-${++seq}`;

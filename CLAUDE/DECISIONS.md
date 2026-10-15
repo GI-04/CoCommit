@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-16 — Tasks board stores tasks as files in the repo's COCOMMIT/BOARD/, not in a Supabase table
+- **Status:** active
+- **Decision:** `/tasks` reads and moves the Markdown task files in `COCOMMIT/BOARD/Pending|Taken|Done/` through the GitHub API; each move is one commit. Plan: `PLAN/2026-10-16-tasks-board.md` (approved by proud).
+- **Why:** AI agents already use those files (the folder is the status), so people and agents share one board; no schema change, no new package, nothing new for Pattadon to set up before the demo; every move shows in chat as a git event.
+- **Alternatives:** a Supabase `tasks` table with Realtime (live updates and faster lists, but a second source of truth agents can't read, plus SQL to run); GitHub Issues/Projects (rich, but not what the agents' work loop reads).
+- **Supersedes / superseded by:** none. Brings the task board back into the demo, which `PLAN/2026-10-15-demo-scope.md` had left out.
+
 ## 2026-10-16 — @cocommit bot calls the Claude API with plain `fetch`, not `@anthropic-ai/sdk`
 - **Status:** active
 - **Decision:** `src/app/api/bot/route.ts` posts to `https://api.anthropic.com/v1/messages` with `fetch`, model `claude-haiku-5-5`, and runs its own tool loop. Plan: `PLAN/2026-10-15-file-bot.md` (approved by proud).
