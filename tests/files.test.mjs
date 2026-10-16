@@ -127,3 +127,12 @@ test("a binary file's tree entry points at its uploaded blob", () => {
   const [e] = m.treeEntries([{ path: "COCOMMIT/files/a.png", content: "AAAA", encoding: "base64" }], new Map(), new Map([["COCOMMIT/files/a.png", "abc123"]]));
   assert.deepEqual({ ...e }, { path: "COCOMMIT/files/a.png", mode: "100644", type: "blob", sha: "abc123" });
 });
+
+test("previewType picks a viewer by extension", () => {
+  const { previewType } = f;
+  assert.equal(previewType("Photo.PNG")?.kind, "image");
+  assert.equal(previewType("a.pdf")?.kind, "pdf");
+  assert.equal(previewType("notes.md")?.kind, "text");
+  assert.equal(previewType("x.zip"), null);
+  assert.equal(previewType("noext"), null);
+});

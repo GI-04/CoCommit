@@ -61,6 +61,7 @@ const paths: Record<string, ReactNode> = {
   ),
   list: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
   trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />,
+  more: <path d="M12 5h.01M12 12h.01M12 19h.01" strokeWidth="3" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
 };
 

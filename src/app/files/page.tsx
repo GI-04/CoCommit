@@ -9,13 +9,15 @@ import {
   createSharedFolder,
   deleteSharedFile,
   deleteSharedFolder,
+  fetchSharedChunks,
   listShared,
+  renameSharedFile,
   saveSharedFile,
   uploadSharedFile,
   type SharedFile,
   type SharedListing,
 } from "@/lib/files";
-import { crumbs, folderView, FOLDER_MARKER, formatSize, MAX_FILE_BYTES, MAX_FOLDER_DEPTH, pathsInFolder, sharedPath } from "@/lib/files-util";
+import { crumbs, folderView, FOLDER_MARKER, formatSize, MAX_FILE_BYTES, MAX_FOLDER_DEPTH, pathsInFolder, previewType, sharedPath } from "@/lib/files-util";
 import { GitHubRequestError, signInHref } from "@/lib/github-client";
 
 type Folder = { name: string; path: string };
@@ -31,7 +33,30 @@ export default function FilesPage() {
   const [dragging, setDragging] = useState(false);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [newFolder, setNewFolder] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ file: SharedFile; kind: string; url?: string; text?: string } | null>(null);
+  const [menu, setMenu] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [menu]);
+
+  const closePreview = useCallback(() => {
+    setPreview((p) => {
+      if (p?.url) URL.revokeObjectURL(p.url);
+      return null;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && closePreview();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [preview, closePreview]);
 
   const fail = useCallback((e: unknown) => {
     if (e instanceof GitHubRequestError && e.status === 401) setNeedsLogin(true);
@@ -135,19 +160,75 @@ export default function FilesPage() {
     if (repo) void run(`Downloading ${file.name}…`, () => saveSharedFile(repo, file, (done, total) => setBusy(`Downloading ${file.name}… piece ${done} of ${total}`)));
   };
 
+  const preview_ = (file: SharedFile) => {
+    const type = previewType(file.name);
+    if (!repo || !type) return;
+    void run(`Opening ${file.name}…`, async () => {
+      const chunks = await fetchSharedChunks(repo, file, (done, total) => setBusy(`Opening ${file.name}… piece ${done} of ${total}`));
+      const blob = new Blob(chunks, { type: type.mime });
+      if (type.kind === "text") {
+        const text = await blob.slice(0, 200_000).text();
+        setPreview({ file, kind: "text", text: blob.size > 200_000 ? `${text}\n\n… (first 200 KB shown)` : text });
+      } else setPreview({ file, kind: type.kind, url: URL.createObjectURL(blob) });
+    });
+  };
+
+  const rename = (file: SharedFile) => {
+    const next = prompt("New name", file.name)?.trim();
+    if (!repo || !listing || !next || next === file.name) return;
+    void run(`Renaming ${file.name}…`, async () => {
+      const saved = await renameSharedFile(repo, file, next, listing, (done, total) => setBusy(`Renaming ${file.name}… piece ${Math.min(done + 1, total)} of ${total}`));
+      setListing((l) => (l ? { ...l, files: l.files.map((x) => (x.path === file.path ? saved : x)).sort((a, b) => a.path.localeCompare(b.path)) } : l));
+      setNotice(`Renamed to ${saved.name}.`);
+    });
+  };
+
   const here = listing ? folderView(listing, folder) : null;
   const deep = folder ? folder.split("/").length : 0;
   const locked = !repo || busy !== null || needsLogin;
   const TONES = ["pink", "cyan", "mustard", "green"] as const;
   const ext = (name: string) => (name.includes(".") ? (name.split(".").pop() ?? "").slice(0, 5).toUpperCase() : "FILE");
-  const actions = (file: SharedFile) => (
-    <div className="flex gap-2">
-      <Button variant="ghost" className="bg-paper py-1.5" disabled={busy !== null} onClick={() => download(file)}>
-        Download
+  const previewButton = (file: SharedFile, wide = false) =>
+    previewType(file.name) && (
+      <Button variant="ghost" className={`bg-paper py-1.5 ${wide ? "w-full" : ""}`} disabled={busy !== null} onClick={() => preview_(file)}>
+        Preview
       </Button>
-      <Button variant="ghost" className="py-1.5" disabled={busy !== null || needsLogin} onClick={() => remove(file)}>
-        Delete
-      </Button>
+    );
+  const menuButton = (file: SharedFile) => (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        aria-label={`More actions for ${file.name}`}
+        aria-haspopup="menu"
+        aria-expanded={menu === file.path}
+        onClick={() => setMenu(menu === file.path ? null : file.path)}
+        className="grid size-9 place-items-center rounded-full border border-black bg-paper text-black hover:opacity-80"
+      >
+        <Icon name="more" className="size-4" />
+      </button>
+      {menu === file.path && (
+        <div role="menu" className="absolute right-0 top-full z-20 mt-1 w-36 overflow-hidden rounded-lg border border-black bg-paper py-1 text-sm text-black shadow-lg">
+          {[
+            { label: "Download", off: busy !== null, go: () => download(file) },
+            { label: "Rename", off: busy !== null || needsLogin, go: () => rename(file) },
+            { label: "Delete", off: busy !== null || needsLogin, go: () => remove(file) },
+          ].map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              role="menuitem"
+              disabled={item.off}
+              onClick={() => {
+                setMenu(null);
+                item.go();
+              }}
+              className={`block w-full px-3 py-2 text-left hover:bg-black/10 disabled:opacity-40 ${item.label === "Delete" ? "text-removed" : ""}`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
   const folderDelete = (f: Folder) => (
@@ -243,6 +324,31 @@ export default function FilesPage() {
         </form>
       )}
 
+      {preview && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" role="dialog" aria-modal="true" aria-label={`Preview of ${preview.file.name}`} onClick={closePreview}>
+          <div className="flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-xl bg-paper text-black" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 border-b border-black/20 px-4 py-3">
+              <p className="min-w-0 truncate font-semibold">{preview.file.name}</p>
+              <div className="flex gap-2">
+                <Button variant="ghost" className="py-1.5" onClick={() => download(preview.file)}>
+                  Download
+                </Button>
+                <Button variant="ghost" className="py-1.5" onClick={closePreview}>
+                  Close
+                </Button>
+              </div>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-4">
+              {preview.kind === "image" && /* eslint-disable-next-line @next/next/no-img-element */ <img src={preview.url} alt={preview.file.name} className="max-h-[75vh] max-w-full object-contain" />}
+              {preview.kind === "pdf" && <iframe src={preview.url} title={preview.file.name} className="h-[75vh] w-full" />}
+              {preview.kind === "video" && <video src={preview.url} controls className="max-h-[75vh] max-w-full" />}
+              {preview.kind === "audio" && <audio src={preview.url} controls className="w-full" />}
+              {preview.kind === "text" && <pre className="max-h-[75vh] w-full overflow-auto whitespace-pre-wrap break-words text-sm">{preview.text}</pre>}
+            </div>
+          </div>
+        </div>
+      )}
+
       {needsLogin && (
         <Card className="mb-4">
           <p className="mb-3 text-sm text-muted">Sign in with GitHub to see and share the team's files.</p>
@@ -301,7 +407,10 @@ export default function FilesPage() {
                         <p className="text-xs text-muted">{formatSize(file.size)}</p>
                       </div>
                     </div>
-                    {actions(file)}
+                    <div className="flex items-center gap-2">
+                      {previewButton(file)}
+                      {menuButton(file)}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -329,7 +438,10 @@ export default function FilesPage() {
                 <li key={file.path} style={{ "--d": `${i * 60}ms` } as React.CSSProperties} className={`rise lift block-${TONES[i % TONES.length]} flex min-h-[15rem] flex-col justify-between p-5 lg:min-h-[25rem]`}>
                   <div className="flex items-start justify-between gap-2">
                     <Icon name="file" className="size-7" />
-                    <span className="rounded-full border border-black bg-paper px-2.5 py-0.5 text-xs font-medium">{ext(file.name)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full border border-black bg-paper px-2.5 py-0.5 text-xs font-medium">{ext(file.name)}</span>
+                      {menuButton(file)}
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div className="min-w-0">
@@ -338,7 +450,7 @@ export default function FilesPage() {
                       </p>
                       <p className="text-xs">{formatSize(file.size)}</p>
                     </div>
-                    {actions(file)}
+                    {previewButton(file, true)}
                   </div>
                 </li>
               ))}
