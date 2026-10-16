@@ -42,3 +42,5 @@ Today any real account can read and post in **any** repo's chat and join **any**
 ## How we'll verify
 - `npm run typecheck`, `npm test`, `npm run build`.
 - Live, after the SQL: a member opens `GI-04/CoCommit` chat and the call → works; a real account that is **not** a member (a spare GitHub account) → "not a member", the check script reads 0 messages, the call token request returns 403; `# general` still works for both; an email account sees `# general` only.
+
+- Approved, Signed Pattadon Yuttaworawit
