@@ -280,20 +280,18 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
       <div className="grid gap-4 lg:grid-cols-[18.75rem_minmax(0,1fr)]">
         <div className="min-w-0 space-y-4">
           <Card>
-            <div className="mb-3 inline-flex rounded-full border border-black bg-paper p-1 text-sm" role="tablist" aria-label="Files">
-              {(["changes", "files"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === t}
-                  onClick={() => setListTab(t)}
-                  className={`rounded-full px-4 py-1.5 font-medium ${tab === t ? "bg-black text-white" : "hover:bg-black/10"}`}
-                >
-                  {t === "changes" ? `Changes ${changed.length}` : "Files"}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              variant="paper"
+              size="sm"
+              label="Files"
+              value={tab}
+              onChange={(id) => setListTab(id as "changes" | "files")}
+              tabs={[
+                { id: "changes", label: `Changes ${changed.length}` },
+                { id: "files", label: "Files" },
+              ]}
+              className="mb-3"
+            />
             {tab === "changes" ? (
               changed.length === 0 ? (
                 <p className="text-sm text-muted">{branch === base ? `You're on ${base}. Switch to another branch to see what its pull request would contain.` : "No changes yet: commit something first."}</p>

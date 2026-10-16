@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { signInWithEmail, signUpWithEmail, MIN_PASSWORD_LENGTH } from "@/lib/auth-email";
 import { authButtons, authField } from "@/components/AuthShell";
+import { Tabs } from "@/components/ui";
 
 type Mode = "login" | "signup";
 
@@ -52,20 +53,18 @@ export function EmailLogin({ returnTo, available }: { returnTo: string; availabl
 
   return (
     <form onSubmit={submit} noValidate>
-      <div className="mb-5 flex gap-1 rounded-full border border-black bg-paper p-1 text-sm" role="tablist" aria-label="Email login">
-        {(["login", "signup"] as const).map((m) => (
-          <button
-            key={m}
-            type="button"
-            role="tab"
-            aria-selected={mode === m}
-            onClick={() => switchMode(m)}
-            className={`flex-1 rounded-full px-3 py-2 font-medium ${mode === m ? "bg-black text-white" : "text-black hover:bg-black/10"}`}
-          >
-            {m === "login" ? "Log in" : "Sign up"}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        variant="paper"
+        size="sm"
+        label="Email login"
+        value={mode}
+        onChange={(id) => switchMode(id as Mode)}
+        tabs={[
+          { id: "login", label: "Log in" },
+          { id: "signup", label: "Sign up" },
+        ]}
+        className="mb-5"
+      />
 
       {!available && <p className="mb-3 text-center text-sm">Email login: not set up yet.</p>}
 

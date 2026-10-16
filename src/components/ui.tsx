@@ -27,35 +27,59 @@ export function Card({ title, children, className = "", tone }: { title?: string
   );
 }
 
-export function Button({ variant = "primary", className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "ghost" | "glass" | "blue" }) {
+type ButtonVariant = "primary" | "ghost" | "glass" | "blue";
+
+// Every button is a pill. `glass` is the secondary button (same glass as the tabs and navigation), `blue` the main
+// action, `primary` a solid pill (black inside colour cards), `ghost` an outlined one. Links that must look like a
+// button (Invite, ...) use buttonClass() so they match.
+export function buttonClass(variant: ButtonVariant = "primary", className = "") {
   const look =
     variant === "primary"
       ? "bg-accent text-accent-fg hover:opacity-90"
       : variant === "glass"
-        ? "glass rounded-full px-4 text-white hover:bg-white/10"
+        ? "btn-glass text-white"
         : variant === "blue"
-          ? "rounded-full bg-[var(--blue)] px-5 text-white hover:opacity-90"
+          ? "btn-blue text-white"
           : "border border-line hover:bg-fg/10";
-  return (
-    <button
-      className={`rounded-md px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${look} ${className}`}
-      {...props}
-    />
-  );
+  return `rounded-full ${variant === "blue" ? "px-5" : "px-4"} py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50 ${look} ${className}`;
+}
+
+export function Button({ variant = "primary", className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
+  return <button className={buttonClass(variant, className)} {...props} />;
 }
 
 type Tab = { id: string; label: string };
 
 // The glass tab pill from the Figma headers (in-page tabs; kept free of React and next/link imports so tests can load
 // this file). Tabs are equal width and the glass thumb slides to the picked one with plain CSS.
-export function Tabs({ tabs, value, onChange, label, className = "" }: { tabs: Tab[]; value: string; onChange: (id: string) => void; label: string; className?: string }) {
+// `variant="paper"` is the white track with a black thumb (inside cards and on the login screen); `size="sm"` is the
+// small one for those places.
+export function Tabs({
+  tabs,
+  value,
+  onChange,
+  label,
+  className = "",
+  variant = "glass",
+  size = "md",
+}: {
+  tabs: Tab[];
+  value: string;
+  onChange: (id: string) => void;
+  label: string;
+  className?: string;
+  variant?: "glass" | "paper";
+  size?: "md" | "sm";
+}) {
   const index = tabs.findIndex((t) => t.id === value);
+  const paper = variant === "paper";
+  const small = size === "sm";
   return (
-    <div className={`glass max-w-full overflow-x-auto rounded-full ${className}`}>
-      <div role="tablist" aria-label={label} className="relative inline-grid w-max min-w-full auto-cols-fr grid-flow-col p-[var(--pad)] [--pad:0.375rem] lg:[--pad:0.5rem]">
+    <div className={`${paper ? "border border-black bg-paper" : "glass"} max-w-full overflow-x-auto rounded-full ${className}`}>
+      <div role="tablist" aria-label={label} className={`relative inline-grid w-max min-w-full auto-cols-fr grid-flow-col p-[var(--pad)] ${small ? "[--pad:0.25rem]" : "[--pad:0.375rem] lg:[--pad:0.5rem]"}`}>
         <span
           aria-hidden
-          className={`glass-thumb pointer-events-none absolute bottom-[var(--pad)] left-[var(--pad)] top-[var(--pad)] rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${index < 0 ? "opacity-0" : ""}`}
+          className={`${paper ? "bg-black" : "glass-thumb"} pointer-events-none absolute bottom-[var(--pad)] left-[var(--pad)] top-[var(--pad)] rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${index < 0 ? "opacity-0" : ""}`}
           style={{ width: `calc((100% - 2 * var(--pad)) / ${tabs.length})`, transform: `translateX(${Math.max(index, 0) * 100}%)` }}
         />
         {tabs.map((t) => (
@@ -74,7 +98,9 @@ export function Tabs({ tabs, value, onChange, label, className = "" }: { tabs: T
               onChange(tabs[to].id);
               e.currentTarget.parentElement?.querySelectorAll<HTMLElement>("[role=tab]")[to]?.focus();
             }}
-            className={`relative z-10 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium lg:px-8 lg:py-[17px] lg:text-base ${tabs.length <= 3 ? "lg:min-w-[11rem]" : ""} ${t.id === value ? "text-white" : "text-white/85 hover:text-white"}`}
+            className={`relative z-10 whitespace-nowrap rounded-full font-medium ${small ? "px-4 py-1.5 text-sm" : `px-5 py-2.5 text-sm lg:px-8 lg:py-[17px] lg:text-base ${tabs.length <= 3 ? "lg:min-w-[11rem]" : ""}`} ${
+              t.id === value ? "text-white" : paper ? "text-black hover:text-black/70" : "text-white/85 hover:text-white"
+            }`}
           >
             {t.label}
           </button>
