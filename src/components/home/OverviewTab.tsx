@@ -1,7 +1,7 @@
 "use client";
 
-import { Avatar } from "@/components/Avatar";
 import { HeatMap } from "@/components/HeatMap";
+import { TeamSpines } from "@/components/TeamSpines";
 import { Card, Skeleton } from "@/components/ui";
 import { buildHeatMap } from "@/lib/heatmap";
 import { problem, useBoard, useCommits, WEEKS } from "./data";
@@ -29,17 +29,7 @@ export function OverviewTab({ repo }: { repo: string | null }) {
         <Card title="Team">
           {board.status === "ready" ? (
             board.data.members.length ? (
-              <ul className="space-y-3">
-                {board.data.members.slice(0, 8).map((m) => (
-                  <li key={m.title} className="flex items-center gap-3">
-                    <Avatar name={m.name || m.title} className="size-10" />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold">{m.name || m.title}</span>
-                      <span className="block truncate text-xs text-muted">{m.role || m.title}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <TeamSpines members={board.data.members} />
             ) : (
               <p className="text-sm">Nobody is listed in COLLAB.md yet.</p>
             )

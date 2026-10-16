@@ -15,15 +15,22 @@ import { listBranches, signInHref } from "@/lib/github-client";
 type Msg = { id: string; role: "user" | "assistant"; text: string; sources?: BotAnswer["sources"]; debug?: BotDebug; changes?: ChangeView[]; error?: boolean; needsLogin?: boolean };
 type Size = "closed" | "open" | "minimised";
 
-type Ctx = { size: Size; setSize: (s: Size) => void; toggle: () => void };
-const AssistantContext = createContext<Ctx>({ size: "closed", setSize: () => {}, toggle: () => {} });
+// `ask(question)` opens the window and asks it; the dock picks the queued question up (`pending`) when it is ready.
+type Ctx = { size: Size; setSize: (s: Size) => void; toggle: () => void; ask: (question: string) => void; pending: string | null; clearPending: () => void };
+const AssistantContext = createContext<Ctx>({ size: "closed", setSize: () => {}, toggle: () => {}, ask: () => {}, pending: null, clearPending: () => {} });
 export const useAssistant = () => useContext(AssistantContext);
 
 export function AssistantProvider({ children }: { children: ReactNode }) {
   const [size, setSize] = useState<Size>("closed");
   const toggle = useCallback(() => setSize((s) => (s === "open" ? "closed" : "open")), []);
+  const [pending, setPending] = useState<string | null>(null);
+  const ask = useCallback((question: string) => {
+    setPending(question);
+    setSize("open");
+  }, []);
+  const clearPending = useCallback(() => setPending(null), []);
   return (
-    <AssistantContext.Provider value={{ size, setSize, toggle }}>
+    <AssistantContext.Provider value={{ size, setSize, toggle, ask, pending, clearPending }}>
       {children}
       <AssistantDock />
     </AssistantContext.Provider>
@@ -35,7 +42,7 @@ const SUGGESTIONS = ["Summarize this project", "What's the team status?", "Where
 const modelLabel = (s: BotSettings) => (s.model === "custom" ? s.customModel || "custom model" : (MODELS.find((m) => m.id === s.model) ?? MODELS[0]).label);
 
 function AssistantDock() {
-  const { size, setSize } = useAssistant();
+  const { size, setSize, pending, clearPending } = useAssistant();
   const [repo, setRepo] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState("");
@@ -95,6 +102,14 @@ function AssistantDock() {
       setBusy(false);
     }
   }
+
+  // A question queued by `ask()` from another page (e.g. "Ask Assistant" on a file) is asked once the window is open and free.
+  useEffect(() => {
+    if (!pending || size !== "open" || busy) return;
+    clearPending();
+    void ask(pending);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, size, busy]);
 
   // Closed: nothing floats on the page. The Assistant item in the navigation (and Context's "Ask assistant") opens it.
   if (size === "closed") return null;

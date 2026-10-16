@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LocalRepo } from "@/components/LocalRepo";
 import { DiffView } from "@/components/DiffView";
 import { FileTree } from "@/components/FileTree";
+import { useAssistant } from "@/components/Assistant";
 import { friendlyError } from "@/lib/errors";
+import { downloadName, fileQuestion } from "@/lib/file-tools";
 import { Icon, type IconName } from "@/components/icons";
 import { Button, Card, PageHeader, Skeleton, Tabs, buttonClass } from "@/components/ui";
 import { setCurrentRepo } from "@/lib/current-repo";
@@ -90,6 +92,8 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const [prTitle, setPrTitle] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<Note | null>(null);
+  const assistant = useAssistant();
+  const [copied, setCopied] = useState(false);
   // Left list (the person's choice; until then Changes if there are any, else Files) and what the right panel shows.
   const [listTab, setListTab] = useState<"changes" | "files" | null>(null);
   const [mode, setMode] = useState<"diff" | "edit">("diff");
@@ -219,6 +223,31 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const changed = branch === base ? [] : changes;
   const tab = listTab ?? (changed.length ? "changes" : "files");
   const fileOf = mode === "edit" ? path : (diff?.path ?? null);
+
+  // The file tools act on what is open: the text in the editor (unsaved edits included), or the diff in the Diff view.
+  const toolFile = mode === "edit" ? (path !== null ? { name: path, text, kind: "file" as const } : null) : diff ? { name: diff.path, text: diff.patch ?? "", kind: "diff" as const } : null;
+  async function copyFile() {
+    if (!toolFile) return;
+    try {
+      await navigator.clipboard.writeText(toolFile.text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setNote({ kind: "error", text: "Couldn't copy: your browser didn't allow it." });
+    }
+  }
+  function downloadFile() {
+    if (!toolFile) return;
+    const url = URL.createObjectURL(new Blob([toolFile.text], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = downloadName(toolFile.name, toolFile.kind);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  const askAbout = () => toolFile && assistant.ask(fileQuestion(toolFile.name, repo, branch, toolFile.kind));
   const baseName = (p: string) => p.split("/").pop() ?? p;
 
   return (
@@ -374,6 +403,17 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
             <div className="min-w-0 flex-1">
               <h2 className="truncate text-base font-semibold">{fileOf ? baseName(fileOf) : "No file picked"}</h2>
               <p className="truncate text-xs text-muted">{fileOf ?? "Pick a changed file to see its diff, or a file to edit."}</p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2" role="group" aria-label="File tools">
+              <Button variant="glass" onClick={() => void copyFile()} disabled={!toolFile} title={toolFile ? (toolFile.kind === "diff" ? "Copy the diff" : "Copy the file's text") : "Open a file first"} className="flex items-center gap-1.5 py-1.5! text-xs">
+                <Icon name={copied ? "check" : "copy"} className="size-3.5" /> {copied ? "Copied" : "Copy"}
+              </Button>
+              <Button variant="glass" onClick={downloadFile} disabled={!toolFile} title={toolFile ? "Download it as a file" : "Open a file first"} className="flex items-center gap-1.5 py-1.5! text-xs">
+                <Icon name="download" className="size-3.5" /> Download
+              </Button>
+              <Button variant="glass" onClick={askAbout} disabled={!toolFile} title={toolFile ? "Ask the Assistant about it" : "Open a file first"} className="flex items-center gap-1.5 py-1.5! text-xs">
+                <Icon name="sparkle" className="size-3.5" /> Assistant
+              </Button>
             </div>
             {mode === "diff" && diff && (
               <span className="flex gap-1.5 text-xs font-medium text-black">
