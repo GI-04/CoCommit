@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import {
+  EDIT_PROMPT,
+  EDIT_TOOLS,
+  isEditToolName,
   isToolName,
+  MAX_CHANGED_FILES,
+  MAX_EDIT_BYTES,
   MAX_ROUNDS,
+  isExcluded,
   parsePatterns,
   fromOpenAIResponse,
   pickModel,
@@ -18,22 +24,27 @@ import {
   type ChatLine,
   type DebugRound,
 } from "@/lib/bot";
-import { loadSnapshot, runTool } from "@/lib/bot-tools";
+import { changeViews, cleanPath, loadSnapshot, runTool } from "@/lib/bot-tools";
 import { getSession, GitHubError } from "@/lib/github";
 
-// POST /api/bot { repo, question, chat?, model?, customModel?, branch?, exclude?, apiKey?, workspaceId?, apiUrl?, apiFormat?, debug? }
-//   → { answer, sources, debug? }
+// POST /api/bot { repo, question, chat?, model?, customModel?, branch?, exclude?, apiKey?, workspaceId?, apiUrl?, apiFormat?, debug?, mode?, changes? }
+//   → { answer, sources, debug?, changes? }
+// mode "edit" adds the edit tools: changes are only staged and come back in `changes` (with diffs). Nothing is
+// written to GitHub here; POST /api/bot/apply commits them to a new branch and opens a pull request.
 // The @cocommit bot: Claude reads the repo on the picked branch with the tools in src/lib/bot.ts.
 // Claude is called with plain fetch (like our GitHub client), so there's no SDK to install.
 // With your own key, apiFormat "openai" calls a Chat Completions API instead (Gemini, OpenRouter…), translated in callOpenAI.
 // A user's own API key is used for that one request and never stored, logged or echoed back.
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const ANTHROPIC = "https://api.anthropic.com/v1/messages";
 const MAX_QUESTION = 2000;
 const MAX_CHAT = 200;
-const LAST_ROUND_AFTER_MS = 40_000; // past this, the next round must answer (Vercel stops us at 60 s)
+// Past this, the next round must answer. Ask stays quick; Edit gets longer (the function may run 300 s).
+const LIMITS = { ask: { rounds: MAX_ROUNDS, lastAfterMs: 40_000 }, edit: { rounds: 20, lastAfterMs: 240_000 } };
+const EDIT_SYSTEM = SYSTEM_PROMPT + EDIT_PROMPT;
+const EDIT_TOOLSET = [...TOOLS, ...EDIT_TOOLS];
 
 type Block = { type: string; [key: string]: unknown };
 type Message = { role: "user" | "assistant"; content: string | Block[] };
@@ -84,7 +95,7 @@ function pickApi(body: Record<string, unknown>): Api | null | Error {
   return key ? { url: ANTHROPIC, key, workspace: process.env.ANTHROPIC_WORKSPACE_ID || undefined, official: true, format } : null;
 }
 
-async function callClaude(api: Api, pick: ReturnType<typeof pickModel>, messages: Message[], lastRound: boolean): Promise<ClaudeResponse> {
+async function callClaude(api: Api, pick: ReturnType<typeof pickModel>, messages: Message[], lastRound: boolean, edit: boolean): Promise<ClaudeResponse> {
   const headers: Record<string, string> = { "x-api-key": api.key, "anthropic-version": "2023-06-01", "content-type": "application/json" };
   // Keys that aren't scoped to a workspace (sk-ant-usr-…) must name one on every request.
   if (api.workspace) headers["anthropic-workspace-id"] = api.workspace;
@@ -99,9 +110,9 @@ async function callClaude(api: Api, pick: ReturnType<typeof pickModel>, messages
       ...(pick.effort ? { output_config: { effort: pick.effort } } : {}),
       ...(fallbacks ? { fallbacks: "default" } : {}),
       // Tools come before the system prompt in the cache prefix, so this one breakpoint covers both.
-      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+      system: [{ type: "text", text: edit ? EDIT_SYSTEM : SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
       cache_control: { type: "ephemeral" }, // also caches the growing conversation between tool rounds
-      tools: TOOLS,
+      tools: edit ? EDIT_TOOLSET : TOOLS,
       tool_choice: { type: lastRound ? "none" : "auto" },
       messages,
     }),
@@ -117,15 +128,15 @@ async function callClaude(api: Api, pick: ReturnType<typeof pickModel>, messages
 }
 
 /** Same job as callClaude for a Chat Completions API; no Anthropic extras (caching, effort, fallbacks, workspace). */
-async function callOpenAI(api: Api, pick: ReturnType<typeof pickModel>, messages: Message[], lastRound: boolean): Promise<ClaudeResponse> {
+async function callOpenAI(api: Api, pick: ReturnType<typeof pickModel>, messages: Message[], lastRound: boolean, edit: boolean): Promise<ClaudeResponse> {
   const res = await fetch(api.url, {
     method: "POST",
     headers: { authorization: `Bearer ${api.key}`, "content-type": "application/json" },
     body: JSON.stringify({
       model: pick.model,
       max_tokens: 8000,
-      messages: toOpenAIMessages(SYSTEM_PROMPT, messages),
-      tools: toOpenAITools(TOOLS),
+      messages: toOpenAIMessages(edit ? EDIT_SYSTEM : SYSTEM_PROMPT, messages),
+      tools: toOpenAITools(edit ? EDIT_TOOLSET : TOOLS),
       tool_choice: lastRound ? "none" : "auto",
     }),
     cache: "no-store",
@@ -161,6 +172,19 @@ function pickSources(answer: string, used: BotSource[]): BotSource[] {
   return (named.length ? named : unique).slice(0, 15);
 }
 
+/** Staged changes sent back from the browser (from an earlier Edit answer). Bad or excluded entries are dropped. */
+function readChanges(value: unknown, exclude: string[]): Map<string, string | null> {
+  const out = new Map<string, string | null>();
+  if (!Array.isArray(value)) return out;
+  for (const c of value.slice(0, MAX_CHANGED_FILES)) {
+    const path = c && typeof c === "object" ? cleanPath((c as { path?: unknown }).path) : null;
+    const content = (c as { content?: unknown })?.content;
+    if (!path || isExcluded(path, exclude)) continue;
+    if (content === null || (typeof content === "string" && Buffer.byteLength(content) <= MAX_EDIT_BYTES)) out.set(path, content);
+  }
+  return out;
+}
+
 export async function POST(req: Request) {
   const started = Date.now();
   if (!req.headers.get("content-type")?.includes("application/json")) return fail(415, "Send JSON.");
@@ -179,6 +203,8 @@ export async function POST(req: Request) {
   }
   const exclude = readExclude(body.exclude);
   const wantDebug = body.debug === true;
+  const edit = body.mode === "edit";
+  const limits = edit ? LIMITS.edit : LIMITS.ask;
   const debug: BotDebug = { model: pick.model, branch: "", rounds: [], totalMs: 0, snapshot: "" };
   const done = (extra: Partial<BotDebug> = {}) => (wantDebug ? { ...debug, ...extra, totalMs: Date.now() - started } : undefined);
 
@@ -191,17 +217,23 @@ export async function POST(req: Request) {
     debug.branch = snap.branch;
     debug.snapshot = cached ? `cached copy (${snap.files.length} files)` : `downloaded ${snap.files.length} files in ${Date.now() - snapStart} ms`;
 
-    const ctx = { repo, snap, chat: readChat(body.chat), exclude };
+    const changes = edit ? readChanges(body.changes, exclude) : undefined;
+    const ctx = { repo, snap, chat: readChat(body.chat), exclude, mode: edit ? ("edit" as const) : ("ask" as const), changes };
     const today = new Date().toISOString().slice(0, 10);
     const hidden = exclude.length ? `\nThe user asked not to read: ${exclude.join(", ")}.` : "";
-    const messages: Message[] = [{ role: "user", content: `Today is ${today} (UTC). Repo: ${repo}, branch: ${snap.branch}.${hidden}\n\n${question}` }];
+    const staged = changes?.size
+      ? `\nAlready staged from earlier in this conversation (reads show them): ${[...changes].map(([p, c]) => `${p}${c === null ? " (deleted)" : ""}`).join(", ")}.`
+      : "";
+    const messages: Message[] = [
+      { role: "user", content: `Today is ${today} (UTC). Repo: ${repo}, branch: ${snap.branch}. Mode: ${edit ? "edit" : "ask (read-only)"}.${hidden}${staged}\n\n${question}` },
+    ];
     const used: BotSource[] = [];
     let answer = "";
 
-    for (let round = 1; round <= MAX_ROUNDS; round++) {
-      const last = round === MAX_ROUNDS || Date.now() - started > LAST_ROUND_AFTER_MS;
+    for (let round = 1; round <= limits.rounds; round++) {
+      const last = round === limits.rounds || Date.now() - started > limits.lastAfterMs;
       const roundStart = Date.now();
-      const res = await (api.format === "openai" ? callOpenAI : callClaude)(api, pick, messages, last);
+      const res = await (api.format === "openai" ? callOpenAI : callClaude)(api, pick, messages, last, edit);
       const step: DebugRound = {
         round,
         model: pick.model,
@@ -234,8 +266,8 @@ export async function POST(req: Request) {
           const toolStart = Date.now();
           let content: string;
           let isError = false;
-          if (!isToolName(name)) {
-            content = `Unknown tool: ${name}`;
+          if (!isToolName(name) && !(edit && isEditToolName(name))) {
+            content = isEditToolName(name) ? "Editing is off. Ask the user to switch the Assistant to Edit mode." : `Unknown tool: ${name}`;
             isError = true;
           } else {
             try {
@@ -255,6 +287,7 @@ export async function POST(req: Request) {
     }
 
     const result: BotAnswer = { answer: answer || "I couldn't find an answer in the repo.", sources: pickSources(answer, used) };
+    if (edit) result.changes = changeViews(ctx);
     const trace = done();
     return NextResponse.json(trace ? { ...result, debug: trace } : result);
   } catch (e) {

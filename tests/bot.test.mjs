@@ -189,6 +189,40 @@ test("readApiUrl only allows public https hosts", () => {
   }
 });
 
+test("applyEdit replaces one exact, unique piece", () => {
+  assert.equal(bot.applyEdit("a b c", "b", "B").text, "a B c");
+  assert.match(bot.applyEdit("a b c", "x", "y").error, /wasn't found/);
+  assert.match(bot.applyEdit("b b b", "b", "y").error, /appears 3 times/);
+  assert.match(bot.applyEdit("abc", "", "y").error, /old_text is empty/);
+  assert.equal(bot.applyEdit("x = $1", "$1", "$&$&").text, "x = $&$&"); // no replace() pattern surprises
+});
+
+test("lineDiff shows changes with context", () => {
+  const before = Array.from({ length: 20 }, (_, i) => `line ${i + 1}`).join("\n");
+  const after = before.replace("line 10", "line ten").replace("line 20", "line 20\nline 21");
+  const d = bot.lineDiff(before, after);
+  assert.equal(d.additions, 2);
+  assert.equal(d.deletions, 1);
+  const text = d.lines.map((l) => `${l.kind}${l.text}`);
+  assert.deepEqual(plain(text.slice(0, 9)), ["…", " line 7", " line 8", " line 9", "-line 10", "+line ten", " line 11", " line 12", " line 13"]);
+  assert.equal(text.at(-1), "+line 21");
+  assert.deepEqual(plain(bot.lineDiff(null, "a\nb").lines.map((l) => l.kind)), ["+", "+"]);
+  assert.deepEqual(plain(bot.lineDiff("a", null).lines.map((l) => l.kind)), ["-"]);
+});
+
+test("assistantBranch makes a safe, unique branch name", () => {
+  assert.equal(bot.assistantBranch("Fix login typo!", "ab12"), "assistant/fix-login-typo-ab12");
+  assert.equal(bot.assistantBranch("แก้หน้า login", "ab12"), "assistant/login-ab12");
+  assert.equal(bot.assistantBranch("แก้ไข", "ab12"), "assistant/changes-ab12");
+  assert.match(bot.assistantBranch("x"), /^assistant\/x-[a-z0-9]{1,4}$/);
+});
+
+test("edit tools are separate from the read tools", () => {
+  assert.deepEqual(plain(bot.EDIT_TOOLS.map((t) => t.name)), ["edit_file", "write_file", "delete_file", "show_changes"]);
+  assert.equal(bot.isToolName("edit_file"), false);
+  assert.equal(bot.isEditToolName("edit_file"), true);
+});
+
 test("readApiUrl for OpenAI-style APIs adds /chat/completions", () => {
   const gemini = "https://generativelanguage.googleapis.com/v1beta/openai";
   assert.equal(bot.readApiUrl(gemini, "openai").url, `${gemini}/chat/completions`);
