@@ -8,10 +8,11 @@ import { Icon } from "@/components/icons";
 import { Card, Pill, Skeleton } from "@/components/ui";
 import { HOME_LAYOUT_KEY, moveCard, resolveLayout, toggleCard, visibleCards, type HomeLayout } from "@/lib/home";
 import { signInHref } from "@/lib/github-client";
+import { chatSummary, commitSummary, contextSummary, driveSummary } from "@/lib/home-summary";
 import { navItems } from "@/lib/sections";
 import type { Board, TaskStatus } from "@/lib/tasks";
 import { commitsOnDay, dayKey } from "@/lib/heatmap";
-import { problem, useBoard, useCommits, type Load } from "./data";
+import { problem, useBoard, useCommits, useDriveFiles, useLatestCommit, useNextStep, useRecentChat, type Load } from "./data";
 import { Trouble } from "./Trouble";
 
 const TONES = ["pink", "cyan", "mustard", "green"] as const;
@@ -31,11 +32,25 @@ const COLUMNS: { status: TaskStatus; title: string; tone: "pink" | "mustard" | "
 ];
 
 // The Cards tab: a card for each screen, the number of finished tasks and a small team board. "Customize" lets each
-// person hide or reorder the cards; it is kept in this browser (PLAN/2026-10-16-figma-ui.md).
+// person hide or reorder the cards; it is kept in this browser (PLAN/2026-10-16-figma-ui.md). Each screen card also shows
+// a few lines of real data (PLAN/2026-10-16-glass-buttons-spines.md): they load by themselves, and a card whose data can't
+// load keeps just its blurb.
 export function CardsTab({ repo, customizing }: { repo: string | null; customizing: boolean }) {
   const board = useBoard(repo);
   const commits = useCommits(repo);
   const [layout, setLayout] = useState<HomeLayout>(() => resolveLayout(ALL, null));
+  // Nothing is read while arranging cards, or for a card that is hidden; what was loaded before stays.
+  const reads = (id: string) => !customizing && !layout.hidden.includes(id);
+  const latest = useLatestCommit(repo, reads("/repo"));
+  const chat = useRecentChat(repo, reads("/chat"));
+  const next = useNextStep(repo, reads("/context"));
+  const files = useDriveFiles(repo, reads("/files"));
+  const summaries: Record<string, string[]> = {
+    "/repo": latest.status === "ready" && latest.data ? commitSummary(latest.data) : [],
+    "/chat": chat.status === "ready" ? chatSummary(chat.data) : [],
+    "/context": next.status === "ready" ? contextSummary(next.data) : [],
+    "/files": files.status === "ready" ? driveSummary(files.data) : [],
+  };
 
   useEffect(() => {
     try {
@@ -65,21 +80,21 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
           </button>
         </div>
       )}
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {shown.map((id, i) => {
           const hidden = layout.hidden.includes(id);
           const section = SCREENS.find((s) => s.href === id);
           const body = section ? (
-            <GoTo section={section} tone={tone(id)} link={!customizing} />
+            <GoTo section={section} tone={tone(id)} link={!customizing} lines={summaries[id] ?? []} />
           ) : id === WORK ? (
             <WorkDone board={board} commits={commits} />
           ) : (
             <TeamBoard board={board} link={!customizing} />
           );
           const stagger = { "--d": `${i * 70}ms` } as React.CSSProperties;
-          if (!customizing) return <div key={id} style={stagger} className={`rise ${id === BOARD ? "sm:col-span-2" : ""}`}>{body}</div>;
+          if (!customizing) return <div key={id} style={stagger} className={`rise min-w-0 ${id === BOARD ? "sm:col-span-2" : ""}`}>{body}</div>;
           return (
-            <div key={id} className={`relative ${id === BOARD ? "sm:col-span-2" : ""}`}>
+            <div key={id} className={`relative min-w-0 ${id === BOARD ? "sm:col-span-2" : ""}`}>
               <div className={`rounded-lg outline-2 outline-offset-2 ${hidden ? "opacity-35 outline-dashed outline-white/70" : "outline-dashed outline-white/50"}`}>{body}</div>
               <div className="absolute -top-3 right-3 flex items-center gap-1 rounded-full bg-black px-1.5 py-1 text-white" role="group" aria-label={`Arrange ${TITLES[id]}`}>
                 <button type="button" onClick={() => update(moveCard(layout, id, -1))} disabled={i === 0} aria-label={`Move ${TITLES[id]} earlier`} className="grid size-7 place-items-center rounded-full hover:bg-white/20 disabled:opacity-30">
@@ -102,7 +117,7 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
   );
 }
 
-function GoTo({ section, tone, link }: { section: (typeof SCREENS)[number]; tone: (typeof TONES)[number]; link: boolean }) {
+function GoTo({ section, tone, link, lines }: { section: (typeof SCREENS)[number]; tone: (typeof TONES)[number]; link: boolean; lines: string[] }) {
   const body = (
     <>
       <span className="grid size-14 shrink-0 place-items-center rounded-full border border-black bg-paper">
@@ -111,6 +126,15 @@ function GoTo({ section, tone, link }: { section: (typeof SCREENS)[number]; tone
       <span className="min-w-0 flex-1">
         <span className="block text-lg font-semibold">{section.title}</span>
         <span className="block text-xs leading-4">{section.blurb}</span>
+        {lines.length > 0 && (
+          <span className="mt-2 block space-y-0.5 border-t border-black/30 pt-2">
+            {lines.map((line, i) => (
+              <span key={i} title={line} className="block truncate text-xs font-medium leading-4">
+                {line}
+              </span>
+            ))}
+          </span>
+        )}
       </span>
       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-black text-white">
         <Icon name="arrow" className="size-4" />
