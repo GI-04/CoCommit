@@ -4,7 +4,7 @@
 **Date:** 2026-10-15 · **Superseded by:** —
 
 ## Why
-The hackathon runs 24 hours: **2026-10-15 11:30 → 2026-10-16 11:30**. We need a small, fixed scope so three people and their agents can build in parallel without stepping on each other.
+The hackathon runs 24 hours: **2026-10-15 11:30 → 2026-10-16 11:30**. **Schedule change (2026-10-16 10:50):** the code freeze now runs until **13:00** and the submission is due **14:00**. We need a small, fixed scope so three people and their agents can build in parallel without stepping on each other.
 
 ## In the demo (must work live)
 1. **Git buttons**: sign in with GitHub → pick a repo → see a file's changes → write a message → **Commit** → open a **pull request**. Everything goes through the GitHub API, so web, macOS and Windows behave the same.
@@ -35,7 +35,8 @@ Different files per person mean fewer merge conflicts. Everyone works on their o
 | 13:30–21:30 | Build the three features separately, with fake data where another part isn't ready |
 | 21:30–03:30 | Connect everything end to end, deploy to Vercel, first desktop builds |
 | 03:30–09:30 | Bug fixing, polish, demo repo with sample data |
-| 09:30–11:30 | Freeze code (no new features), record demo video, write submission |
+| 09:30–13:00 | Freeze code (no new features), record demo video, write submission (was until 11:30) |
+| 13:00–14:00 | Freeze ends; merges to `main` (they deploy) only with the team's OK; **submit by 14:00** |
 
 ## Risks / needs OK
 - Setting up accounts (GitHub OAuth app, Supabase, Vercel) and installing packages (`@octokit/rest`, `@supabase/supabase-js`) need Pattadon's OK.

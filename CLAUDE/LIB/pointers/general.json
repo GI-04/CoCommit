@@ -321,7 +321,7 @@
         "live-check",
         "range"
       ],
-      "summary": "How Drive (/files) works: files and folders (.keep markers, up to 4 deep) committed to COCOMMIT/files/ on the default branch; up to 25 MB per file, sent up (uploadPart + commitFiles parts) and down (downloadFile part, raw-host Range reads) in 3 MB pieces because of Vercel's 4.5 MB limit; fake mode, tests, and scripts/drive-live-check.mjs for real GitHub.",
+      "summary": "How Drive (/files) works: files and folders (.keep markers, up to 4 deep) committed to COCOMMIT/files/ on the default branch; up to 50 MB per file, sent up (uploadPart + commitFiles parts) and down (downloadFile part, raw-host Range reads) in 3 MB pieces because of Vercel's 4.5 MB limit; fake mode, tests, and scripts/drive-live-check.mjs for real GitHub.",
       "path": "knowledge/general/files.md",
       "sources": [
         "PLAN/2026-10-16-files.md",

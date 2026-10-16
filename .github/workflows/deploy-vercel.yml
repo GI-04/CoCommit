@@ -72,10 +72,14 @@ jobs:
       # The build runs on Vercel, as with a deploy by hand, so env vars stay in Vercel. stdout is the deployment URL.
       - name: Deploy to production
         id: deploy
+        timeout-minutes: 8
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           FORCE: ${{ inputs.force }}
+        # Without .git the CLI sends no commit author. On the Hobby plan Vercel blocks a deploy whose commit
+        # author isn't on the Vercel team (teammates' merges), and the CLI then waits until the job times out.
         run: |
+          rm -rf .git
           args=(deploy --prod --yes --token "$VERCEL_TOKEN")
           if [ "$FORCE" = "true" ]; then args+=(--force); fi
           url=$(npx --yes "$VERCEL_CLI" "${args[@]}")

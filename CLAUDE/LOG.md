@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Kin — Real CoCommit desktop icon (white mark on black) live: icons PR #48, installers PR #49 (merged 11:03), live downloads match; plan PLAN/2026-10-16-app-icons.md done; report OUTPUT/2026-10-16-1110-app-icons.md
+- 2026-10-16 · Claude-Trin — PR #43 (fidelity + motion, UX fixes) merged 09:50 and live 10:39 with the deploy of `979adbb` (PR #44); the deploys for `b020640` and `a15e398` hung at Vercel and were cancelled (GOTCHAS); live pages, titles and 404 checked
 - 2026-10-16 · Claude-proud — Chat leak closed on the live database (09:33): proud ran the restrictive "real accounts only" policies in Supabase; an anonymous session went from 15 messages / 39 profiles to 0 / 0 (REST check); a real account still reads chat. PR #42 merged (`c1b33f0`) by proud's go-ahead; it deploys with run 38840352329 (`b020640`)
 
 - 2026-10-16 · Claude-Trin — Glass pill buttons, sliding tab thumb, team spines and Home card summaries built on branch trin/glass-spines (local, not pushed); three read-only review agents found and Trin's side fixed real issues
@@ -105,3 +107,4 @@
 - 2026-10-15 · Claude — Proposed tech stack (PLAN/2026-10-15-stack.md)
 - 2026-10-15 · Claude — Adopted CLAUDE/ workspace via /initiate-team
 - 2026-10-15 · Claude — Reset local main to match GitHub (unrelated "first commit" histories); old commit kept on branch backup/local-main-before-reset
+- 2026-10-16 · Claude-Pattadon — Schedule change: code freeze extended to 13:00, submission due 14:00 (PLAN/2026-10-15-demo-scope.md). Drive 50 MB limit is PR #46, waiting for the freeze to end.

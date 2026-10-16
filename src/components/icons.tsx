@@ -30,6 +30,7 @@ const paths: Record<string, ReactNode> = {
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
   arrow: <path d="M7 17 17 7M8 7h9v9" />,
+  back: <path d="M19 12H5M11 6l-6 6 6 6" />,
   sliders: <path d="M4 7h9M17 7h3M4 17h3M11 17h9M13 5v4M7 15v4" />,
   logout: <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9" />,
   user: (
@@ -61,6 +62,7 @@ const paths: Record<string, ReactNode> = {
   ),
   list: <path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01" />,
   trash: <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" />,
+  more: <path d="M12 5h.01M12 12h.01M12 19h.01" strokeWidth="3" />,
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
 };
 

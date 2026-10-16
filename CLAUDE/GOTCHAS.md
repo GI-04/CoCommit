@@ -7,6 +7,11 @@
 - **Evidence:** compiled CSS orders same-property utilities by value (`py-1, py-1.5, py-2, py-2.5, py-3`), and the later rule wins whatever the order in the `class` string; computed `border-radius` was 8 px on the live "Ask assistant". Unlayered rules in `globals.css` (like `.btn-glass`) beat every Tailwind utility.
 - **Workaround:** one radius per element (`buttonClass` in `ui.tsx`; `tests/ui.test.mjs` fails on a second one); use `!py-1` for an override, never put a `border-radius` or a `transition` shorthand in a custom class that sits on a button.
 
+## 2026-10-16 — Deploy job hangs: Vercel blocks teammates' commits (Hobby plan)
+- **What failed:** "Deploy to Vercel" runs sat 11–15 min on "Deploy to production" and were cancelled; the live site stayed on an old build.
+- **Evidence:** `vercel ls` showed the deploys as **Blocked**; `vercel inspect` reason: "the commit author doesn't have permission to create deployments for this project" (author tiramisucake0127, a squash merge). The CLI waits on a blocked deploy instead of failing.
+- **Workaround:** the deploy step removes `.git` first, so the CLI sends no commit author (same as the old `git archive` hand deploys), and has `timeout-minutes: 8`.
+
 ## 2026-10-16 — GitHub's blob API ignores Range: every piece of a big download re-read the whole file
 - **What failed:** Drive downloads a big file in 3 MB pieces, but `GET /repos/<repo>/git/blobs/<sha>` (JSON or `Accept: application/vnd.github.raw`) always returns the whole file, even with a `Range` header, so a 24.9 MB download fetched ~25 MB nine times (133 s from Thailand).
 - **Evidence:** `curl -H "Range: bytes=3145728-6291455" -H "Accept: application/vnd.github.raw" …/git/blobs/<sha>` → HTTP 200, 26,109,863 bytes; the same range on `https://raw.githubusercontent.com/<repo>/<commit>/<path>` with the token → HTTP 206, 3,145,728 bytes.
@@ -19,8 +24,10 @@
 - **Verify from outside, not from the SQL editor:** the first two "ran it" reports didn't change anything on the live project (the SQL editor runs as the owner, and it's easy to be in another project); an anonymous REST call still read 15 messages. `node scripts/check-chat-privacy.mjs` signs in anonymously with the anon key and must print 0 for `messages` and `profiles`.
 - **Testing signed out locally without signing out:** open the dev server as `http://127.0.0.1:<port>` (login cookies are per host, so `localhost` keeps its session). Next's dev server blocks its scripts for that host, so the page never hydrates, unless you add `allowedDevOrigins: ["127.0.0.1"]` to `next.config.ts` for the test (and revert it).
 
-## 2026-10-16 — A production deploy can hang at Vercel's "Building…" and get cancelled
-- **What failed:** the deploy run for PR #30 (`38802655070`, `aeee87e`) uploaded fine, printed `Building…` and then nothing for 14 minutes; the job's 15-minute limit cancelled it. The site kept the old version. Vercel's status page showed no incident, and the same code built in about 75 s on the next deploy.
+## 2026-10-16 — A production deploy can hang at Vercel's "Building…" and get cancelled (it kept happening)
+- **Happened again 10:00-10:40 (Thai time):** the deploys for `8f059c3`, `b020640` (run `38840352329`, cancelled 03:02 UTC) and `a15e398` (PR #43, run `38842513913`, cancelled 03:17 UTC) all passed `npm ci`, typecheck and tests, then sat in the **Deploy to production** step until the 15-minute limit. Because the workflow queues runs (`concurrency: vercel-production`, no cancel-in-progress), each hang also held up the next merge, so the PR #43 UI was not live for about 50 minutes. PR #44's deploy (`979adbb`, run `38846465677`) built in about 85 seconds and put everything live, so the code was fine; no deploy skips code (each deploys all of `main`).
+- **Idea, not done:** a shorter `timeout-minutes` on the deploy step (a good build takes about 1.5 minutes) would free the queue sooner; someone with Vercel access should also look at why builds hang (the "Inspect" link in a stuck run's log).
+- **What failed first:** the deploy run for PR #30 (`38802655070`, `aeee87e`) uploaded fine, printed `Building…` and then nothing for 14 minutes; the job's 15-minute limit cancelled it. The site kept the old version. Vercel's status page showed no incident, and the same code built in about 75 s on the next deploy.
 - **Evidence:** the run log ends with `Building…` then `##[error]The operation was canceled.`; the next run (`38804819054`, `90c2258`) succeeded and put `/tasks` live. The workflow's `concurrency` (no cancel-in-progress) made that run wait for the stuck one.
 - **Workaround:** a cancelled run doesn't mean the code is broken: check the live site, then rerun the deploy (Actions → "Deploy to Vercel" → Run workflow, or `gh run rerun <id>`) or let the next merge deploy it. Someone with Vercel access should check or cancel the stuck deployment from the run log's "Inspect" link.
 

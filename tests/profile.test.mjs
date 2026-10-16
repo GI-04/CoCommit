@@ -178,7 +178,7 @@ function renderProfileState(accounts, loading = false, tab = "account") {
     useState: (value) => [hook < initial.length ? initial[hook++] : (hook++, typeof value === "function" ? value() : value), () => {}],
     useRef: (current) => ({ current }), useCallback: (fn) => fn, useEffect: () => {},
   };
-  const ui = load("../components/ui.tsx", { "react/jsx-runtime": jsxRuntime });
+  const ui = load("../components/ui.tsx", { "react/jsx-runtime": jsxRuntime, "@/components/BackButton": { BackButton: () => null } });
   const page = load("../app/profile/page.tsx", {
     react, "react/jsx-runtime": jsxRuntime,
     "next/link": { default: ({ children, ...props }) => React.createElement("a", props, children) },

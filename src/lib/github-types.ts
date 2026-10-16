@@ -55,4 +55,9 @@ export type GitHubActions = {
   listMergedPulls(repo: string, limit?: number): Promise<Activity[]>;
   /** Who committed and when on the default branch since an ISO date (up to 500), for the home heat map. */
   listCommitDates(repo: string, since: string): Promise<CommitDate[]>;
+  /** Invites a GitHub user to the repo as a collaborator. */
+  inviteMember(repo: string, username: string): Promise<InviteResult>;
 };
+
+/** `invited`: GitHub emailed an invitation; `already`: the person already has access. */
+export type InviteResult = { status: "invited" | "already"; username: string };

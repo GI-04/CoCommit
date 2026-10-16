@@ -106,15 +106,18 @@ test("crumbs", () => {
   assert.deepEqual([...f.crumbs("a/b")].map((c) => ({ ...c })), [{ name: "a", path: "a" }, { name: "b", path: "a/b" }]);
 });
 
-test("big files: 25 MB limit in 3 MB pieces", () => {
-  assert.equal(f.MAX_FILE_BYTES, 25 * 1024 * 1024);
-  assert.equal(f.MAX_PARTS, 9);
+test("big files: 50 MB limit in 3 MB pieces", () => {
+  assert.equal(f.MAX_FILE_BYTES, 50 * 1024 * 1024);
+  assert.equal(f.MAX_PARTS, 17);
   assert.equal(f.partCount(0), 1);
   assert.equal(f.partCount(f.PART_BYTES), 1);
   assert.equal(f.partCount(f.PART_BYTES + 1), 2);
   assert.equal(f.partCount(f.MAX_FILE_BYTES), f.MAX_PARTS);
   // One piece in base64 inside the JSON body stays under Vercel's 4.5 MB request limit.
   assert.ok(Math.ceil(f.PART_BYTES / 3) * 4 + 200 < 4.5 * 1024 * 1024);
+  // Joining 50 MB of pieces needs Vercel's full 300 s (a 25 MB join took ~30 s from a laptop).
+  const route = readFileSync(new URL("../src/app/api/github/[action]/route.ts", import.meta.url), "utf8");
+  assert.match(route, /^export const maxDuration = 300;$/m);
 });
 
 test("formatSize", () => {
@@ -126,4 +129,13 @@ test("formatSize", () => {
 test("a binary file's tree entry points at its uploaded blob", () => {
   const [e] = m.treeEntries([{ path: "COCOMMIT/files/a.png", content: "AAAA", encoding: "base64" }], new Map(), new Map([["COCOMMIT/files/a.png", "abc123"]]));
   assert.deepEqual({ ...e }, { path: "COCOMMIT/files/a.png", mode: "100644", type: "blob", sha: "abc123" });
+});
+
+test("previewType picks a viewer by extension", () => {
+  const { previewType } = f;
+  assert.equal(previewType("Photo.PNG")?.kind, "image");
+  assert.equal(previewType("a.pdf")?.kind, "pdf");
+  assert.equal(previewType("notes.md")?.kind, "text");
+  assert.equal(previewType("x.zip"), null);
+  assert.equal(previewType("noext"), null);
 });

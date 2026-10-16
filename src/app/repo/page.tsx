@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LocalRepo } from "@/components/LocalRepo";
 import { DiffView } from "@/components/DiffView";
+import { FileTree } from "@/components/FileTree";
 import { friendlyError } from "@/lib/errors";
 import { Icon, type IconName } from "@/components/icons";
 import { Button, Card, PageHeader, Skeleton, Tabs, buttonClass } from "@/components/ui";
@@ -80,7 +81,6 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const [branch, setBranch] = useState("");
   const [newBranch, setNewBranch] = useState("");
   const [files, setFiles] = useState<string[]>([]);
-  const [filter, setFilter] = useState("");
   const [path, setPath] = useState<string | null>(null);
   const [original, setOriginal] = useState("");
   const [text, setText] = useState("");
@@ -199,7 +199,6 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
     }
   };
 
-  const shown = useMemo(() => files.filter((f) => f.toLowerCase().includes(filter.toLowerCase())).slice(0, 200), [files, filter]);
   const diff = changes.find((c) => c.path === open);
   const edited = path !== null && text !== original;
 
@@ -321,22 +320,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
                 </ul>
               )
             ) : (
-              <>
-                <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Find a file" aria-label="Find a file" className="mb-2 w-full rounded-full border border-black bg-bg px-4 py-2 text-sm" />
-                <ul className="max-h-[24rem] space-y-0.5 overflow-y-auto">
-                  {shown.map((f) => (
-                    <li key={f}>
-                      <button
-                        onClick={() => openFile(f)}
-                        className={`w-full truncate rounded-lg border px-2.5 py-1.5 text-left text-sm ${path === f && mode === "edit" ? "border-black bg-cyan font-medium" : "border-transparent hover:bg-fg/10"}`}
-                      >
-                        {f}
-                      </button>
-                    </li>
-                  ))}
-                  {!shown.length && <li className="px-2 text-sm text-muted">{files.length ? "No match." : <Skeleton lines={5} />}</li>}
-                </ul>
-              </>
+              <FileTree files={files} selected={mode === "edit" ? path : null} onOpen={openFile} />
             )}
           </Card>
 

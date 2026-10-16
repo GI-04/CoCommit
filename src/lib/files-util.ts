@@ -9,7 +9,7 @@ export const FILES_FOLDER = "COCOMMIT/files";
 export const PART_BYTES = 3 * 1024 * 1024;
 
 /** Largest file we accept. Files over PART_BYTES go up and come down in PART_BYTES pieces. */
-export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+export const MAX_FILE_BYTES = 50 * 1024 * 1024;
 
 /** Most pieces one file can have. */
 export const MAX_PARTS = Math.ceil(MAX_FILE_BYTES / PART_BYTES);
@@ -141,4 +141,27 @@ export function crumbs(folder: string): { name: string; path: string }[] {
   if (!folder) return [];
   const parts = folder.split("/");
   return parts.map((name, i) => ({ name, path: parts.slice(0, i + 1).join("/") }));
+}
+
+export type PreviewKind = "image" | "pdf" | "video" | "audio" | "text";
+
+const KINDS: Record<PreviewKind, Record<string, string>> = {
+  image: { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml", avif: "image/avif" },
+  pdf: { pdf: "application/pdf" },
+  video: { mp4: "video/mp4", webm: "video/webm", mov: "video/quicktime" },
+  audio: { mp3: "audio/mpeg", wav: "audio/wav", ogg: "audio/ogg", m4a: "audio/mp4" },
+  text: Object.fromEntries(
+    "txt md json csv log js ts tsx jsx css html yml yaml toml xml py rs sh sql".split(" ").map((e) => [e, "text/plain"]),
+  ),
+};
+
+/** What the Drive can show in the browser for this file name, and its MIME type; null when it can only be downloaded. */
+export function previewType(name: string): { kind: PreviewKind; mime: string } | null {
+  const dot = name.lastIndexOf(".");
+  const ext = dot > 0 ? name.slice(dot + 1).toLowerCase() : "";
+  for (const kind of Object.keys(KINDS) as PreviewKind[]) {
+    const mime = KINDS[kind][ext];
+    if (mime) return { kind, mime };
+  }
+  return null;
 }
