@@ -41,7 +41,7 @@ One live channel per repo (Supabase Realtime). Message shape: `ChatMessage = { i
 | `myName()` | the name chat posts under |
 | `chatFake` | `true` without Supabase keys: messages stay in this browser and sync between tabs |
 
-**Who's talking:** chat signs in to Supabase anonymously when nobody is logged in, so the table rules apply. Rules (`supabase/schema.sql`, `supabase/chat-author.sql`): signed-in users read everything; they post only as themselves; only `pinned` can be changed; a user with a profile name always posts under it, and a guest can't use a member's name (it gets " (guest)").
+**Who's talking:** only real accounts (GitHub, email or Google) can use chat; signed out, the chat functions throw `NotSignedInError` and nothing is loaded. Rules (`supabase/schema.sql`, `supabase/chat-author.sql`, `supabase/chat-privacy.sql`): real accounts (not anonymous sessions) read everything; they post only as themselves; only `pinned` can be changed; a user with a profile name always posts under it, and a guest can't use a member's name (it gets " (guest)").
 
 ## 3. Pin a message as a decision or gotcha: `@/lib/chat-pins`
 | Function | What it does |

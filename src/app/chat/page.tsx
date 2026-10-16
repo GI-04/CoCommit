@@ -72,8 +72,9 @@ export default function ChatPage() {
   }, []);
 
   // The open chat's history, then live updates. Switching chats starts from an empty list, and a late
-  // answer for the previous chat is ignored.
+  // answer for the previous chat is ignored. Signed out (or still checking): nothing loads, the page shows a login card.
   useEffect(() => {
+    if (!mayPost) return;
     let current = true;
     setMessages([]);
     setPinForm(null);
@@ -86,10 +87,10 @@ export default function ChatPage() {
       current = false;
       stop();
     };
-  }, [chat]);
+  }, [chat, mayPost]);
 
-  // Who's online in the open chat, under your account name.
-  useEffect(() => (name ? onlineUsers(chat, setOnline) : undefined), [name, chat]);
+  // Who's online in the open chat, under your account name (members only).
+  useEffect(() => (name && mayPost ? onlineUsers(chat, setOnline) : undefined), [name, chat, mayPost]);
 
   // Braces matter: newer browsers return a Promise from scrollIntoView, and an effect may only return a cleanup function.
   useEffect(() => {
@@ -212,111 +213,124 @@ export default function ChatPage() {
               <span className="size-2.5 rounded-full border border-black bg-green" /> {online.length} online
             </p>
           </div>
-          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-            {messages.map((m) =>
-              m.kind === "git_event" ? (
-                <p key={m.id} className="break-words rounded-2xl border border-line bg-bg px-4 py-2 text-sm text-muted [overflow-wrap:anywhere]">
-                  <span className="font-medium text-fg">{m.author}</span>
-                  {m.authorLogin && <Login login={m.authorLogin} />} {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
-                </p>
-              ) : (
-                <div key={m.id} className={`group flex flex-col ${m.author === name ? "items-end" : "items-start"}`}>
-                  <p className="text-xs text-muted">
-                    <span className="font-semibold text-fg">{m.author}</span>
-                    {m.authorLogin && <Login login={m.authorLogin} />} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
-                    {m.pinned && " · 📌 pinned"}
-                    <span className="opacity-0 group-hover:opacity-100 focus-within:opacity-100">
-                      <button onClick={() => togglePin(m)} className={pinBtn}>
-                        {m.pinned ? "Unpin" : "Pin"}
-                      </button>
-                      {chat !== GENERAL && (
-                        <>
-                          <button onClick={() => setPinForm({ id: m.id, kind: "decision", fields: decisionFields(m) })} className={pinBtn}>
-                            Decision
-                          </button>
-                          <button onClick={() => setPinForm({ id: m.id, kind: "gotcha", fields: gotchaFields(m) })} className={pinBtn}>
-                            Gotcha
-                          </button>
-                        </>
-                      )}
-                    </span>
+          {mayPost === false ? (
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-10 text-center">
+              <p className="text-base font-semibold">{LOGIN_TO_CHAT}</p>
+              <p className="max-w-sm text-sm text-muted">Chat is only for people with an account, so the team&apos;s messages stay inside the team.</p>
+              <Link
+                href={`/login?returnTo=${encodeURIComponent("/chat")}`}
+                className="rounded-full bg-[var(--blue)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                Log in
+              </Link>
+            </div>
+          ) : (
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+              {messages.map((m) =>
+                m.kind === "git_event" ? (
+                  <p key={m.id} className="break-words rounded-2xl border border-line bg-bg px-4 py-2 text-sm text-muted [overflow-wrap:anywhere]">
+                    <span className="font-medium text-fg">{m.author}</span>
+                    {m.authorLogin && <Login login={m.authorLogin} />} {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                   </p>
-                  <p className={`mt-1 max-w-[85%] whitespace-pre-wrap break-words rounded-2xl border border-black px-4 py-2.5 text-sm ${m.author === name ? "bg-cyan" : "bg-bg"}`}>{m.text}</p>
-                  {pinForm?.id === m.id && (
-                    <form onSubmit={(e) => savePin(e, m)} className="mt-2 space-y-2 rounded-md border border-line bg-bg p-3 text-xs">
-                      <p className="font-medium text-fg">
-                        {pinForm.kind === "decision" ? "Save as a decision (COCOMMIT/DECISIONS.md)" : "Save as a gotcha (COCOMMIT/GOTCHAS.md)"}
-                      </p>
-                      <input value={pinForm.fields.title} onChange={(e) => setField("title", e.target.value)} placeholder="Title" className={input} />
-                      {pinForm.kind === "decision" ? (
-                        <>
-                          <textarea value={pinForm.fields.decision} onChange={(e) => setField("decision", e.target.value)} placeholder="Decision" rows={2} className={input} />
-                          <input value={pinForm.fields.why} onChange={(e) => setField("why", e.target.value)} placeholder="Why?" className={input} />
-                          <input value={pinForm.fields.alternatives} onChange={(e) => setField("alternatives", e.target.value)} placeholder="Alternatives (optional)" className={input} />
-                        </>
-                      ) : (
-                        <>
-                          <textarea value={pinForm.fields.whatFailed} onChange={(e) => setField("whatFailed", e.target.value)} placeholder="What failed" rows={2} className={input} />
-                          <input value={pinForm.fields.workaround} onChange={(e) => setField("workaround", e.target.value)} placeholder="Workaround" className={input} />
-                        </>
+                ) : (
+                  <div key={m.id} className={`group flex flex-col ${m.author === name ? "items-end" : "items-start"}`}>
+                    <p className="text-xs text-muted">
+                      <span className="font-semibold text-fg">{m.author}</span>
+                      {m.authorLogin && <Login login={m.authorLogin} />} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
+                      {m.pinned && " · 📌 pinned"}
+                      <span className="opacity-0 group-hover:opacity-100 focus-within:opacity-100">
+                        <button onClick={() => togglePin(m)} className={pinBtn}>
+                          {m.pinned ? "Unpin" : "Pin"}
+                        </button>
+                        {chat !== GENERAL && (
+                          <>
+                            <button onClick={() => setPinForm({ id: m.id, kind: "decision", fields: decisionFields(m) })} className={pinBtn}>
+                              Decision
+                            </button>
+                            <button onClick={() => setPinForm({ id: m.id, kind: "gotcha", fields: gotchaFields(m) })} className={pinBtn}>
+                              Gotcha
+                            </button>
+                          </>
+                        )}
+                      </span>
+                    </p>
+                    <p className={`mt-1 max-w-[85%] whitespace-pre-wrap break-words rounded-2xl border border-black px-4 py-2.5 text-sm ${m.author === name ? "bg-cyan" : "bg-bg"}`}>{m.text}</p>
+                    {pinForm?.id === m.id && (
+                      <form onSubmit={(e) => savePin(e, m)} className="mt-2 space-y-2 rounded-md border border-line bg-bg p-3 text-xs">
+                        <p className="font-medium text-fg">
+                          {pinForm.kind === "decision" ? "Save as a decision (COCOMMIT/DECISIONS.md)" : "Save as a gotcha (COCOMMIT/GOTCHAS.md)"}
+                        </p>
+                        <input value={pinForm.fields.title} onChange={(e) => setField("title", e.target.value)} placeholder="Title" className={input} />
+                        {pinForm.kind === "decision" ? (
+                          <>
+                            <textarea value={pinForm.fields.decision} onChange={(e) => setField("decision", e.target.value)} placeholder="Decision" rows={2} className={input} />
+                            <input value={pinForm.fields.why} onChange={(e) => setField("why", e.target.value)} placeholder="Why?" className={input} />
+                            <input value={pinForm.fields.alternatives} onChange={(e) => setField("alternatives", e.target.value)} placeholder="Alternatives (optional)" className={input} />
+                          </>
+                        ) : (
+                          <>
+                            <textarea value={pinForm.fields.whatFailed} onChange={(e) => setField("whatFailed", e.target.value)} placeholder="What failed" rows={2} className={input} />
+                            <input value={pinForm.fields.workaround} onChange={(e) => setField("workaround", e.target.value)} placeholder="Workaround" className={input} />
+                          </>
+                        )}
+                        <div className="flex gap-2">
+                          <Button type="submit" disabled={saving}>
+                            {saving ? "Saving…" : "Save"}
+                          </Button>
+                          <Button type="button" variant="ghost" onClick={() => setPinForm(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                ),
+              )}
+              {botReplies.map((r) => (
+                <div key={r.id} className="rounded-md border border-dashed border-line bg-bg p-3 text-sm">
+                  <p className="text-xs text-muted">
+                    <span className="font-semibold text-fg">🤖 @cocommit</span> · “{r.question}” · only you can see this
+                    <button onClick={() => setBotReplies((now) => now.filter((x) => x.id !== r.id))} className="ml-2" aria-label="Dismiss">
+                      ✕
+                    </button>
+                  </p>
+                  {!r.result && !r.error && <p className="mt-1 text-muted">Looking through COCOMMIT/…</p>}
+                  {r.error && (
+                    <p className="mt-1 text-removed">
+                      {r.error}{" "}
+                      {r.needsLogin && (
+                        <a href={signInHref("/chat")} className="underline">
+                          Log in with GitHub
+                        </a>
                       )}
-                      <div className="flex gap-2">
-                        <Button type="submit" disabled={saving}>
-                          {saving ? "Saving…" : "Save"}
-                        </Button>
-                        <Button type="button" variant="ghost" onClick={() => setPinForm(null)}>
-                          Cancel
+                    </p>
+                  )}
+                  {r.result && (
+                    <>
+                      <p className="mt-1 whitespace-pre-wrap break-words">{r.result.answer}</p>
+                      {r.result.sources.length > 0 && (
+                        <ul className="mt-2 space-y-0.5 text-xs">
+                          {r.result.sources.map((s) => (
+                            <li key={s.path}>
+                              <a href={s.url} target="_blank" rel="noreferrer" className="underline">
+                                {s.path}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div className="mt-2">
+                        <Button type="button" variant="ghost" onClick={() => shareReply(r)} disabled={r.shared}>
+                          {r.shared ? "Shared" : "Share to chat"}
                         </Button>
                       </div>
-                    </form>
+                    </>
                   )}
                 </div>
-              ),
-            )}
-            {botReplies.map((r) => (
-              <div key={r.id} className="rounded-md border border-dashed border-line bg-bg p-3 text-sm">
-                <p className="text-xs text-muted">
-                  <span className="font-semibold text-fg">🤖 @cocommit</span> · “{r.question}” · only you can see this
-                  <button onClick={() => setBotReplies((now) => now.filter((x) => x.id !== r.id))} className="ml-2" aria-label="Dismiss">
-                    ✕
-                  </button>
-                </p>
-                {!r.result && !r.error && <p className="mt-1 text-muted">Looking through COCOMMIT/…</p>}
-                {r.error && (
-                  <p className="mt-1 text-removed">
-                    {r.error}{" "}
-                    {r.needsLogin && (
-                      <a href={signInHref("/chat")} className="underline">
-                        Log in with GitHub
-                      </a>
-                    )}
-                  </p>
-                )}
-                {r.result && (
-                  <>
-                    <p className="mt-1 whitespace-pre-wrap break-words">{r.result.answer}</p>
-                    {r.result.sources.length > 0 && (
-                      <ul className="mt-2 space-y-0.5 text-xs">
-                        {r.result.sources.map((s) => (
-                          <li key={s.path}>
-                            <a href={s.url} target="_blank" rel="noreferrer" className="underline">
-                              {s.path}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <div className="mt-2">
-                      <Button type="button" variant="ghost" onClick={() => shareReply(r)} disabled={r.shared}>
-                        {r.shared ? "Shared" : "Share to chat"}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-            <div ref={end} />
-          </div>
+              ))}
+              <div ref={end} />
+            </div>
+          )}
           {error && <p className="mt-2 text-sm text-removed">{error}</p>}
           {pinNote && (
             <p className={`mt-2 text-sm ${pinNote.ok ? "text-added" : "text-removed"}`}>
@@ -331,33 +345,28 @@ export default function ChatPage() {
               </button>
             </p>
           )}
-          {mayPost === false ? (
-            <p className="mt-3 text-sm text-muted">
-              {LOGIN_TO_CHAT}{" "}
-              <Link href={`/login?returnTo=${encodeURIComponent("/chat")}`} className="font-medium text-fg underline">
-                Log in
-              </Link>
-            </p>
-          ) : (
-            <p className="mt-3 text-xs text-muted">
-              You: <span className="font-medium text-fg">{name ?? "…"}</span>
-              <Link href="/profile" className="ml-2 underline">
-                Change name
-              </Link>
-            </p>
+          {mayPost !== false && (
+            <>
+              <p className="mt-3 text-xs text-muted">
+                You: <span className="font-medium text-fg">{name ?? "…"}</span>
+                <Link href="/profile" className="ml-2 underline">
+                  Change name
+                </Link>
+              </p>
+              <form onSubmit={send} className="mt-2 flex gap-2">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Message the team · @cocommit to ask the bot"
+                  disabled={!mayPost}
+                  className="min-w-0 flex-1 rounded-full border border-black bg-bg px-5 py-3 text-sm"
+                />
+                <Button type="submit" variant="blue" disabled={!text.trim() || !mayPost}>
+                  Send
+                </Button>
+              </form>
+            </>
           )}
-          <form onSubmit={send} className="mt-2 flex gap-2">
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder={mayPost === false ? "Log in to chat" : "Message the team · @cocommit to ask the bot"}
-              disabled={mayPost === false}
-              className="min-w-0 flex-1 rounded-full border border-black bg-bg px-5 py-3 text-sm"
-            />
-            <Button type="submit" variant="blue" disabled={!text.trim() || mayPost === false}>
-              Send
-            </Button>
-          </form>
         </Card>
       </div>
     </MessagesShell>

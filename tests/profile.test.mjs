@@ -153,10 +153,21 @@ test("future chat messages use fresh profile names, then GitHub or guest fallbac
 });
 test("combined sign-out reports either provider's failure", async () => {
   const api = load("auth-email", {
+    "./current-repo": { clearCurrentRepo() {} },
     "./supabase": { getSupabase: () => ({ auth: { signOut: async () => ({ error: null }) } }) },
     "./github-client": { signOutOfGitHub: async () => { throw new Error("offline"); } },
   });
   assert.match((await api.signOut()).error, /Couldn't sign out/);
+});
+test("sign-out also forgets the picked repo, so the next person doesn't land in that chat", async () => {
+  let cleared = 0;
+  const api = load("auth-email", {
+    "./current-repo": { clearCurrentRepo: () => { cleared++; } },
+    "./supabase": { getSupabase: () => ({ auth: { signOut: async () => ({ error: null }) } }) },
+    "./github-client": { signOutOfGitHub: async () => {} },
+  });
+  assert.equal((await api.signOut()).error, null);
+  assert.equal(cleared, 1);
 });
 
 function renderProfileState(accounts, loading = false, tab = "account") {
