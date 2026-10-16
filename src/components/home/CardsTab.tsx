@@ -6,7 +6,7 @@ import { Avatar } from "@/components/Avatar";
 import type { CommitDate } from "@/lib/heatmap";
 import { Icon } from "@/components/icons";
 import { Card, Pill, Skeleton } from "@/components/ui";
-import { HOME_LAYOUT_KEY, moveCard, resolveLayout, toggleCard, visibleCards, type HomeLayout } from "@/lib/home";
+import { HOME_LAYOUT_KEY, moveCard, moveCardTo, resolveLayout, toggleCard, visibleCards, type HomeLayout } from "@/lib/home";
 import { signInHref } from "@/lib/github-client";
 import { chatSummary, commitSummary, contextSummary, driveSummary } from "@/lib/home-summary";
 import { navItems } from "@/lib/sections";
@@ -14,6 +14,7 @@ import type { Board, TaskStatus } from "@/lib/tasks";
 import { commitsOnDay, dayKey } from "@/lib/heatmap";
 import { problem, useBoard, useCommits, useDriveFiles, useLatestCommit, useNextStep, useRecentChat, type Load } from "./data";
 import { Trouble } from "./Trouble";
+import { useCardDrag } from "./useCardDrag";
 
 const TONES = ["pink", "cyan", "mustard", "green"] as const;
 const WORK = "work";
@@ -70,6 +71,16 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
     } catch {}
   };
 
+  // Moving a card (by the arrows or by dropping it) is also said out loud for screen readers.
+  const [said, setSaid] = useState("");
+  const say = (text: string) => setSaid((old) => (old.replace("\u200b", "") === text && !old.endsWith("\u200b") ? `${text}\u200b` : text)); // a repeated sentence is announced again
+  const move = (next: HomeLayout, id: string) => {
+    if (next === layout) return;
+    update(next);
+    say(`Moved ${TITLES[id]} to place ${next.order.indexOf(id) + 1} of ${next.order.length}.`);
+  };
+  const dnd = useCardDrag({ enabled: customizing, onDrop: (id, overId) => move(moveCardTo(layout, id, layout.order.indexOf(overId)), id) });
+
   const shown = customizing ? layout.order : visibleCards(layout);
   const tone = (id: string) => TONES[Math.max(0, SCREENS.findIndex((s) => s.href === id)) % TONES.length];
 
@@ -77,8 +88,12 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
     <div>
       {customizing && (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
-          <p>Move cards with the arrows. Use the eye to hide or show one. This is saved on this device.</p>
-          <button type="button" onClick={() => update(resolveLayout(ALL, null))} className="glass rounded-full px-4 py-2 text-white hover:bg-white/10">
+          <p>Drag a card by its dots, or use its arrows, to move it. Use Hide or Show to hide or show one. This is saved on this device.</p>
+          <button type="button" onClick={() => {
+              update(resolveLayout(ALL, null));
+              say("Cards put back in the default order.");
+            }}
+            className="glass rounded-full px-4 py-2 text-white hover:bg-white/10">
             Reset
           </button>
         </div>
@@ -96,17 +111,40 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
           );
           const stagger = { "--d": `${i * 70}ms` } as React.CSSProperties;
           if (!customizing) return <div key={id} style={stagger} className={`rise min-w-0 ${id === BOARD ? "sm:col-span-2" : ""}`}>{body}</div>;
+          const dragged = dnd.drag?.id === id;
+          const target = !!dnd.drag && dnd.drag.over === id;
           return (
-            <div key={id} className={`relative min-w-0 ${id === BOARD ? "sm:col-span-2" : ""}`}>
-              <div className={`rounded-lg outline-2 outline-offset-2 ${hidden ? "opacity-35 outline-dashed outline-white/70" : "outline-dashed outline-white/50"}`}>{body}</div>
+            <div
+              key={id}
+              ref={dnd.ref(id)}
+              {...dnd.bind(id)}
+              style={dragged ? { transform: `translate3d(${dnd.drag!.dx}px, ${dnd.drag!.dy}px, 0) scale(1.03)`, transition: "none" } : undefined}
+              className={`relative min-w-0 select-none ${id === BOARD ? "sm:col-span-2" : ""} ${dragged ? "z-[45] cursor-grabbing drop-shadow-2xl" : dnd.drag ? "" : "cursor-grab"}`}
+            >
+              <div
+                className={`rounded-lg outline-2 outline-offset-2 ${dragged ? "opacity-90" : hidden ? (target ? "opacity-60" : "opacity-35") : ""} ${
+                  target ? "outline-4 outline-solid outline-white" : hidden ? "outline-dashed outline-white/70" : "outline-dashed outline-white/50"
+                }`}
+              >
+                {body}
+              </div>
               <div className="absolute -top-3 right-3 flex items-center gap-1 rounded-full bg-black px-1.5 py-1 text-white" role="group" aria-label={`Arrange ${TITLES[id]}`}>
-                <button type="button" onClick={() => update(moveCard(layout, id, -1))} disabled={i === 0} aria-label={`Move ${TITLES[id]} earlier`} className="grid size-7 place-items-center rounded-full hover:bg-white/20 disabled:opacity-30">
+                <span data-drag-handle aria-hidden title="Drag to move" className={`grid size-7 touch-none place-items-center rounded-full text-white/80 hover:bg-white/20 [@media(pointer:coarse)]:size-9 ${dragged ? "cursor-grabbing" : "cursor-grab"}`}>
+                  <svg viewBox="0 0 12 12" className="size-3.5" fill="currentColor">
+                    {[2, 6, 10].flatMap((y) => [4, 8].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.1" />))}
+                  </svg>
+                </span>
+                <button type="button" onClick={() => move(moveCard(layout, id, -1), id)} disabled={i === 0} aria-label={`Move ${TITLES[id]} earlier`} className="grid size-7 place-items-center rounded-full hover:bg-white/20 disabled:opacity-30">
                   <span aria-hidden>↑</span>
                 </button>
-                <button type="button" onClick={() => update(moveCard(layout, id, 1))} disabled={i === shown.length - 1} aria-label={`Move ${TITLES[id]} later`} className="grid size-7 place-items-center rounded-full hover:bg-white/20 disabled:opacity-30">
+                <button type="button" onClick={() => move(moveCard(layout, id, 1), id)} disabled={i === shown.length - 1} aria-label={`Move ${TITLES[id]} later`} className="grid size-7 place-items-center rounded-full hover:bg-white/20 disabled:opacity-30">
                   <span aria-hidden>↓</span>
                 </button>
-                <button type="button" onClick={() => update(toggleCard(layout, id))} aria-pressed={hidden} aria-label={`${hidden ? "Show" : "Hide"} ${TITLES[id]}`} className="grid size-7 place-items-center rounded-full text-xs font-semibold hover:bg-white/20">
+                <button type="button" onClick={() => {
+                    update(toggleCard(layout, id));
+                    say(`${TITLES[id]} ${hidden ? "shown" : "hidden"}.`);
+                  }}
+                  aria-pressed={hidden} aria-label={`${hidden ? "Show" : "Hide"} ${TITLES[id]}`} className="grid size-7 place-items-center rounded-full text-xs font-semibold hover:bg-white/20">
                   {hidden ? "Show" : "Hide"}
                 </button>
               </div>
@@ -115,6 +153,9 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
           );
         })}
       </div>
+      <p className="sr-only" role="status" aria-live="polite">
+        {said}
+      </p>
       {!customizing && shown.length === 0 && <p className="text-sm text-muted">All cards are hidden. Choose Customize to show some again.</p>}
     </div>
   );

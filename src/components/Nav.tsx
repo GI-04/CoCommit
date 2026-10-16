@@ -23,7 +23,7 @@ export function Nav() {
       className="glass sticky top-3 z-40 mx-3 mt-3 flex flex-col rounded-[28px] px-3 py-2 md:fixed md:inset-y-4 md:left-4 md:mx-0 md:mt-0 md:w-20 md:items-center md:rounded-[40px] md:px-3 md:py-5 lg:inset-y-7 lg:left-7 lg:w-[254px] lg:items-stretch lg:px-4"
     >
       <div className="flex items-center justify-between md:justify-center lg:justify-start lg:px-3 lg:pt-[23px]">
-        <Link href="/" aria-label="CoCommit home page" className="flex h-11 items-center px-1 text-white md:h-auto md:pb-3 lg:pb-[30px]">
+        <Link href="/home" aria-label="CoCommit Home" className="flex h-11 items-center px-1 text-white md:h-auto md:pb-3 lg:pb-[30px]">
           <img src="/logo-mark.svg" alt="" className="h-9 w-auto invert md:h-8 lg:h-10" />
         </Link>
         <button
