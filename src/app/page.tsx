@@ -197,6 +197,9 @@ export default function Landing() {
         <Link href="/login?returnTo=/home" className={`rounded hover:text-fg ${focus}`}>
           Sign in
         </Link>
+        <Link href="/legal" className={`rounded hover:text-fg ${focus}`}>
+          Privacy, terms and cookies
+        </Link>
       </footer>
     </div>
   );
