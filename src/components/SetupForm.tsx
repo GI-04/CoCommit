@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui";
+import { friendlyError } from "@/lib/errors";
 import { getSession, GitHubRequestError, signInHref } from "@/lib/github-client";
 import { dayKey } from "@/lib/heatmap";
 import { setUpWorkspace } from "@/lib/workspace";
@@ -43,7 +44,7 @@ export function SetupForm({ repo, onDone }: { repo: string; onDone: () => void }
       });
       onDone();
     } catch (e) {
-      setError(e instanceof GitHubRequestError && e.status === 401 ? { text: "Log in with GitHub to set this up.", login: true } : { text: e instanceof Error ? e.message : "Couldn't set it up. Try again." });
+      setError(e instanceof GitHubRequestError && e.status === 401 ? { text: "Log in with GitHub to set this up.", login: true } : { text: friendlyError(e, "Couldn't set it up. Try again.") });
     } finally {
       setBusy(false);
     }

@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
-import { Card, Pill } from "@/components/ui";
-import { signInHref } from "@/lib/github-client";
+import { Card, Pill, Skeleton } from "@/components/ui";
 import { commitsOnDay, commitStreak, dayKey } from "@/lib/heatmap";
 import { timeAgo } from "@/lib/home";
 import { problem, useActivity, useCommits } from "./data";
+import { Trouble } from "./Trouble";
 
 const KIND = { commit: "commit", pr: "pull request", pinned: "pinned" } as const;
 
@@ -17,22 +16,12 @@ export function ActivityTab({ repo }: { repo: string | null }) {
   const commits = useCommits(repo);
   const now = new Date();
   const ready = commits.status === "ready" ? commits.data : null;
-  const trouble = problem(activity);
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_16rem]">
       <Card title="Recent activity">
-        {trouble && (
-          <p className="text-sm">
-            {trouble}{" "}
-            {activity.status === "login" && (
-              <Link href={signInHref("/home")} className="font-medium underline">
-                Log in
-              </Link>
-            )}
-          </p>
-        )}
-        {!trouble && activity.status === "loading" && <p className="text-sm">Loading…</p>}
+        <Trouble state={activity} from="/home" />
+        {activity.status === "loading" && <Skeleton lines={5} />}
         {activity.status === "ready" && activity.data.length === 0 && <p className="text-sm">Nothing yet. Commit something and it shows up here.</p>}
         {activity.status === "ready" && (
           <ul className="divide-y divide-black/20">

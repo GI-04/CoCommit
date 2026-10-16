@@ -31,6 +31,10 @@ The app follows the Figma file "CO-Commit" (page "test 4", key `A5ao1epDSl3hnbGX
 - **Sizes taken from the Figma frames (1440 px):** content top 57, header row 75, tab thumb 59 / tab 177, nav item 62 at a 70 pitch, logo 40 high at y=72, auth card 790 wide, Drive cards 410 high, Repository list 298 wide.
 - **Testing animations:** the browser test pane freezes CSS animations; call `document.getAnimations().forEach(a => a.finish())` before measuring or taking a screenshot.
 
+## UX round 2 (2026-10-16, `PLAN/2026-10-16-ux-round-2.md`)
+- `src/lib/errors.ts` `friendlyError` turns GitHub and network errors into plain sentences (used by Repository, Drive, Tasks, Home data, setup form); our own messages pass through. `ui.tsx` has `Skeleton` (loading placeholder) and `Tabs` is keyboard-friendly (arrows, Home/End, one tab stop). `components/home/Trouble.tsx` says why a card is empty with a Log in / Set up team context link. Route `layout.tsx` files give each page its tab title ("Repository · CoCommit"); `not-found.tsx` and `error.tsx` are the 404 and crash pages.
+- Audit tip: in the browser, check unlabelled controls, tap targets under 36 px, text under 11.5 px and horizontal overflow at 390 px; it found the chat input label, 10 px labels and the shared tab title.
+
 ## Sources
 - `PLAN/2026-10-16-figma-ui.md`, `PLAN/2026-10-16-figma-ui-polish.md`
 - Figma file `A5ao1epDSl3hnbGX599un3`, page "test 4" (frames "Home …", "Auth · …", "Handoff · 4 · Figma → code")

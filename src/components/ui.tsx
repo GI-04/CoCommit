@@ -64,13 +64,33 @@ export function Tabs({ tabs, value, onChange, label, className = "" }: { tabs: T
             type="button"
             role="tab"
             aria-selected={t.id === value}
+            tabIndex={t.id === value || (index < 0 && t.id === tabs[0]?.id) ? 0 : -1}
             onClick={() => onChange(t.id)}
+            onKeyDown={(e) => {
+              if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;
+              e.preventDefault();
+              const at = Math.max(index, 0);
+              const to = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (at + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+              onChange(tabs[to].id);
+              e.currentTarget.parentElement?.querySelectorAll<HTMLElement>("[role=tab]")[to]?.focus();
+            }}
             className={`relative z-10 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium lg:px-8 lg:py-[17px] lg:text-base ${tabs.length <= 3 ? "lg:min-w-[11rem]" : ""} ${t.id === value ? "text-white" : "text-white/85 hover:text-white"}`}
           >
             {t.label}
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// A loading placeholder: a few shimmering bars (announced as "Loading" to screen readers).
+export function Skeleton({ lines = 3, className = "" }: { lines?: number; className?: string }) {
+  return (
+    <div role="status" aria-label="Loading" className={`space-y-2.5 ${className}`}>
+      {Array.from({ length: lines }, (_, i) => (
+        <div key={i} className="shimmer" style={{ display: "block", height: "1rem", width: `${100 - (i % 3) * 18}%` }} />
+      ))}
     </div>
   );
 }

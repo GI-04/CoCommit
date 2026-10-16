@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { Button, Card, PageHeader, Skeleton } from "@/components/ui";
 import { getCurrentRepo } from "@/lib/current-repo";
+import { friendlyError } from "@/lib/errors";
 import { deleteSharedFile, listShared, saveSharedFile, uploadSharedFile, type SharedFile } from "@/lib/files";
 import { formatSize, MAX_FILE_BYTES } from "@/lib/files-util";
 import { GitHubRequestError, signInHref } from "@/lib/github-client";
@@ -21,7 +22,7 @@ export default function FilesPage() {
 
   const fail = useCallback((e: unknown) => {
     if (e instanceof GitHubRequestError && e.status === 401) setNeedsLogin(true);
-    else setError(e instanceof Error ? e.message : "Something went wrong.");
+    else setError(friendlyError(e));
   }, []);
 
   const refresh = useCallback(
@@ -151,7 +152,7 @@ export default function FilesPage() {
         className={dragging ? "rounded-xl outline-2 outline-dashed outline-green" : ""}
       >
         {files === null ? (
-          <p className="text-sm text-muted">Loading…</p>
+          <Skeleton lines={4} className="max-w-md" />
         ) : view === "list" ? (
           <Card title="Team files">
             {files.length === 0 ? (

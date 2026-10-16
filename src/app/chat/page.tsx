@@ -233,6 +233,9 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+              {messages.length === 0 && botReplies.length === 0 && (
+                <p className="py-10 text-center text-sm text-muted">No messages yet. Say hello to your team.</p>
+              )}
               {messages.map((m) =>
                 m.kind === "git_event" ? (
                   <p key={m.id} className="break-words rounded-2xl border border-line bg-bg px-4 py-2 text-sm text-muted [overflow-wrap:anywhere]">
@@ -267,17 +270,17 @@ export default function ChatPage() {
                         <p className="font-medium text-fg">
                           {pinForm.kind === "decision" ? "Save as a decision (COCOMMIT/DECISIONS.md)" : "Save as a gotcha (COCOMMIT/GOTCHAS.md)"}
                         </p>
-                        <input value={pinForm.fields.title} onChange={(e) => setField("title", e.target.value)} placeholder="Title" className={input} />
+                        <input value={pinForm.fields.title} onChange={(e) => setField("title", e.target.value)} aria-label="Title" placeholder="Title" className={input} />
                         {pinForm.kind === "decision" ? (
                           <>
-                            <textarea value={pinForm.fields.decision} onChange={(e) => setField("decision", e.target.value)} placeholder="Decision" rows={2} className={input} />
-                            <input value={pinForm.fields.why} onChange={(e) => setField("why", e.target.value)} placeholder="Why?" className={input} />
-                            <input value={pinForm.fields.alternatives} onChange={(e) => setField("alternatives", e.target.value)} placeholder="Alternatives (optional)" className={input} />
+                            <textarea value={pinForm.fields.decision} onChange={(e) => setField("decision", e.target.value)} aria-label="Decision" placeholder="Decision" rows={2} className={input} />
+                            <input value={pinForm.fields.why} onChange={(e) => setField("why", e.target.value)} aria-label="Why?" placeholder="Why?" className={input} />
+                            <input value={pinForm.fields.alternatives} onChange={(e) => setField("alternatives", e.target.value)} aria-label="Alternatives (optional)" placeholder="Alternatives (optional)" className={input} />
                           </>
                         ) : (
                           <>
-                            <textarea value={pinForm.fields.whatFailed} onChange={(e) => setField("whatFailed", e.target.value)} placeholder="What failed" rows={2} className={input} />
-                            <input value={pinForm.fields.workaround} onChange={(e) => setField("workaround", e.target.value)} placeholder="Workaround" className={input} />
+                            <textarea value={pinForm.fields.whatFailed} onChange={(e) => setField("whatFailed", e.target.value)} aria-label="What failed" placeholder="What failed" rows={2} className={input} />
+                            <input value={pinForm.fields.workaround} onChange={(e) => setField("workaround", e.target.value)} aria-label="Workaround" placeholder="Workaround" className={input} />
                           </>
                         )}
                         <div className="flex gap-2">
@@ -364,6 +367,7 @@ export default function ChatPage() {
                 <input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  aria-label="Message"
                   placeholder="Message the team · @cocommit to ask the bot"
                   disabled={!mayPost}
                   className="min-w-0 flex-1 rounded-full border border-black/20 bg-[#f0ece3] px-5 py-3 text-sm"

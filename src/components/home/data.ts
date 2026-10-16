@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { NoWorkspaceError } from "@/lib/chat-pins";
 import type { Activity } from "@/lib/context";
 import { getCurrentRepo } from "@/lib/current-repo";
+import { friendlyError } from "@/lib/errors";
 import { GitHubRequestError, listCommitDates } from "@/lib/github-client";
 import { windowStart, type CommitDate } from "@/lib/heatmap";
 import { loadBoard, type Board } from "@/lib/tasks";
@@ -39,7 +40,7 @@ function useLoad<T>(repo: string | null, load: (repo: string) => Promise<T>, rev
         if (!live) return;
         if (e instanceof GitHubRequestError && e.status === 401) setState({ status: "login" });
         else if (e instanceof NoWorkspaceError) setState({ status: "no-workspace" });
-        else setState({ status: "error", message: e instanceof Error ? e.message : "Something went wrong." });
+        else setState({ status: "error", message: friendlyError(e) });
       });
     return () => {
       live = false;
@@ -62,7 +63,7 @@ export const useWorkspace = (repo: string | null, rev = 0): Load<Workspace | nul
 /** One line for a card that can't show its data, or null while it is loading or ready. */
 export function problem(state: Load<unknown>): string | null {
   if (state.status === "login") return "Log in with GitHub to see this.";
-  if (state.status === "no-workspace") return "This repo has no team context yet. Set it up on the Agent Context screen.";
+  if (state.status === "no-workspace") return "This repo has no team context yet.";
   if (state.status === "error") return state.message;
   return null;
 }

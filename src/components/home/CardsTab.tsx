@@ -5,13 +5,14 @@ import { useEffect, useState } from "react";
 import { Avatar } from "@/components/Avatar";
 import type { CommitDate } from "@/lib/heatmap";
 import { Icon } from "@/components/icons";
-import { Card, Pill } from "@/components/ui";
+import { Card, Pill, Skeleton } from "@/components/ui";
 import { HOME_LAYOUT_KEY, moveCard, resolveLayout, toggleCard, visibleCards, type HomeLayout } from "@/lib/home";
 import { signInHref } from "@/lib/github-client";
 import { navItems } from "@/lib/sections";
 import type { Board, TaskStatus } from "@/lib/tasks";
 import { commitsOnDay, dayKey } from "@/lib/heatmap";
 import { problem, useBoard, useCommits, type Load } from "./data";
+import { Trouble } from "./Trouble";
 
 const TONES = ["pink", "cyan", "mustard", "green"] as const;
 const WORK = "work";
@@ -141,7 +142,6 @@ function WorkDone({ board, commits }: { board: Load<Board>; commits: Load<Commit
     <Card tone="cyan" className="flex h-full min-h-[8.5rem] flex-col xl:min-h-[21rem]">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-base font-semibold">Work done</h2>
-        <span className="text-xs">Last 7 days</span>
       </div>
       <p className="text-[56px] font-semibold leading-none">{done ?? <span className="shimmer">00</span>}</p>
       <p className="mt-2 text-sm">{tasks ? `tasks closed, of ${tasks.length}` : (problem(board) ?? "Loading…")}</p>
@@ -155,13 +155,12 @@ function WorkDone({ board, commits }: { board: Load<Board>; commits: Load<Commit
           />
         ))}
       </div>
-      <p className="mt-2 text-xs">commits per day</p>
+      <p className="mt-2 text-xs">commits per day, last 7 days</p>
     </Card>
   );
 }
 
 function TeamBoard({ board, link }: { board: Load<Board>; link: boolean }) {
-  const trouble = problem(board);
   return (
     <Card className="h-full">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -172,17 +171,8 @@ function TeamBoard({ board, link }: { board: Load<Board>; link: boolean }) {
           </Link>
         )}
       </div>
-      {trouble && (
-        <p className="text-sm">
-          {trouble}{" "}
-          {board.status === "login" && (
-            <Link href={signInHref("/home")} className="font-medium underline">
-              Log in
-            </Link>
-          )}
-        </p>
-      )}
-      {!trouble && board.status === "loading" && <p className="text-sm">Loading…</p>}
+      <Trouble state={board} from="/home" />
+      {board.status === "loading" && <Skeleton lines={4} />}
       {board.status === "ready" && (
         <div className="grid gap-3 sm:grid-cols-3">
           {COLUMNS.map((col) => {

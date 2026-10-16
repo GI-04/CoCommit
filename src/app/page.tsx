@@ -10,7 +10,7 @@ import { GetStarted } from "@/components/landing/GetStarted";
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: "CoCommit: git, with buttons",
+  title: { absolute: "CoCommit: git, with buttons" },
   description:
     "CoCommit turns commits, pulls, pushes and pull requests into buttons, with team chat, files and shared AI context in the same window. Built for small teams and first-time coders.",
 };
@@ -83,7 +83,7 @@ export default function Landing() {
 
       <main className="mx-auto max-w-6xl px-4 pb-16 md:px-8">
         <section className="pt-14 text-center md:pt-20" aria-labelledby="intro">
-          <p className="rise glass mx-auto inline-block rounded-full px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-white/90">Now in early access</p>
+          <p className="rise glass mx-auto inline-block rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-[0.12em] text-white/90">Now in early access</p>
           <h1 id="intro" className="rise mt-6 text-5xl font-semibold leading-[1.05] tracking-[-0.02em] md:text-7xl">
             Git, with buttons.
           </h1>
