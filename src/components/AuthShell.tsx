@@ -19,6 +19,11 @@ export function AuthShell({ tone, title, subtitle, children }: { tone: Tone; tit
         {subtitle && <p className="mt-2 text-center text-base">{subtitle}</p>}
         <div className="mt-8">{children}</div>
       </div>
+      <p className="mt-6 text-center text-sm text-muted">
+        <Link href="/legal" className="rounded underline underline-offset-2 outline-accent-soft hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2">
+          Privacy, terms and cookies
+        </Link>
+      </p>
     </div>
   );
 }

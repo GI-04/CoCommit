@@ -142,6 +142,9 @@ export default function ProfilePage() {
           )}
         </>
       )}
+      <p className="pt-2 text-sm text-muted">
+        <Link href="/legal" className="underline underline-offset-2 hover:text-fg">Privacy, terms and cookies</Link>
+      </p>
     </div>
   );
 }

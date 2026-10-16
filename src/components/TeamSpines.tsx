@@ -18,9 +18,9 @@ export function TeamSpines({ members, actions }: { members: Member[]; actions?: 
         <li key={`${g.person.title}-${i}`} className="rise" style={{ "--d": `${Math.min(i, 8) * 70}ms` } as CSSProperties}>
           <Spine member={g.person} tone={g.tone} actions={actions} />
           {g.agents.length > 0 && (
-            <ul className="ml-3 mt-2 space-y-2 border-l-2 border-white/25 pl-2.5 sm:ml-8 sm:pl-4">
+            <ul className="ml-3 mt-2 space-y-2 border-l-2 border-fg/25 pl-2.5 sm:ml-8 sm:pl-4">
               {g.agents.map((a, j) => (
-                <li key={`${a.title}-${j}`} className="relative before:absolute before:-left-2.5 before:top-[29px] before:h-0.5 before:w-2.5 before:bg-white/25 sm:before:-left-4 sm:before:w-4">
+                <li key={`${a.title}-${j}`} className="relative before:absolute before:-left-2.5 before:top-[29px] before:h-0.5 before:w-2.5 before:bg-fg/25 sm:before:-left-4 sm:before:w-4">
                   <Spine member={a} tone={g.tone} agent owner={g.person} actions={actions} />
                 </li>
               ))}
