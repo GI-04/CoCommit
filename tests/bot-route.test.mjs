@@ -122,6 +122,12 @@ const toolTurn = (...uses) => ({
 const endTurn = (text) => ({ stop_reason: "end_turn", usage: { input_tokens: 10, output_tokens: 5 }, content: [{ type: "text", text }] });
 const results = (request) => request.body.messages.at(-1).content.map((r) => r.content);
 
+test("search hits become links when the answer names the file", async () => {
+  const { post } = setup({ replies: [toolTurn(["search_files", { query: "export default" }]), endTurn("It's in src/app/page.tsx.")] });
+  const res = await post({ repo: "o/r", question: "where is the home page?" });
+  assert.deepEqual(plain(res.body.sources), [{ path: "src/app/page.tsx:1", url: "https://github.com/o/r/blob/main/src/app/page.tsx#L1" }]);
+});
+
 test("searches the code, reads lines and links to them", async () => {
   const { post, requests, calls } = setup({
     replies: [

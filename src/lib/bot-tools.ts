@@ -121,7 +121,10 @@ export async function runTool(name: ToolName, input: Record<string, unknown>, ct
         `## File names matching "${query}"\n${lines(names)}`,
         `## Lines matching "${query}" (${hits.length}${filesWithHits ? ` shown, in ${filesWithHits} files` : ""})\n${lines(hits.map((h) => `${h.path}:${h.line}: ${h.text}`))}`,
       ].join("\n\n");
-      return { text, used: [] };
+      // One link per file (first matching line); the route keeps only the ones the answer names.
+      const firstHit = new Map<string, number>();
+      for (const h of hits) if (!firstHit.has(h.path)) firstHit.set(h.path, h.line);
+      return { text, used: [...firstHit].map(([path, line]) => fileLink(ctx, path, line)) };
     }
     case "read_file": {
       const path = cleanPath(input.path);

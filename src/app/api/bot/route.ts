@@ -113,9 +113,9 @@ const textOf = (content: Block[]) =>
 
 const short = (text: string, max = 400) => (text.length > max ? `${text.slice(0, max)}…` : text);
 
-/** Sources the answer mentions (by file path or "#N"); if it mentions none, everything the tools read. */
+/** Sources the answer mentions (by file path or "#N"); if it mentions none, everything the tools read. One per file: the last (most specific) wins. */
 function pickSources(answer: string, used: BotSource[]): BotSource[] {
-  const unique = [...new Map(used.map((s) => [s.url, s])).values()];
+  const unique = [...new Map(used.map((s) => [s.path.replace(/:\d+(-\d+)?$/, ""), s])).values()];
   const named = unique.filter((s) => {
     const label = s.path.replace(/:\d+(-\d+)?$/, "");
     const num = label.match(/#(\d+)$/)?.[1];
