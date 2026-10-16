@@ -10,10 +10,22 @@ export function downloadName(path: string, kind: FileKind = "file"): string {
   return kind === "diff" ? `${name}.diff` : name;
 }
 
-/** The question "Ask Assistant" sends about the open file or change. */
-export function fileQuestion(path: string, repo: string, branch: string, kind: FileKind = "file"): string {
+/** How much of a diff goes into the question: the Assistant can't compare branches, so the change itself is sent. */
+export const PATCH_MAX = 6000;
+
+/** The question "Ask Assistant" sends about the open file or change (for a change, the diff is included, cut at PATCH_MAX). */
+export function fileQuestion(path: string, repo: string, branch: string, kind: FileKind = "file", patch = ""): string {
   const where = `${repo ? ` in ${repo}` : ""}${branch ? ` on the ${branch} branch` : ""}`;
-  return kind === "diff"
-    ? `Explain the changes to \`${path}\`${where}: what changed and what it could affect.`
-    : `Explain \`${path}\`${where}: what it does and how it fits the rest of the project.`;
+  if (kind !== "diff") return `Explain \`${path}\`${where}: what it does and how it fits the rest of the project.`;
+  const head = `Explain the changes to \`${path}\`${where}: what changed and what it could affect.`;
+  const diff = String(patch ?? "");
+  if (!diff.trim()) return head;
+  return `${head}\n\nHere is the diff:\n\`\`\`diff\n${diff.slice(0, PATCH_MAX)}${diff.length > PATCH_MAX ? "\n… (cut here)" : ""}\n\`\`\``;
+}
+
+/** Copy and Download only make sense for text: not for an empty result (a binary or very large file) or one with broken characters. */
+export function textProblem(text: string): string | null {
+  if (!text) return "Empty, or too large or not a text file";
+  if (text.includes("\ufffd")) return "Not a text file";
+  return null;
 }

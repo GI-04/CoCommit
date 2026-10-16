@@ -33,3 +33,22 @@ test("fileQuestion names the file, the repo and the branch", () => {
   assert.match(f.fileQuestion("a.ts", "o/r", "fix", "diff"), /changes to `a\.ts` in o\/r on the fix branch/);
   assert.equal(f.fileQuestion("a.ts", "", ""), "Explain `a.ts`: what it does and how it fits the rest of the project.");
 });
+
+test("a question about a change carries the diff (cut at PATCH_MAX), a question about a file does not", () => {
+  const patch = "@@ -1 +1 @@\n-old\n+new";
+  const q = f.fileQuestion("a.ts", "o/r", "fix", "diff", patch);
+  assert.match(q, /Here is the diff:\n```diff\n@@ -1 \+1 @@\n-old\n\+new\n```$/);
+  assert.equal(f.fileQuestion("a.ts", "o/r", "fix", "file", patch).includes("```"), false, "a file question never includes text");
+  assert.equal(f.fileQuestion("a.ts", "o/r", "fix", "diff", "  \n").includes("```"), false, "an empty diff adds nothing");
+  const big = f.fileQuestion("a.ts", "o/r", "fix", "diff", "x".repeat(f.PATCH_MAX + 500));
+  assert.ok(big.includes("… (cut here)") && big.length < f.PATCH_MAX + 300);
+  assert.ok(!f.fileQuestion("a.ts", "o/r", "fix", "diff", "x".repeat(f.PATCH_MAX)).includes("cut here"), "exactly PATCH_MAX is not cut");
+});
+
+test("textProblem refuses empty text and text with broken characters", () => {
+  assert.equal(f.textProblem("hello\nworld"), null);
+  assert.equal(f.textProblem("   "), null, "blank text is still text");
+  assert.match(f.textProblem(""), /Empty|large|not a text/);
+  assert.equal(f.textProblem(undefined) !== null, true);
+  assert.equal(f.textProblem("PNG��"), "Not a text file");
+});

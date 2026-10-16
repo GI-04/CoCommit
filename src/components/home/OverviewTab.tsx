@@ -24,7 +24,7 @@ export function OverviewTab({ repo }: { repo: string | null }) {
         <Stat tone="mustard" label="Tasks done" value={tasks ? tasks.filter((t) => t.status === "done").length : null} sub={tasks ? `of ${tasks.length} tasks` : reason(board)} />
         <Stat tone="cyan" label="Open tasks" value={tasks ? tasks.filter((t) => t.status !== "done").length : null} sub={tasks ? `${tasks.filter((t) => t.status === "taken").length} in progress` : reason(board)} />
       </div>
-      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+      <div className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">
         <HeatMap repo={repo} state={commits} />
         <Card title="Team">
           {board.status === "ready" ? (

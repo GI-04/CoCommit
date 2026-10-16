@@ -16,16 +16,19 @@ type Msg = { id: string; role: "user" | "assistant"; text: string; sources?: Bot
 type Size = "closed" | "open" | "minimised";
 
 // `ask(question)` opens the window and asks it; the dock picks the queued question up (`pending`) when it is ready.
-type Ctx = { size: Size; setSize: (s: Size) => void; toggle: () => void; ask: (question: string) => void; pending: string | null; clearPending: () => void };
+// `where` names the repo and branch the question is about, so the answer is about that and not the Assistant's own pick.
+type Where = { repo?: string; branch?: string };
+type Pending = { question: string; where?: Where };
+type Ctx = { size: Size; setSize: (s: Size) => void; toggle: () => void; ask: (question: string, where?: Where) => void; pending: Pending | null; clearPending: () => void };
 const AssistantContext = createContext<Ctx>({ size: "closed", setSize: () => {}, toggle: () => {}, ask: () => {}, pending: null, clearPending: () => {} });
 export const useAssistant = () => useContext(AssistantContext);
 
 export function AssistantProvider({ children }: { children: ReactNode }) {
   const [size, setSize] = useState<Size>("closed");
   const toggle = useCallback(() => setSize((s) => (s === "open" ? "closed" : "open")), []);
-  const [pending, setPending] = useState<string | null>(null);
-  const ask = useCallback((question: string) => {
-    setPending(question);
+  const [pending, setPending] = useState<Pending | null>(null);
+  const ask = useCallback((question: string, where?: Where) => {
+    setPending({ question, where });
     setSize("open");
   }, []);
   const clearPending = useCallback(() => setPending(null), []);
@@ -71,16 +74,17 @@ function AssistantDock() {
     end.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
 
-  async function ask(question: string) {
+  async function ask(question: string, where?: Where) {
     const q = question.trim();
     if (!q || busy) return;
-    const target = repo ?? getCurrentRepo();
-    setText("");
+    const target = where?.repo || repo || getCurrentRepo();
+    const used = where?.branch ? { ...settings, branch: where.branch } : settings;
+    if (!where) setText(""); // a question queued from another page doesn't wipe what is being typed
     setBusy(true);
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: q }]);
     try {
       const editing = settings.mode === "edit";
-      const { answer, sources, debug, changes } = await askBot(target, q, [], settings, editing ? staged : []);
+      const { answer, sources, debug, changes } = await askBot(target, q, [], used, editing ? staged : []);
       if (editing && changes) {
         if (!staged.length && changes.length) setFirstEditQuestion(q);
         setStaged(changes);
@@ -104,12 +108,21 @@ function AssistantDock() {
   }
 
   // A question queued by `ask()` from another page (e.g. "Ask Assistant" on a file) is asked once the window is open and free.
+  const lastQueued = useRef({ key: "", at: 0 });
   useEffect(() => {
     if (!pending || size !== "open" || busy) return;
     clearPending();
-    void ask(pending);
+    const key = `${pending.where?.repo ?? ""}\n${pending.where?.branch ?? ""}\n${pending.question}`;
+    if (key === lastQueued.current.key && Date.now() - lastQueued.current.at < 5000) return; // a double click asks once
+    lastQueued.current = { key, at: Date.now() };
+    setShowSettings(false); // the chat must be showing, or nothing seems to happen
+    void ask(pending.question, pending.where);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending, size, busy]);
+  // A question still waiting when the window is closed is dropped, not asked later.
+  useEffect(() => {
+    if (size === "closed") clearPending();
+  }, [size, clearPending]);
 
   // Closed: nothing floats on the page. The Assistant item in the navigation (and Context's "Ask assistant") opens it.
   if (size === "closed") return null;
