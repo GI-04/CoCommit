@@ -166,7 +166,7 @@
         "chat",
         "profiles"
       ],
-      "summary": "Email/password helpers (sign up, log in, reset, sign out, friendly errors), what email/Google/GitHub users may do (permissions.ts), the profiles name fallback, the screens (EmailLogin on /login, /login/forgot, /login/reset, built 2026-10-16 but not yet run against real Supabase), and open gaps (Supabase settings are Pattadon's).",
+      "summary": "Email/password helpers (sign up, log in, reset, sign out, friendly errors), what email/Google/GitHub users may do (permissions.ts), the profiles name fallback, the screens (EmailLogin on /login, /login/forgot, /login/reset, live since PR #39), the live check (real sign-up passed 2026-10-16; reset email run not reported).",
       "path": "knowledge/general/email-login.md",
       "sources": [],
       "added": "2026-10-15"
