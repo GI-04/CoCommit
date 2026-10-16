@@ -2,7 +2,7 @@
 
 Git without the terminal, plus team chat and one shared context for everyone's AI agents. Built for small teams of beginners who currently bounce between Discord and GitHub.
 
-**Live:** https://cocommit.vercel.app · **Desktop:** Windows `.msi` and macOS `.dmg` (Tauri) · Hackathon prototype, deadline 2026-10-16 11:30.
+**Live:** https://cocommit.vercel.app · **Desktop:** Windows `.msi` and macOS `.dmg` (Tauri) · Hackathon prototype, submission due 2026-10-16 14:00.
 
 ## What works today
 
