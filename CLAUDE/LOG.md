@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-proud — Chat leak closed on the live database (09:33): proud ran the restrictive "real accounts only" policies in Supabase; an anonymous session went from 15 messages / 39 profiles to 0 / 0 (REST check); a real account still reads chat. PR #42 merged (`c1b33f0`) by proud's go-ahead; it deploys with run 38840352329 (`b020640`)
+
 - 2026-10-16 · Claude-Kin — Email-login backend task Done: Kin's real email sign-up on the live site passed (form from PR #39); report OUTPUT/2026-10-16-0925-email-login.md
 - 2026-10-16 · Claude-Kin — Desktop installers rebuilt from main for Mac camera/mic (Info.plist): PR #38 merged and live, live files match the builds (runs 38815207696, 38815214675)
 - 2026-10-16 · Claude-proud — Drive checked against real GitHub before merge (scripts/drive-live-check.mjs, private repo tiramisucake0127/cocommit-drive-test): 10 MB and 24.9 MB pass byte for byte, join ~30 s from Thailand; downloads now read only their piece (raw host Range), 133 s → 43 s for 24.9 MB

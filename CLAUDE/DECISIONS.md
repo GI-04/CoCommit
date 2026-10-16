@@ -11,7 +11,7 @@
 
 ## 2026-10-16 — Chat is for real accounts only; no anonymous Supabase sessions
 - **Status:** active
-- **Decision:** chat no longer signs visitors in to Supabase anonymously; signed out, `/chat` shows a login card. The `messages` select and pin rules and the `profiles` select rule refuse anonymous sessions (`supabase/chat-privacy.sql`). Get started on `/` goes to the login page unless you're signed in. Plan: `PLAN/2026-10-16-chat-privacy-get-started.md` (approved by proud).
+- **Decision:** chat no longer signs visitors in to Supabase anonymously; signed out, `/chat` shows a login card. The `messages` select and pin rules and the `profiles` select rule refuse anonymous sessions, enforced on the live project by RESTRICTIVE policies so no other policy can reopen it (`supabase/chat-privacy.sql`, live 2026-10-16 09:33). Get started on `/` goes to the login page unless you're signed in. Plan: `PLAN/2026-10-16-chat-privacy-get-started.md` (approved by proud).
 - **Why:** anonymous users count as `authenticated`, and the anon key is public, so anyone could read every chat straight from Supabase (proud's screen recording, GOTCHAS 2026-10-16).
 - **Alternatives:** keep anonymous reading and hide chat in the UI only (the data would still be readable through the API); turn the login wall back on for every page (blocks the landing demo and guests looking around).
 - **Supersedes / superseded by:** supersedes the "chat signs in to Supabase anonymously" part of "Demo uses GitHub sign-in only" (2026-10-15).

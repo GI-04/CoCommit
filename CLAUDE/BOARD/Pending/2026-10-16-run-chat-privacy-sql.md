@@ -1,4 +1,4 @@
-# Task: Run `supabase/chat-privacy.sql`, then turn off anonymous sign-ins
+# Task: Turn off anonymous sign-ins in Supabase (the chat-privacy SQL already ran)
 
 <!-- Filename: YYYY-MM-DD-<slug>.md. The folder is the status: Pending/ (unclaimed) → Taken/ (claimed) → Done/ (verified). Released work goes back Taken/ → Pending/ with a handoff note. -->
 
@@ -6,8 +6,8 @@
 **Under:** proud: backend
 
 ## What
-Right now anyone with the public anon key can sign in anonymously and read every chat message (all repos and #general), pin messages and read profiles (GOTCHAS 2026-10-16). Plan: `PLAN/2026-10-16-chat-privacy-get-started.md`.
-1. **Now:** Supabase → SQL Editor → run `supabase/chat-privacy.sql` (on branch `proud/chat-privacy` until merged; safe to run again). It only changes three policies; it needs no deploy. Before the code below is live, signed-out visitors see an empty chat.
+Until 2026-10-16 09:33 anyone with the public anon key could sign in anonymously and read every chat message, pin messages and read profiles (GOTCHAS 2026-10-16). The database rules now block that; turning anonymous sign-ins off removes the way in altogether. Plan: `PLAN/2026-10-16-chat-privacy-get-started.md`.
+1. ~~Run `supabase/chat-privacy.sql`~~ **done** by proud, 2026-10-16 09:33 (restrictive "real accounts only" policies; `node scripts/check-chat-privacy.mjs` prints 0 and 0).
 2. **After `proud/chat-privacy` is merged and deployed:** Authentication → Sign In / Providers → turn off "Allow anonymous sign-ins". Not before: the old code shows "Chat needs Anonymous sign-ins turned on" to signed-out visitors.
 
 ## Acceptance
