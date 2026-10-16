@@ -12,6 +12,7 @@ import { hasGitHubIdentity } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
 import { isMarkerPath, isSharedPath, MAX_FILE_BYTES, MAX_PARTS, PART_BYTES, partCount, splitShared } from "./files-util";
 import { cleanUsername } from "./invite";
+import { accessFromStatus, type RepoAccess } from "./repo-access";
 import type { Change, Commit, FileEdit, GitHubActions, InviteResult, PullRequest, Repo, Session, SharedFile, SharedListing, User } from "./github-types";
 
 export type { Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
@@ -218,6 +219,19 @@ async function signedInWithGitHub(): Promise<boolean> {
     return Boolean(data.user && !data.user.is_anonymous && hasGitHubIdentity(data.user));
   } catch {
     return false;
+  }
+}
+
+/** Whether GitHub lets the signed-in user see `repo`: decides who may use its chat and call (repo-access.ts). */
+export async function canSeeRepo(repo: string): Promise<RepoAccess> {
+  if (fakeMode) return "member";
+  try {
+    await gh(repoPath(repo));
+    return "member";
+  } catch (e) {
+    const access = e instanceof GitHubError ? accessFromStatus(e.status) : null;
+    if (access) return access;
+    throw e;
   }
 }
 

@@ -5,10 +5,13 @@
 // login (supabase/chat-author.sql), so nobody can post under someone else's name.
 // Without the Supabase keys it runs in fake mode: messages are kept in this browser (localStorage) and
 // reach other tabs instantly (BroadcastChannel), so two tabs can chat before the keys exist.
+// Repo chats are for repo members only: before reading or posting, the server checks GitHub (/api/chat/join) and
+// the table rules require that check (supabase/repo-members.sql, PLAN/2026-10-16-repo-members-only.md).
 // Table and access rules: supabase/schema.sql.
 
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { Activity } from "./context";
+import { GENERAL } from "./current-repo";
 import type { Session } from "./github-types";
 import { getSupabase, supabaseConfigured } from "./supabase";
 
@@ -95,6 +98,42 @@ async function requireAccount(supabase: Supabase): Promise<void> {
   if (!data.session || data.session.user.is_anonymous) throw new NotSignedInError();
 }
 
+/** Thrown when GitHub doesn't let you see the repo (or you have no GitHub sign-in): its chat stays closed. */
+export class NotMemberError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "NotMemberError";
+  }
+}
+
+// One check per repo per half hour (the server's record lasts 24 hours). A failed check is forgotten, so it retries.
+const RECHECK_MS = 30 * 60 * 1000;
+const joined = new Map<string, { at: number; check: Promise<void> }>();
+
+/** Asks our server to check (and record) that you're a member of `repo`. # general needs no check. */
+function ensureMember(repo: string): Promise<void> {
+  if (repo === GENERAL) return Promise.resolve();
+  const seen = joined.get(repo);
+  if (seen && Date.now() - seen.at < RECHECK_MS) return seen.check;
+  const check = (async () => {
+    const res = await fetch("/api/chat/join", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ repo }) });
+    if (res.ok) return;
+    const data = (await res.json().catch(() => null)) as { error?: string } | null;
+    if (res.status === 401) throw new NotSignedInError();
+    if (res.status === 403) throw new NotMemberError(data?.error ?? "You're not a member of this repo.");
+    throw new Error(data?.error ?? "Couldn't open this repo's chat. Try again in a moment.");
+  })();
+  joined.set(repo, { at: Date.now(), check });
+  check.catch(() => joined.delete(repo));
+  return check;
+}
+
+/** A real account and, for a repo chat, a member of that repo. */
+async function requireAccess(supabase: Supabase, repo: string): Promise<void> {
+  await requireAccount(supabase);
+  await ensureMember(repo);
+}
+
 /** Turns a Supabase error into a message people can act on. */
 function friendly(e: { code?: string; message: string }): string {
   if (e.code === "42P01" || e.code === "PGRST205" || /does not exist|could not find the table/i.test(e.message)) {
@@ -108,7 +147,7 @@ function friendly(e: { code?: string; message: string }): string {
 export async function loadMessages(repo: string, limit = 100): Promise<ChatMessage[]> {
   const supabase = getSupabase();
   if (!supabase) return fake.read().filter((m) => m.repo === repo).slice(-limit);
-  await requireAccount(supabase);
+  await requireAccess(supabase, repo);
   const { data, error } = await supabase
     .from("messages")
     .select(COLUMNS)
@@ -138,7 +177,7 @@ async function post(repo: string, text: string, kind: ChatMessage["kind"]): Prom
     fake.save(m);
     return m;
   }
-  await requireAccount(supabase);
+  await requireAccess(supabase, repo);
   if (!(await canPost())) throw new Error(LOGIN_TO_CHAT);
   // The database overwrites author (and sets author_login), so this is only a hint.
   const { data, error } = await supabase.from("messages").insert({ repo, author, text: body, kind }).select(COLUMNS).single();
@@ -157,7 +196,7 @@ export async function listPinned(repo: string, limit = 10): Promise<Activity[]> 
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, limit);
   } else {
-    await requireAccount(supabase);
+    await requireAccess(supabase, repo);
     const { data, error } = await supabase
       .from("messages")
       .select(COLUMNS)
@@ -196,7 +235,7 @@ export function subscribe(repo: string, onMessage: (m: ChatMessage) => void): ()
   let channel: RealtimeChannel | null = null;
   let stopped = false;
   const filter = `repo=eq.${repo}`;
-  requireAccount(supabase)
+  requireAccess(supabase, repo)
     .then(() => {
       if (stopped) return;
       channel = supabase
@@ -231,7 +270,7 @@ export function onlineUsers(repo: string, onChange: (names: string[]) => void): 
 
   let channel: RealtimeChannel | null = null;
   let stopped = false;
-  Promise.all([myName(), requireAccount(supabase)]).then(([name]) => {
+  Promise.all([myName(), requireAccess(supabase, repo)]).then(([name]) => {
     if (stopped) return;
     const ch = supabase.channel(`online:${repo}`, { config: { presence: { key: crypto.randomUUID() } } });
     channel = ch;

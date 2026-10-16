@@ -2,7 +2,7 @@
 
 <!-- Filename: YYYY-MM-DD-<slug>.md. Never delete a plan: set its status instead. -->
 
-**Status:** proposed <!-- proposed | active | done | rejected | superseded -->
+**Status:** active <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **By:** Claude-Kin (for Kin) · **Superseded by:** —
 
 ## Why

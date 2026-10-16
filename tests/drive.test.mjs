@@ -37,6 +37,7 @@ function setup() {
       "./git-modes": gitModes,
       "./login-identity": { hasGitHubIdentity: () => false },
       "./supabase-server": { getSupabaseServer: async () => null },
+      "./repo-access": { accessFromStatus: () => null },
       "./invite": { cleanUsername: (v) => String(v ?? "").trim().replace(/^@/, "") || null },
       "./files-util": util,
     },
