@@ -335,7 +335,7 @@ export async function openPullRequest(repo: string, head: string, base: string, 
 
 /** A text file's contents, or null if it doesn't exist. `branch: null` means the default branch. */
 export async function readFile(repo: string, branch: string | null, path: string): Promise<string | null> {
-  if (fakeMode) return path === CONTEXT_PATH ? fake.context(repo) : `// ${path} (fake file)\n`;
+  if (fakeMode) return path === CONTEXT_PATH ? fake.context(repo) : path === "COCOMMIT/COLLAB.md" ? fake.collab : `// ${path} (fake file)\n`;
   const ref = branch ? `?ref=${encodeURIComponent(branch)}` : "";
   try {
     const file = await gh<{ type?: string; content?: string }>(`${repoPath(repo)}/contents/${seg(path)}${ref}`);
@@ -591,6 +591,51 @@ const fake = {
       patch: "@@ -1,2 +1,2 @@\n # Demo app\n-A to-do app.\n+A to-do app with sign-in.",
     },
   ] as Change[],
+  // A small team (people and their agents) so the Team views have something to show in demo mode.
+  collab: `# Collab
+
+## Mina
+- **Name:** Mina
+- **Role:** full stack and infrastructure helper
+- **Capability:** frontend, backend, infrastructure; approves commits, pushes, installs and deletions
+- **Availability:** unknown, ask
+- **Write scope:** anything
+
+## Claude-Mina
+- **Name:** Claude Opus 5.5, Mina's agent (runs on Mina's machine and answers to Mina)
+- **Role:** implementation, review, reporting
+- **Capability:** read/write files, run shell commands, browse the web, git (commit/push only when asked)
+- **Availability:** per session
+- **Write scope:** whole project, except other agents' CLAUDE/INBOX/ folders
+
+## Ben
+- **Name:** Ben
+- **Role:** backend
+- **Capability:** API routes, GitHub API, Supabase, LiveKit
+- **Availability:** through the project
+- **Write scope:** anything
+
+## Claude-Ben
+- **Name:** Claude Opus 5.5, Ben's agent (runs on Ben's machine and answers to Ben)
+- **Role:** implementation, review, reporting
+- **Capability:** read/write files, run shell commands, git (commit/push only when asked)
+- **Availability:** per session
+- **Write scope:** whole project, except other agents' CLAUDE/INBOX/ folders
+
+## Codex-Ben
+- **Name:** Codex, Ben's second agent
+- **Role:** review
+- **Capability:** read files, run tests
+- **Availability:** per session
+- **Write scope:** tests/
+
+## Sam
+- **Name:** Sam
+- **Role:** desktop and design
+- **Capability:** Tauri desktop shell, Figma to code
+- **Availability:** evenings
+- **Write scope:** src-tauri/, src/components/
+`,
   context: (repo: string) =>
     fakeContexts.get(repo) ??
     `# COCOMMIT.md

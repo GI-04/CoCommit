@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Avatar } from "@/components/Avatar";
 import { Icon } from "@/components/icons";
 import { ListPanel, repoItem } from "@/components/ListPanel";
 import { MessagesShell } from "@/components/MessagesShell";
-import { Button, Card, Pill, Skeleton } from "@/components/ui";
+import { TeamSpines } from "@/components/TeamSpines";
+import { Button, Card, Pill, Skeleton, buttonClass } from "@/components/ui";
 import { useRepos } from "@/components/useRepos";
 import { friendlyError } from "@/lib/errors";
 import { NoWorkspaceError } from "@/lib/chat-pins";
@@ -141,7 +141,7 @@ export default function TasksPage() {
               </Button>
             </>
           )}
-          <a href={`https://github.com/${repo}/settings/access`} target="_blank" rel="noreferrer" className="rounded-xl border border-black bg-[var(--blue)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-90">
+          <a href={`https://github.com/${repo}/settings/access`} target="_blank" rel="noreferrer" className={buttonClass("blue", "inline-block")}>
             Invite
           </a>
         </div>
@@ -382,23 +382,19 @@ export default function TasksPage() {
         {board.members.length === 0 ? (
           <p className="text-sm text-muted">Nobody is listed in COLLAB.md yet.</p>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2">
-            {board.members.map((m, i) => (
-              <li key={m.title} className={`block-${(["pink", "cyan", "mustard", "green"] as const)[i % 4]} flex items-center gap-3 p-4`}>
-                <Avatar name={m.name || m.title} className="size-14 text-xl" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-semibold">{m.name || m.title}</span>
-                  <span className="block truncate text-xs">{m.role || m.title}</span>
-                </span>
-                <Link href="/chat" aria-label={`Message ${m.name || m.title}`} className="grid size-10 place-items-center rounded-full border border-black bg-paper">
+          <TeamSpines
+            members={board.members}
+            actions={(_m, label) => (
+              <>
+                <Link href="/chat" aria-label={`Message ${label}`} className="grid size-9 place-items-center rounded-full border border-black bg-paper sm:size-10">
                   <Icon name="message" className="size-4" />
                 </Link>
-                <Link href="/calls" aria-label={`Call ${m.name || m.title}`} className="grid size-10 place-items-center rounded-full border border-black bg-paper">
+                <Link href="/calls" aria-label={`Call ${label}`} className="grid size-9 place-items-center rounded-full border border-black bg-paper sm:size-10">
                   <Icon name="phone" className="size-4" />
                 </Link>
-              </li>
-            ))}
-          </ul>
+              </>
+            )}
+          />
         )}
       </section>
     </>,
