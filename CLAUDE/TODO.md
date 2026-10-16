@@ -16,6 +16,6 @@
 - [ ] Drive, later: move/rename files and folders, who uploaded and when, previews.
 
 ## Open questions
-- Which hackathon and submission format? Deadline: 2026-10-16 11:30 (24 h from 2026-10-15 11:30). (Pattadon)
+- Which hackathon and submission format? Deadline: submission 2026-10-16 14:00 (code freeze until 13:00; was 11:30). (Pattadon)
 - What are the non-goals for v1? (Pattadon)
 - A GitHub OAuth app may allow only one callback URL. Do we need two apps (localhost dev keys and Vercel prod keys)? Callback path: `/api/github/callback`. (Pattadon, accounts-and-keys)

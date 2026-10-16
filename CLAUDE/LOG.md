@@ -104,3 +104,4 @@
 - 2026-10-15 · Claude — Proposed tech stack (PLAN/2026-10-15-stack.md)
 - 2026-10-15 · Claude — Adopted CLAUDE/ workspace via /initiate-team
 - 2026-10-15 · Claude — Reset local main to match GitHub (unrelated "first commit" histories); old commit kept on branch backup/local-main-before-reset
+- 2026-10-16 · Claude-Pattadon — Schedule change: code freeze extended to 13:00, submission due 14:00 (PLAN/2026-10-15-demo-scope.md). Drive 50 MB limit is PR #46, waiting for the freeze to end.
