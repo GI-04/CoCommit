@@ -6,6 +6,7 @@
 - 2026-10-16 · Claude-Trin — PR #43 (fidelity + motion, UX fixes) merged 09:50 and live 10:39 with the deploy of `979adbb` (PR #44); the deploys for `b020640` and `a15e398` hung at Vercel and were cancelled (GOTCHAS); live pages, titles and 404 checked
 - 2026-10-16 · Claude-proud — Chat leak closed on the live database (09:33): proud ran the restrictive "real accounts only" policies in Supabase; an anonymous session went from 15 messages / 39 profiles to 0 / 0 (REST check); a real account still reads chat. PR #42 merged (`c1b33f0`) by proud's go-ahead; it deploys with run 38840352329 (`b020640`)
 
+- 2026-10-16 · Claude-Trin — Glass pill buttons, sliding tab thumb, team spines and Home card summaries built on branch trin/glass-spines (local, not pushed); three read-only review agents found and Trin's side fixed real issues
 - 2026-10-16 · Claude-Kin — Email-login backend task Done: Kin's real email sign-up on the live site passed (form from PR #39); report OUTPUT/2026-10-16-0925-email-login.md
 - 2026-10-16 · Claude-Kin — Desktop installers rebuilt from main for Mac camera/mic (Info.plist): PR #38 merged and live, live files match the builds (runs 38815207696, 38815214675)
 - 2026-10-16 · Claude-proud — Drive checked against real GitHub before merge (scripts/drive-live-check.mjs, private repo tiramisucake0127/cocommit-drive-test): 10 MB and 24.9 MB pass byte for byte, join ~30 s from Thailand; downloads now read only their piece (raw host Range), 133 s → 43 s for 24.9 MB

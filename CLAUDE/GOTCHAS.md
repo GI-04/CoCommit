@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-16: Tailwind 4 picks the winner by value, not by class order (square "glass" buttons)
+- **What failed:** `Button` had `rounded-md` in its base and `rounded-full` in the glass variant; the buttons rendered square. A `py-1` passed in `className` is ignored for the same reason (the base `py-2.5` wins).
+- **Evidence:** compiled CSS orders same-property utilities by value (`py-1, py-1.5, py-2, py-2.5, py-3`), and the later rule wins whatever the order in the `class` string; computed `border-radius` was 8 px on the live "Ask assistant". Unlayered rules in `globals.css` (like `.btn-glass`) beat every Tailwind utility.
+- **Workaround:** one radius per element (`buttonClass` in `ui.tsx`; `tests/ui.test.mjs` fails on a second one); use `!py-1` for an override, never put a `border-radius` or a `transition` shorthand in a custom class that sits on a button.
+
 ## 2026-10-16 — Deploy job hangs: Vercel blocks teammates' commits (Hobby plan)
 - **What failed:** "Deploy to Vercel" runs sat 11–15 min on "Deploy to production" and were cancelled; the live site stayed on an old build.
 - **Evidence:** `vercel ls` showed the deploys as **Blocked**; `vercel inspect` reason: "the commit author doesn't have permission to create deployments for this project" (author tiramisucake0127, a squash merge). The CLI waits on a blocked deploy instead of failing.

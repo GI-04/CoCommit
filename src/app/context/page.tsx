@@ -6,6 +6,7 @@ import { useAssistant } from "@/components/Assistant";
 import { problem, useRepo, useWorkspace } from "@/components/home/data";
 import { Icon } from "@/components/icons";
 import { SetupForm } from "@/components/SetupForm";
+import { TeamSpines } from "@/components/TeamSpines";
 import { Button, Card, PageHeader, Pill, Skeleton, Tabs } from "@/components/ui";
 import { FILES } from "@/lib/context";
 import { signInHref } from "@/lib/github-client";
@@ -21,7 +22,6 @@ const TABS = [
   { id: "todo", label: "To-do" },
   { id: "board", label: "Board" },
 ];
-const TONES = ["pink", "cyan", "mustard", "green"] as const;
 
 // Agent Context (Figma "Context · …"): the team's COCOMMIT/ files, one tab each. Read-only here; "Open on GitHub"
 // links to the file to change it (the save helpers in src/lib/workspace.ts are ready for a form).
@@ -130,22 +130,9 @@ function Tab({ tab, data, file }: { tab: string; data: Workspace; file: (key: ke
 
   if (tab === "team")
     return (
-      <div className="space-y-3">
+      <div className="max-w-4xl space-y-4">
         {data.collab.length === 0 && <Card><p className="text-sm">Nobody is listed in COLLAB.md yet.</p></Card>}
-        <ul className="grid gap-4 sm:grid-cols-2">
-          {data.collab.map((m, i) => (
-            <li key={m.title} className={`block-${TONES[i % TONES.length]} p-5`}>
-              <h3 className="text-base font-semibold">{m.name || m.title}</h3>
-              <p className="text-xs">{m.title}</p>
-              <dl className="mt-3 space-y-1 text-sm">
-                {m.role && <div><dt className="inline font-medium">Role: </dt><dd className="inline">{m.role}</dd></div>}
-                {m.capability && <div><dt className="inline font-medium">Can do: </dt><dd className="inline">{m.capability}</dd></div>}
-                {m.availability && <div><dt className="inline font-medium">Available: </dt><dd className="inline">{m.availability}</dd></div>}
-                {m.writeScope && <div><dt className="inline font-medium">May write: </dt><dd className="inline">{m.writeScope}</dd></div>}
-              </dl>
-            </li>
-          ))}
-        </ul>
+        <TeamSpines members={data.collab} />
         <OpenLink href={file("collab")} label="Open COLLAB.md on GitHub" />
       </div>
     );

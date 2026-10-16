@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "@/components/icons";
-import { Button, Card, PageHeader, Skeleton } from "@/components/ui";
+import { Button, Card, PageHeader, Skeleton, buttonClass } from "@/components/ui";
 import { getCurrentRepo } from "@/lib/current-repo";
 import { friendlyError } from "@/lib/errors";
 import {
@@ -262,7 +262,12 @@ export default function FilesPage() {
           <Button variant="glass" onClick={() => input.current?.click()} disabled={locked} className="flex items-center gap-2 py-3">
             <Icon name="upload" className="size-4" /> Upload
           </Button>
-          <div className="glass inline-flex gap-1 rounded-full p-1" role="group" aria-label="View">
+          <div className="glass relative inline-flex gap-1 rounded-full p-1" role="group" aria-label="View">
+            <span
+              aria-hidden
+              className="glass-thumb pointer-events-none absolute left-1 top-1 size-10 rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              style={{ transform: `translateX(${view === "grid" ? 0 : "calc(100% + 0.25rem)"})` }}
+            />
             {(["grid", "list"] as const).map((v) => (
               <button
                 key={v}
@@ -270,7 +275,7 @@ export default function FilesPage() {
                 onClick={() => setView(v)}
                 aria-pressed={view === v}
                 aria-label={v === "grid" ? "Grid view" : "List view"}
-                className={`grid size-10 place-items-center rounded-full ${view === v ? "glass-thumb text-white" : "text-white/80 hover:bg-white/10"}`}
+                className={`relative z-10 grid size-10 place-items-center rounded-full ${view === v ? "text-white" : "text-white/80 hover:text-white"}`}
               >
                 <Icon name={v} className="size-4" />
               </button>
@@ -352,7 +357,7 @@ export default function FilesPage() {
       {needsLogin && (
         <Card className="mb-4">
           <p className="mb-3 text-sm text-muted">Sign in with GitHub to see and share the team's files.</p>
-          <a href={signInHref("/files")} className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
+          <a href={signInHref("/files")} className={buttonClass("primary", "inline-block")}>
             Sign in with GitHub
           </a>
         </Card>
