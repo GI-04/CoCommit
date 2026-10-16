@@ -10,6 +10,8 @@
 - [ ] `@cocommit` bot: no per-user rate limit yet; add one if the key is shared beyond the team.
 - [ ] Tasks board: try one real task on `GI-04/CoCommit` (new → take → done) after it's merged; only tested against the mock GitHub. (proud)
 - [ ] Tasks board, later: links to branches/PRs, live updates (Realtime or polling), drag and drop, editing a task's text.
+- [ ] Drive: after `proud/drive-folders` is merged, try on the live site signed in: new folder, upload a >3 MB file (e.g. 10 MB), download it, delete the folder. Watch the join's time on Vercel (route `maxDuration` 60). (proud)
+- [ ] Drive, later: move/rename files and folders, who uploaded and when, previews.
 
 ## Open questions
 - Which hackathon and submission format? Deadline: 2026-10-16 11:30 (24 h from 2026-10-15 11:30). (Pattadon)

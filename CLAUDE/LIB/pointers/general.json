@@ -302,7 +302,7 @@
     },
     {
       "id": "files",
-      "title": "Shared files (/files, COCOMMIT/files/)",
+      "title": "Shared files: Drive (/files, COCOMMIT/files/)",
       "kind": "reference",
       "tags": [
         "files",
@@ -312,12 +312,18 @@
         "binary",
         "base64",
         "blob",
-        "cocommit-folder"
+        "cocommit-folder",
+        "drive",
+        "folders",
+        "big-files",
+        "pieces",
+        "upload-part"
       ],
-      "summary": "How /files works: files committed to COCOMMIT/files/ on the default branch, base64 blobs in commitFiles, listSharedFiles/downloadFile actions, 3 MB limit, fake mode and tests.",
+      "summary": "How Drive (/files) works: files and folders (.keep markers, up to 4 deep) committed to COCOMMIT/files/ on the default branch; up to 25 MB per file, sent up (uploadPart + commitFiles parts) and down (downloadFile part) in 3 MB pieces because of Vercel's 4.5 MB limit; fake mode and tests.",
       "path": "knowledge/general/files.md",
       "sources": [
-        "PLAN/2026-10-16-files.md"
+        "PLAN/2026-10-16-files.md",
+        "PLAN/2026-10-16-drive-folders.md"
       ],
       "added": "2026-10-16"
     },
