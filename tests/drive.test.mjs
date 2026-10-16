@@ -136,10 +136,10 @@ test("a small file is still one request each way", async () => {
   assert.ok(Buffer.from(new Uint8Array(await saved[0].arrayBuffer())).equals(Buffer.from(data)));
 });
 
-test("limits: over 25 MB is refused before upload; the server refuses bad pieces and paths", async () => {
+test("limits: over 50 MB is refused before upload; the server refuses bad pieces and paths", async () => {
   const { files, bodies, github } = setup();
   const huge = { name: "huge.zip", size: util.MAX_FILE_BYTES + 1, arrayBuffer: async () => new ArrayBuffer(0) };
-  await assert.rejects(files.uploadSharedFile(REPO, huge, "", { files: [], markers: [] }), /limit is 25.0 MB/);
+  await assert.rejects(files.uploadSharedFile(REPO, huge, "", { files: [], markers: [] }), /limit is 50.0 MB/);
   assert.equal(bodies.length, 0);
 
   const big = Buffer.alloc(util.PART_BYTES + 1).toString("base64");

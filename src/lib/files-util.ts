@@ -9,7 +9,7 @@ export const FILES_FOLDER = "COCOMMIT/files";
 export const PART_BYTES = 3 * 1024 * 1024;
 
 /** Largest file we accept. Files over PART_BYTES go up and come down in PART_BYTES pieces. */
-export const MAX_FILE_BYTES = 25 * 1024 * 1024;
+export const MAX_FILE_BYTES = 50 * 1024 * 1024;
 
 /** Most pieces one file can have. */
 export const MAX_PARTS = Math.ceil(MAX_FILE_BYTES / PART_BYTES);
