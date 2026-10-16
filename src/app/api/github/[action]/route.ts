@@ -3,6 +3,10 @@ import { actions, GitHubError } from "@/lib/github";
 
 // POST /api/github/<action> with the arguments as a JSON array, e.g. /api/github/listBranches ["owner/repo"].
 // Browser code calls this through src/lib/github-client.ts.
+
+// Committing a big Drive file joins its pieces here (PLAN/2026-10-16-drive-folders.md), which can take a few seconds.
+export const maxDuration = 60;
+
 export async function POST(req: Request, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
   if (!Object.hasOwn(actions, action)) {

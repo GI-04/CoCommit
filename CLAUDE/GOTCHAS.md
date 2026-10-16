@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-16 — GitHub's blob API ignores Range: every piece of a big download re-read the whole file
+- **What failed:** Drive downloads a big file in 3 MB pieces, but `GET /repos/<repo>/git/blobs/<sha>` (JSON or `Accept: application/vnd.github.raw`) always returns the whole file, even with a `Range` header, so a 24.9 MB download fetched ~25 MB nine times (133 s from Thailand).
+- **Evidence:** `curl -H "Range: bytes=3145728-6291455" -H "Accept: application/vnd.github.raw" …/git/blobs/<sha>` → HTTP 200, 26,109,863 bytes; the same range on `https://raw.githubusercontent.com/<repo>/<commit>/<path>` with the token → HTTP 206, 3,145,728 bytes.
+- **Workaround:** `downloadFile` asks the raw host for the piece (falls back to the whole blob if it doesn't get a 206 of the right length). Other GitHub hosts: set `GITHUB_RAW_URL`.
+
 ## 2026-10-16 — Anonymous Supabase sessions can read every chat (fix built, not live yet)
 - **What failed:** signed out, `/chat` shows all past messages. `src/lib/chat.ts` calls `signInAnonymously()` for every visitor, and `supabase/schema.sql` lets every `authenticated` user read `messages` (`using (true)`); anonymous users count as `authenticated`. The anon key ships in the site's JavaScript, so anyone can read every repo's chat (and #general) straight from Supabase. Anonymous users can also pin/unpin messages and read `profiles`.
 - **Evidence:** proud's screen recording 2026-10-16 08:39 (sign out → `/chat` still shows the history); the policies in `supabase/schema.sql` and `supabase/profiles.sql`.
@@ -17,6 +22,7 @@
 - **What failed:** from the worktree `.claude/worktrees/proud-tasks-board`, `preview_start` with a config added to the worktree's `.claude/launch.json` started the main checkout's `web` config instead (log showed `Environments: .env.local`, which only the main checkout has).
 - **Evidence:** preview log of the first start; the worktree has no `.env.local`.
 - **Workaround:** add a temporary config to the main checkout's `.claude/launch.json` that changes folder first, e.g. `"runtimeExecutable": "bash", "runtimeArgs": ["-c", "cd .claude/worktrees/<name> && exec npx next dev -p 3300"]`, start it, then restore the file (`git checkout -- .claude/launch.json`). The running server keeps going.
+- **Also (2026-10-16, Claude-proud, worktree `proud-drive-folders`):** an absolute `cd` in the worktree's own config didn't help (the main `web` config still started and stopped on "Another next dev server is already running", since another chat's server holds port 3000), and in auto mode the edit to the main checkout's `launch.json` was refused as a shared-folder change. Then: ask the owner to allow that edit (proud allowed it; the documented workaround then worked: back up the file, add the config, `preview_start`, copy the backup back), or cover the flow with a Node end-to-end test (`tests/drive.test.mjs` loads the real `github.ts` in fake mode).
 
 ## 2026-10-16 — The stateful mock GitHub broke after "keep file modes on commit" (fixed)
 - **What failed:** since PR #29, `commitFiles` reads `GET git/trees/<sha>?recursive=1` before committing; the mock in `LIB/sources/general/workspace-e2e/mock-github-files.mjs` had no such route, so every commit against it would fail with 404.

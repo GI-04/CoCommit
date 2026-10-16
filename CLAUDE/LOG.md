@@ -2,6 +2,12 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Kin — Email-login backend task Done: Kin's real email sign-up on the live site passed (form from PR #39); report OUTPUT/2026-10-16-0925-email-login.md
+- 2026-10-16 · Claude-Kin — Desktop installers rebuilt from main for Mac camera/mic (Info.plist): PR #38 merged and live, live files match the builds (runs 38815207696, 38815214675)
+- 2026-10-16 · Claude-proud — Drive checked against real GitHub before merge (scripts/drive-live-check.mjs, private repo tiramisucake0127/cocommit-drive-test): 10 MB and 24.9 MB pass byte for byte, join ~30 s from Thailand; downloads now read only their piece (raw host Range), 133 s → 43 s for 24.9 MB
+- 2026-10-16 · Claude-proud — Drive folders + 25 MB files: committed (`490ff7d`) and PR #41 opened into main; not merged until the demo ends
+- 2026-10-16 · Claude-proud — Drive folders + 25 MB files browser-checked in fake mode (desktop + phone): folder, 10 MB upload/download byte for byte, folder delete; folder names now trimmed of trailing dashes
+- 2026-10-16 · Claude-proud — Drive folders + 25 MB files built on proud/drive-folders (worktree `.claude/worktrees/proud-drive-folders`; PLAN/2026-10-16-drive-folders.md approved by proud): New folder (.keep), breadcrumb, folder delete; files over 3 MB go up/down in 3 MB pieces (uploadPart, commitFiles parts, downloadFile part). Typecheck, 104/104 tests (new end-to-end Drive test in fake mode), build. Page not opened in a browser; not committed
 - 2026-10-16 · Claude-proud — Chat leak found from proud's screen recording (signed out, anyone could read every chat through an anonymous Supabase session); fix built on proud/chat-privacy (PLAN/2026-10-16-chat-privacy-get-started.md, approved by proud): members-only chat, supabase/chat-privacy.sql, Get started → login when signed out; 98/98 tests, typecheck, build, browser signed in and out. PR #42 open, not merged; SQL not run yet
 - 2026-10-16 · Claude-proud — Desktop download moved from the sidebar to Profile → Overview (under the profile card); typecheck and 92/92 tests pass; checked signed in at 1440 and 390 px. PR open on proud/download-on-profile, not merged
 - 2026-10-16 · Claude-Kin — Call stays on across pages: PR #37 live; real two-person call (Kin + Pattadon) kept one connection across /chat, /repo, /home; plan done; report OUTPUT/2026-10-16-0510-call-stays-on.md

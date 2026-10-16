@@ -4,8 +4,10 @@
 
 import type { Activity } from "./context";
 import type { CommitDate } from "./heatmap";
+import type { SharedFile, SharedListing } from "./files-util";
 
 export type { Activity } from "./context";
+export type { SharedFile, SharedListing } from "./files-util";
 
 // Shapes match src/lib/mock.ts so the screens can swap imports.
 export type Repo = { fullName: string; defaultBranch: string; private: boolean; updatedAt: string };
@@ -17,10 +19,11 @@ export type Change = {
   patch: string;
   previousPath?: string;
 };
-/** One file to commit. `content: null` deletes the file. `encoding: "base64"` means `content` is a binary file's bytes in base64. */
-export type FileEdit = { path: string; content: string | null; encoding?: "base64" };
-/** A file in COCOMMIT/files/ (see files-util.ts). */
-export type SharedFile = { name: string; path: string; size: number };
+/**
+ * One file to commit. `content: null` deletes the file. `encoding: "base64"` means `content` is a binary file's bytes in base64.
+ * `parts` (with `content: ""`): blob ids from uploadPart, joined in order into this file (files too big for one request).
+ */
+export type FileEdit = { path: string; content: string | null; encoding?: "base64"; parts?: string[] };
 export type Commit = { sha: string; url: string; branch: string };
 export type PullRequest = { number: number; url: string; title: string; head: string; base: string };
 export type User = { login: string; name: string | null; avatarUrl: string };
@@ -40,10 +43,12 @@ export type GitHubActions = {
   listFiles(repo: string, branch: string): Promise<string[]>;
   readContext(repo: string): Promise<string | null>;
   writeContext(repo: string, text: string, message: string): Promise<Commit>;
-  /** Files in COCOMMIT/files/ on the default branch, sorted by name. */
-  listSharedFiles(repo: string): Promise<SharedFile[]>;
-  /** A shared file's bytes as base64, or null if it doesn't exist. Only paths directly inside COCOMMIT/files/. */
-  downloadFile(repo: string, path: string): Promise<{ content: string; size: number } | null>;
+  /** Files (any folder) and folder markers in COCOMMIT/files/ on the default branch, files sorted by path. */
+  listSharedFiles(repo: string): Promise<SharedListing>;
+  /** One PART_BYTES piece (`part`, from 0) of a shared file as base64, with the file's size and piece count; null if it doesn't exist. */
+  downloadFile(repo: string, path: string, part?: number): Promise<{ content: string; size: number; parts: number } | null>;
+  /** Stores one piece of a big file (base64, at most PART_BYTES) as a git blob, not yet in any commit. Pass the ids to commitFiles as `parts`. */
+  uploadPart(repo: string, content: string): Promise<{ sha: string }>;
   /** Latest commits on the default branch, newest first, as COCOMMIT/LOG.md activity items. */
   listCommits(repo: string, limit?: number): Promise<Activity[]>;
   /** Recently merged pull requests, newest first, as COCOMMIT/LOG.md activity items. */
