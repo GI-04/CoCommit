@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-Trin — PR #43 (fidelity + motion, UX fixes) merged 09:50 and live 10:39 with the deploy of `979adbb` (PR #44); the deploys for `b020640` and `a15e398` hung at Vercel and were cancelled (GOTCHAS); live pages, titles and 404 checked
 - 2026-10-16 · Claude-proud — Chat leak closed on the live database (09:33): proud ran the restrictive "real accounts only" policies in Supabase; an anonymous session went from 15 messages / 39 profiles to 0 / 0 (REST check); a real account still reads chat. PR #42 merged (`c1b33f0`) by proud's go-ahead; it deploys with run 38840352329 (`b020640`)
 
 - 2026-10-16 · Claude-Kin — Email-login backend task Done: Kin's real email sign-up on the live site passed (form from PR #39); report OUTPUT/2026-10-16-0925-email-login.md
