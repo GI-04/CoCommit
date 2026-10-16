@@ -271,11 +271,32 @@ function SettingsPanel({ repo, settings, onChange, onClose }: { repo: string | n
       <fieldset className="space-y-2">
         <legend className="mb-1 font-semibold">Your own API key (optional)</legend>
         <p className="text-xs text-white/70">Used instead of the team&apos;s key, for your questions only. Sent with each question; the server doesn&apos;t keep it.</p>
-        <input type="password" autoComplete="off" aria-label="Anthropic API key" value={settings.apiKey} onChange={(e) => set("apiKey", e.target.value.trim())} placeholder="sk-ant-…" className={field} />
+        <input type="password" autoComplete="off" aria-label="API key" value={settings.apiKey} onChange={(e) => set("apiKey", e.target.value.trim())} placeholder="sk-ant-… (or your provider's key)" className={field} />
         {settings.apiKey && (
           <>
-            <input aria-label="Workspace ID (only for keys without a workspace)" value={settings.workspaceId} onChange={(e) => set("workspaceId", e.target.value.trim())} placeholder="Workspace ID, only if your key needs one (wrkspc_…)" className={field} />
-            <input aria-label="API URL (optional)" value={settings.apiUrl} onChange={(e) => set("apiUrl", e.target.value.trim())} placeholder="API URL, empty = Anthropic (https://…)" className={field} />
+            {settings.apiFormat !== "openai" && (
+              <input aria-label="Workspace ID (only for keys without a workspace)" value={settings.workspaceId} onChange={(e) => set("workspaceId", e.target.value.trim())} placeholder="Workspace ID, only if your key needs one (wrkspc_…)" className={field} />
+            )}
+            <label className="block space-y-1 text-xs">
+              <span>API format</span>
+              <select aria-label="API format" value={settings.apiFormat} onChange={(e) => set("apiFormat", e.target.value === "openai" ? "openai" : "anthropic")} className={field}>
+                <option value="anthropic">Anthropic (Claude)</option>
+                <option value="openai">OpenAI-compatible (Gemini, OpenRouter, Groq…)</option>
+              </select>
+            </label>
+            <input
+              aria-label={settings.apiFormat === "openai" ? "API URL" : "API URL (optional)"}
+              value={settings.apiUrl}
+              onChange={(e) => set("apiUrl", e.target.value.trim())}
+              placeholder={settings.apiFormat === "openai" ? "API URL (https://…)" : "API URL, empty = Anthropic (https://…)"}
+              className={field}
+            />
+            {settings.apiFormat === "openai" && (
+              <p className="text-xs text-white/70">
+                Gemini: <span className="font-mono break-all">https://generativelanguage.googleapis.com/v1beta/openai</span> with a key from Google AI Studio. Pick <b>Custom</b> above and type the model ID (e.g. gemini-2.5-flash).
+                {settings.model !== "custom" && <span className="block text-amber-200">Pick Custom above: Fast / Balanced / Best are Claude models.</span>}
+              </p>
+            )}
             {settings.apiUrl && <p className="text-xs text-amber-200">Your questions, the repo&apos;s code and your key will go to this URL.</p>}
             <label className="flex items-start gap-2 text-xs">
               <input type="checkbox" checked={settings.rememberKey} onChange={(e) => set("rememberKey", e.target.checked)} className="mt-0.5" />

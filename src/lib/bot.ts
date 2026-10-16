@@ -274,8 +274,13 @@ export function pickModel(choice: unknown, custom?: unknown): { model: string; e
   return { model: m.model, effort: m.effort, fallbacks: m.id !== "fast" };
 }
 
-/** An Anthropic-compatible URL the user typed: https only, no local or raw-IP hosts. "" → url null (use Anthropic). */
-export function readApiUrl(value: unknown): { url: string | null } | { error: string } {
+/** "anthropic" = Messages API (the default); "openai" = Chat Completions, which Gemini, OpenRouter, Groq etc. also speak. */
+export type ApiFormat = "anthropic" | "openai";
+export const readApiFormat = (value: unknown): ApiFormat => (value === "openai" ? "openai" : "anthropic");
+
+/** A URL the user typed: https only, no local or raw-IP hosts. "" → url null (use Anthropic).
+ *  Adds /v1/messages (Anthropic) or /chat/completions (OpenAI) unless the path already ends with it. */
+export function readApiUrl(value: unknown, format: ApiFormat = "anthropic"): { url: string | null } | { error: string } {
   const raw = typeof value === "string" ? value.trim() : "";
   if (!raw) return { url: null };
   let url: URL;
@@ -290,8 +295,71 @@ export function readApiUrl(value: unknown): { url: string | null } | { error: st
     return { error: "The API URL can't point at a local or IP-address host." };
   }
   const path = url.pathname.replace(/\/+$/, "");
-  url.pathname = path.endsWith("/messages") ? path : `${path}${path.endsWith("/v1") ? "/messages" : "/v1/messages"}`;
+  if (format === "openai") url.pathname = path.endsWith("/chat/completions") ? path : `${path}/chat/completions`;
+  else url.pathname = path.endsWith("/messages") ? path : `${path}${path.endsWith("/v1") ? "/messages" : "/v1/messages"}`;
   return { url: url.toString() };
+}
+
+// ---------- OpenAI-style APIs
+// The bot loop speaks Messages API blocks; these turn them into Chat Completions and back at the one call.
+
+type Block = { type: string; [key: string]: unknown };
+type Turn = { role: "user" | "assistant"; content: string | Block[] };
+type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
+export type OpenAIMessage =
+  | { role: "system" | "user"; content: string }
+  | { role: "assistant"; content: string | null; tool_calls?: ToolCall[] }
+  | { role: "tool"; tool_call_id: string; content: string };
+
+export const toOpenAITools = (tools: readonly { name: string; description: string; input_schema: object }[]) =>
+  tools.map((t) => ({ type: "function" as const, function: { name: t.name, description: t.description, parameters: t.input_schema } }));
+
+export function toOpenAIMessages(system: string, turns: Turn[]): OpenAIMessage[] {
+  const out: OpenAIMessage[] = [{ role: "system", content: system }];
+  for (const turn of turns) {
+    if (typeof turn.content === "string") {
+      out.push({ role: turn.role, content: turn.content });
+    } else if (turn.role === "assistant") {
+      const text = turn.content.filter((b) => b.type === "text").map((b) => String(b.text)).join("\n");
+      const calls: ToolCall[] = turn.content
+        .filter((b) => b.type === "tool_use")
+        .map((b) => ({ id: String(b.id), type: "function", function: { name: String(b.name), arguments: JSON.stringify(b.input ?? {}) } }));
+      out.push({ role: "assistant", content: text || null, ...(calls.length ? { tool_calls: calls } : {}) });
+    } else {
+      for (const b of turn.content) {
+        if (b.type === "tool_result") out.push({ role: "tool", tool_call_id: String(b.tool_use_id), content: `${b.is_error ? "Error: " : ""}${String(b.content)}` });
+        else if (b.type === "text") out.push({ role: "user", content: String(b.text) });
+      }
+    }
+  }
+  return out;
+}
+
+type OpenAIResponse = {
+  choices?: { finish_reason?: string | null; message?: { content?: unknown; tool_calls?: unknown } }[];
+  usage?: { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } };
+};
+
+/** A Chat Completions reply as Messages API content + stop_reason. Some providers (Gemini) say "stop" even with tool calls. */
+export function fromOpenAIResponse(data: OpenAIResponse) {
+  const choice = data.choices?.[0];
+  const content: Block[] = [];
+  const text = choice?.message?.content;
+  if (typeof text === "string" && text.trim()) content.push({ type: "text", text });
+  const calls = Array.isArray(choice?.message?.tool_calls) ? (choice.message.tool_calls as Record<string, unknown>[]) : [];
+  calls.forEach((call, i) => {
+    const fn = (call?.function ?? {}) as { name?: unknown; arguments?: unknown };
+    let input: Record<string, unknown> = {};
+    try {
+      const parsed = JSON.parse(typeof fn.arguments === "string" && fn.arguments ? fn.arguments : "{}");
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) input = parsed;
+    } catch {}
+    content.push({ type: "tool_use", id: typeof call?.id === "string" && call.id ? call.id : `call_${i}`, name: String(fn.name ?? ""), input });
+  });
+  const reason = choice?.finish_reason;
+  const stop_reason = content.some((b) => b.type === "tool_use") ? "tool_use" : reason === "length" ? "max_tokens" : reason === "content_filter" ? "refusal" : "end_turn";
+  const usage = { input_tokens: data.usage?.prompt_tokens ?? 0, output_tokens: data.usage?.completion_tokens ?? 0, cache_read_input_tokens: data.usage?.prompt_tokens_details?.cached_tokens ?? 0 };
+  return { content, stop_reason, usage };
 }
 
 // ---------- Links and prompt
