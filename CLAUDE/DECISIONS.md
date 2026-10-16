@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-16 — Drive files up to 25 MB, sent in 3 MB pieces through our API; folders are .keep files
+- **Status:** active
+- **Decision:** Drive (`/files`) keeps storing files in the repo's `COCOMMIT/files/`. Files over 3 MB go up as 3 MB git blobs (`uploadPart`) that `commitFiles` joins into one blob, and come down piece by piece (`downloadFile(repo, path, part)`); limit 25 MB per file. A folder is created by committing an empty `.keep` inside it; up to 4 levels. Plan: `PLAN/2026-10-16-drive-folders.md` (approved by proud, who picked 25 MB over 10 or 50).
+- **Why:** Vercel caps each request and response at 4.5 MB, so one-shot uploads stopped at 3 MB and downloads would too. Pieces keep the GitHub token on the server, need no new service, package or SQL, and the repo still holds the real whole file. 25 MB keeps clones reasonable (git keeps every version).
+- **Alternatives:** Supabase Storage (direct browser upload, bigger files, but a second place for files and bucket rules to set up); sending GitHub's temporary raw download links to the browser (leaks a short-lived token); storing the pieces as separate files in the repo (the repo wouldn't hold the real file).
+- **Supersedes / superseded by:** extends the 2026-10-16 Files choice (`PLAN/2026-10-16-files.md`: repo storage, 3 MB).
+
 ## 2026-10-16 — Chat is for real accounts only; no anonymous Supabase sessions
 - **Status:** active
 - **Decision:** chat no longer signs visitors in to Supabase anonymously; signed out, `/chat` shows a login card. The `messages` select and pin rules and the `profiles` select rule refuse anonymous sessions (`supabase/chat-privacy.sql`). Get started on `/` goes to the login page unless you're signed in. Plan: `PLAN/2026-10-16-chat-privacy-get-started.md` (approved by proud).
