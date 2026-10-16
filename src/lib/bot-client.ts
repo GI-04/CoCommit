@@ -4,7 +4,7 @@
 //   import { askBot, BotRequestError, loadBotSettings } from "@/lib/bot-client";
 //   const { answer, sources } = await askBot("GI-04/CoCommit", "where is login handled?", chatLines, loadBotSettings());
 
-import { parsePatterns, type BotAnswer, type BotDebug, type BotMode, type Change, type ChatLine, type ModelChoice } from "./bot";
+import { parsePatterns, type ApiFormat, type BotAnswer, type BotDebug, type BotMode, type Change, type ChatLine, type ModelChoice } from "./bot";
 import type { Commit, PullRequest } from "./github-types";
 
 export class BotRequestError extends Error {
@@ -31,6 +31,8 @@ export type BotSettings = {
   apiKey: string;
   workspaceId: string;
   apiUrl: string;
+  /** "openai" = the URL speaks Chat Completions (Gemini, OpenRouter…), not Anthropic's API. */
+  apiFormat: ApiFormat;
   /** Keep the API key after the tab closes (localStorage instead of sessionStorage). */
   rememberKey: boolean;
 };
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: BotSettings = {
   apiKey: "",
   workspaceId: "",
   apiUrl: "",
+  apiFormat: "anthropic",
   rememberKey: false,
 };
 
@@ -114,6 +117,7 @@ export async function askBot(
       apiUrl: settings.apiUrl || undefined,
       mode: settings.mode,
       changes: settings.mode === "edit" ? changes.map(({ path, content }) => ({ path, content })) : undefined,
+      apiFormat: settings.apiKey && settings.apiFormat === "openai" ? "openai" : undefined,
     }),
   });
   const data = await res.json().catch(() => ({ error: res.statusText }));

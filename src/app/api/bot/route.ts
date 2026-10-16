@@ -9,10 +9,15 @@ import {
   MAX_ROUNDS,
   isExcluded,
   parsePatterns,
+  fromOpenAIResponse,
   pickModel,
+  readApiFormat,
   readApiUrl,
   SYSTEM_PROMPT,
   TOOLS,
+  toOpenAIMessages,
+  toOpenAITools,
+  type ApiFormat,
   type BotAnswer,
   type BotDebug,
   type BotSource,
@@ -22,12 +27,13 @@ import {
 import { changeViews, cleanPath, loadSnapshot, runTool } from "@/lib/bot-tools";
 import { getSession, GitHubError } from "@/lib/github";
 
-// POST /api/bot { repo, question, chat?, model?, customModel?, branch?, exclude?, apiKey?, workspaceId?, apiUrl?, debug?, mode?, changes? }
+// POST /api/bot { repo, question, chat?, model?, customModel?, branch?, exclude?, apiKey?, workspaceId?, apiUrl?, apiFormat?, debug?, mode?, changes? }
 //   → { answer, sources, debug?, changes? }
 // mode "edit" adds the edit tools: changes are only staged and come back in `changes` (with diffs). Nothing is
 // written to GitHub here; POST /api/bot/apply commits them to a new branch and opens a pull request.
 // The @cocommit bot: Claude reads the repo on the picked branch with the tools in src/lib/bot.ts.
 // Claude is called with plain fetch (like our GitHub client), so there's no SDK to install.
+// With your own key, apiFormat "openai" calls a Chat Completions API instead (Gemini, OpenRouter…), translated in callOpenAI.
 // A user's own API key is used for that one request and never stored, logged or echoed back.
 
 export const maxDuration = 300;
@@ -44,7 +50,7 @@ type Block = { type: string; [key: string]: unknown };
 type Message = { role: "user" | "assistant"; content: string | Block[] };
 type Usage = { input_tokens?: number; output_tokens?: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number };
 type ClaudeResponse = { content: Block[]; stop_reason: string | null; usage?: Usage };
-type Api = { url: string; key: string; workspace?: string; official: boolean };
+type Api = { url: string; key: string; workspace?: string; official: boolean; format: ApiFormat };
 
 class ClaudeError extends Error {
   status: number;
@@ -71,16 +77,22 @@ const readExclude = (value: unknown): string[] =>
 function pickApi(body: Record<string, unknown>): Api | null | Error {
   const userKey = typeof body.apiKey === "string" ? body.apiKey.trim() : "";
   if (userKey && (userKey.length > 400 || /\s/.test(userKey))) return new Error("That API key doesn't look right.");
-  const read = readApiUrl(body.apiUrl);
+  const format = readApiFormat(body.apiFormat);
+  const read = readApiUrl(body.apiUrl, format);
   if ("error" in read) return new Error(read.error);
   const url = read.url;
+  if (format === "openai") {
+    if (!userKey) return new Error("Add your own API key to use an OpenAI-style API.");
+    if (!url) return new Error("An OpenAI-style API needs its API URL (e.g. https://generativelanguage.googleapis.com/v1beta/openai for Gemini).");
+    return { url, key: userKey, official: false, format };
+  }
   if (userKey) {
     const ws = typeof body.workspaceId === "string" && /^wrkspc_[A-Za-z0-9]+$/.test(body.workspaceId.trim()) ? body.workspaceId.trim() : undefined;
-    return { url: url ?? ANTHROPIC, key: userKey, workspace: ws, official: !url };
+    return { url: url ?? ANTHROPIC, key: userKey, workspace: ws, official: !url, format };
   }
   if (url) return new Error("Add your own API key to use a custom API URL.");
   const key = process.env.ANTHROPIC_API_KEY;
-  return key ? { url: ANTHROPIC, key, workspace: process.env.ANTHROPIC_WORKSPACE_ID || undefined, official: true } : null;
+  return key ? { url: ANTHROPIC, key, workspace: process.env.ANTHROPIC_WORKSPACE_ID || undefined, official: true, format } : null;
 }
 
 async function callClaude(api: Api, pick: ReturnType<typeof pickModel>, messages: Message[], lastRound: boolean, edit: boolean): Promise<ClaudeResponse> {
@@ -113,6 +125,31 @@ async function callClaude(api: Api, pick: ReturnType<typeof pickModel>, messages
     throw new ClaudeError(res.status, res.status === 429 ? `The AI is busy right now (429). Try again in a minute. ${detail}` : `Claude API error (${res.status}): ${detail}`);
   }
   return (await res.json()) as ClaudeResponse;
+}
+
+/** Same job as callClaude for a Chat Completions API; no Anthropic extras (caching, effort, fallbacks, workspace). */
+async function callOpenAI(api: Api, pick: ReturnType<typeof pickModel>, messages: Message[], lastRound: boolean, edit: boolean): Promise<ClaudeResponse> {
+  const res = await fetch(api.url, {
+    method: "POST",
+    headers: { authorization: `Bearer ${api.key}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      model: pick.model,
+      max_tokens: 8000,
+      messages: toOpenAIMessages(edit ? EDIT_SYSTEM : SYSTEM_PROMPT, messages),
+      tools: toOpenAITools(edit ? EDIT_TOOLSET : TOOLS),
+      tool_choice: lastRound ? "none" : "auto",
+    }),
+    cache: "no-store",
+  });
+  if (!res.ok) {
+    // Gemini wraps its error in an array; OpenAI and most others don't.
+    const raw = (await res.json().catch(() => null)) as unknown;
+    const data = (Array.isArray(raw) ? raw[0] : raw) as { error?: { message?: string } } | null;
+    const detail = data?.error?.message ?? res.statusText;
+    console.error(`[bot] OpenAI-style API ${res.status}`, detail);
+    throw new ClaudeError(res.status, res.status === 429 ? `The AI is busy right now (429). Try again in a minute. ${detail}` : `AI API error (${res.status}): ${detail}`);
+  }
+  return fromOpenAIResponse((await res.json()) as Parameters<typeof fromOpenAIResponse>[0]);
 }
 
 const textOf = (content: Block[]) =>
@@ -161,6 +198,9 @@ export async function POST(req: Request) {
   if (!api) return fail(503, "The @cocommit bot isn't set up yet (ANTHROPIC_API_KEY is missing). You can add your own API key in the Assistant's settings.");
 
   const pick = pickModel(body.model, body.customModel);
+  if (api.format === "openai" && (body.model !== "custom" || pick.model !== String(body.customModel).trim())) {
+    return fail(400, "For an OpenAI-style API, pick Custom and type the provider's model ID (e.g. gemini-2.5-flash).");
+  }
   const exclude = readExclude(body.exclude);
   const wantDebug = body.debug === true;
   const edit = body.mode === "edit";
@@ -193,7 +233,7 @@ export async function POST(req: Request) {
     for (let round = 1; round <= limits.rounds; round++) {
       const last = round === limits.rounds || Date.now() - started > limits.lastAfterMs;
       const roundStart = Date.now();
-      const res = await callClaude(api, pick, messages, last, edit);
+      const res = await (api.format === "openai" ? callOpenAI : callClaude)(api, pick, messages, last, edit);
       const step: DebugRound = {
         round,
         model: pick.model,
