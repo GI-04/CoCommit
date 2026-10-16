@@ -62,19 +62,20 @@ export default function RepoPage() {
     />
   );
 
-  if (mode === "local")
-    return (
-      <div className="max-w-6xl">
-        <PageHeader title="Repository" subtitle="Your clone on this computer: stage, commit, pull and push with buttons.">
-          {tabs}
-        </PageHeader>
-        <LocalRepo />
-      </div>
-    );
-  return <GitHubRepo modeTabs={tabs || null} />;
+  // One header for both modes, so the Web / Local folder switch stays in the same place and its thumb slides instead of
+  // being rebuilt when the mode changes.
+  return (
+    <div className="max-w-6xl">
+      <PageHeader title="Repository" subtitle={mode === "local" ? "Stage, commit, pull and push your clone with buttons." : "Pick a branch, edit a file, commit, then open a pull request."}>
+        {tabs}
+        <span className="hidden w-24 lg:block" aria-hidden />
+      </PageHeader>
+      {mode === "local" ? <LocalRepo /> : <GitHubRepo />}
+    </div>
+  );
 }
 
-function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
+function GitHubRepo() {
   const [fake, setFake] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [repos, setRepos] = useState<Repo[]>([]);
@@ -209,7 +210,6 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   if (needsLogin)
     return (
       <div className="max-w-xl">
-        <PageHeader title="Repository" subtitle="Commit and open pull requests with buttons." />
         <Card>
           <p className="mb-4 text-sm">Log in with GitHub to see your repositories.</p>
           <a href={signInHref("/repo")} className={buttonClass("primary", "inline-block")}>
@@ -251,12 +251,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const baseName = (p: string) => p.split("/").pop() ?? p;
 
   return (
-    <div className="max-w-6xl">
-      <PageHeader title="Repository" subtitle="Pick a branch, edit a file, commit, then open a pull request.">
-        {modeTabs}
-        <span className="hidden w-24 lg:block" aria-hidden />
-      </PageHeader>
-
+    <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <PillSelect
           label="Team"
