@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { saveGitHubToken } from "@/lib/github";
+import { sealHandoff } from "@/lib/desktop-handoff";
 import { githubTokenFromSession, safeReturnTo } from "@/lib/login-identity";
 import { getSupabaseServer } from "@/lib/supabase-server";
 
@@ -17,6 +18,14 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       const token = githubTokenFromSession(searchParams.get("provider"), data.session);
+      // Desktop app: the sign-in ran in the system browser, so pass the session on to the app.
+      if (searchParams.get("desktop") === "1" && data.session) {
+        const ticket = sealHandoff(
+          { accessToken: data.session.access_token, refreshToken: data.session.refresh_token, githubToken: token, next },
+          process.env.GITHUB_CLIENT_SECRET ?? "",
+        );
+        if (ticket) return NextResponse.redirect(`${origin}/auth/desktop?ticket=${ticket}`);
+      }
       if (token) await saveGitHubToken(token);
       return NextResponse.redirect(`${origin}${next}`);
     }
