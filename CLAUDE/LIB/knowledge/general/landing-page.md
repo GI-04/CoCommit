@@ -12,7 +12,7 @@
 - **Get started** (all three buttons): `src/components/landing/GetStarted.tsx` links to `/login?returnTo=/home` and switches to `/home` once the browser turns out to be signed in (a Supabase account that isn't anonymous, or a real GitHub session) or in demo mode; the rule is `getStartedHref` in `src/lib/login-identity.ts`. The three buttons share one check. "Sign in" goes to the login page and "Open the app" (footer) stays `/home`, so visitors can still look around (PLAN/2026-10-16-chat-privacy-get-started.md).
 - Desktop app: Tauri loads the site root, so `DesktopRedirect` sends any window with `__TAURI_INTERNALS__` to `/home` (client-side, after the first paint).
 - Downloads read `src/lib/downloads.ts`; a platform with `href: null` shows "coming soon". Windows is live since PR #13.
-- `/home` defaults: PWA `start_url`, the sidebar's Home item (the sidebar logo goes to `/`, the landing page), `auth/callback` fallback, `/login` `safePath` fallback, `auth-email.ts` `safePath`/`returnTo` defaults, and `proxy.ts` (signed-in `/login` goes to `/home`; `/` stays public when the login wall is on).
+- `/home` defaults: PWA `start_url`, the sidebar's Home item (the sidebar logo goes to `/home` too since 2026-10-16: one click to Home; only the login screens' logo still goes to `/`, the landing page), `auth/callback` fallback, `/login` `safePath` fallback, `auth-email.ts` `safePath`/`returnTo` defaults, and `proxy.ts` (signed-in `/login` goes to `/home`; `/` stays public when the login wall is on).
 - Copy rule: no invented customers, logos, numbers or testimonials. Tasks, Files and Calls are listed as "coming next".
 
 ## Sources
