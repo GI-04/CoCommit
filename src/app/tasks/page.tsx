@@ -10,7 +10,7 @@ import { Button, Card, Pill } from "@/components/ui";
 import { useRepos } from "@/components/useRepos";
 import { NoWorkspaceError } from "@/lib/chat-pins";
 import { DEFAULT_REPO, getCurrentRepo, setCurrentRepo } from "@/lib/current-repo";
-import { getSession, GitHubRequestError, signInHref, type User } from "@/lib/github-client";
+import { getSession, GitHubRequestError, inviteMember, signInHref, type User } from "@/lib/github-client";
 import {
   createTask,
   finishTask,
@@ -56,6 +56,8 @@ export default function TasksPage() {
   const [form, setForm] = useState<NewTaskForm | null>(null);
   const [note, setNote] = useState<Note | null>(null);
   const [busy, setBusy] = useState(false);
+  // The Invite form: null = closed, otherwise the GitHub username being typed.
+  const [invite, setInvite] = useState<string | null>(null);
 
   const load = useCallback(async (r: string) => {
     setState("loading");
@@ -106,6 +108,23 @@ export default function TasksPage() {
     }
   }
 
+  // Sends a GitHub collaborator invitation from inside the app (no new window, so it also works in the desktop app).
+  async function sendInvite() {
+    if (!invite?.trim()) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      const r = await inviteMember(repo, invite);
+      setNote({ ok: true, text: r.status === "already" ? `${r.username} already has access.` : `Invitation sent to ${r.username}. They accept it from GitHub.` });
+      setInvite(null);
+    } catch (e) {
+      if (e instanceof GitHubRequestError && e.status === 401) setState("login");
+      else setNote({ ok: false, text: e instanceof Error ? e.message : "Couldn't send the invitation." });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function submitAction(task: Task) {
     if (!board || !action) return;
     if (action.kind === "take") void save(() => takeTask(board, task, action.who || me, action.text), task.path, `Taken by ${action.who || me}.`);
@@ -138,11 +157,15 @@ export default function TasksPage() {
               <Button variant="glass" onClick={() => setForm(form ? null : { ...blankTask })} disabled={busy}>
                 New task
               </Button>
+              <button
+                type="button"
+                onClick={() => setInvite(invite === null ? "" : null)}
+                className="rounded-xl border border-black bg-[var(--blue)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-90"
+              >
+                Invite
+              </button>
             </>
           )}
-          <a href={`https://github.com/${repo}/settings/access`} target="_blank" rel="noreferrer" className="rounded-xl border border-black bg-[var(--blue)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-90">
-            Invite
-          </a>
         </div>
       </div>
       <p className="mt-1 text-sm text-muted">The task board in {repo}/COCOMMIT/BOARD/. Every move is a commit that your team&apos;s AI agents read too.</p>
@@ -208,6 +231,35 @@ export default function TasksPage() {
             </a>
           )}
         </p>
+      )}
+
+      {invite !== null && (
+        <Card title="Invite to GitHub" className="mb-4 max-w-2xl">
+          <form
+            className="flex flex-wrap items-end gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void sendInvite();
+            }}
+          >
+            <label className="block flex-1 text-sm">
+              GitHub username
+              <input className={input} value={invite} onChange={(e) => setInvite(e.target.value)} placeholder="octocat" required autoFocus />
+            </label>
+            <Button type="submit" disabled={busy}>
+              Send invite
+            </Button>
+            <Button variant="glass" type="button" onClick={() => setInvite(null)}>
+              Cancel
+            </Button>
+          </form>
+          <p className="mt-2 text-xs text-muted">
+            Only repo admins can invite.{" "}
+            <a href={`https://github.com/${repo}/settings/access`} target="_blank" rel="noreferrer" className="underline">
+              Open on GitHub
+            </a>
+          </p>
+        </Card>
       )}
 
       {form && (
