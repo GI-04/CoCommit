@@ -48,7 +48,7 @@ function chatAs(user) {
     },
     removeChannel: () => {},
   };
-  const chat = load({ "./supabase": { getSupabase: () => client, supabaseConfigured: true } }, {
+  const chat = load({ "./supabase": { getSupabase: () => client, supabaseConfigured: true }, "./current-repo": { GENERAL: "general" } }, {
     fetch: async () => ({ ok: true, json: async () => ({ user: null, fake: false }) }),
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
     sessionStorage: { getItem: () => null, setItem() {} },
