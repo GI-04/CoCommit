@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { JetBrains_Mono } from "next/font/google";
+import { BackButton } from "@/components/BackButton";
 import { Icon, type IconName } from "@/components/icons";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { DesktopRedirect, Downloads, HeroDownload } from "@/components/landing/Downloads";
@@ -57,6 +58,7 @@ export default function Landing() {
 
       <header className="sticky top-0 z-30 px-3 pt-3 md:px-8 md:pt-5">
         <div className="mx-auto flex max-w-6xl items-center gap-3">
+          <BackButton />
           <Link href="/" aria-label="CoCommit home" className={`rounded text-white ${focus}`}>
             <img src="/logo.svg" alt="" className="h-9 w-auto invert md:h-11" />
           </Link>
