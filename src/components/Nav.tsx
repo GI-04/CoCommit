@@ -7,7 +7,6 @@ import { Icon } from "@/components/icons";
 import { useAssistant } from "@/components/Assistant";
 import { navItems } from "@/lib/sections";
 import { UserChip } from "@/components/UserChip";
-import { DownloadButton } from "@/components/DownloadButton";
 
 
 // One glass navigation in the three Figma sizes (one element, so the account is only loaded once):
@@ -75,7 +74,6 @@ export function Nav() {
       </div>
 
       <div className={`${open ? "block" : "hidden"} border-t border-white/15 pt-3 md:mt-auto md:block md:w-full md:border-0 md:pt-0`}>
-        <DownloadButton className="hidden pb-4 lg:flex" />
         <UserChip />
       </div>
     </nav>

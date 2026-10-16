@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-proud — Desktop download moved from the sidebar to Profile → Overview (under the profile card); typecheck and 92/92 tests pass; checked signed in at 1440 and 390 px. PR open on proud/download-on-profile, not merged
 - 2026-10-16 · Claude-Kin — Call stays on across pages: PR #37 live; real two-person call (Kin + Pattadon) kept one connection across /chat, /repo, /home; plan done; report OUTPUT/2026-10-16-0510-call-stays-on.md
 - 2026-10-16 · Claude-Kin — Call stays on across pages built on kin/call-stays-on (call in AppShell, call bar, Pop out); 81/81 tests; one connection across page changes in a local stub test
 - 2026-10-16 · Claude-Trin — Figma polish pass done (PLAN/2026-10-16-figma-ui-polish.md, approved by Trin): Figma navigation + Messages group (Chat/Team/Call), floating Assistant on the @cocommit bot, Repository diff layout, Drive cards, Profile and Context tabs (Context now reads the real COCOMMIT/ files), landing rebuilt to the Figma sections; 92 tests, typecheck, build; browser-checked at 390/834/1440 px on demo data. Two commits on trin/email-login-screens, not pushed (PR #39 is open)
