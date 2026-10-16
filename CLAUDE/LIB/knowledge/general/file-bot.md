@@ -1,4 +1,4 @@
-# @cocommit bot and Assistant (reads the whole repo)
+# @cocommit bot and Assistant (reads the whole repo, Edit mode opens PRs)
 
 **Added:** 2026-10-16 · **Kind:** reference
 
@@ -16,6 +16,14 @@
 - **Errors:** Claude API errors come back as `Claude API error (<status>): <message>` (401/403 → HTTP 400, others 502).
 - **Tests:** `tests/bot.test.mjs` (helpers), `tests/bot-route.test.mjs` (builds a real `.tar.gz` in memory, scripted fake Claude + fake GitHub; covers models, fallbacks, own key/URL, don't-read, branch, PR/issue, debug, cache, 12-round limit).
 - **Gotchas:** in tests, objects made inside `vm` contexts fail `instanceof` against the outer realm, so `readApiUrl` returns `{ url } | { error }` rather than an `Error`. Next.js route files may only export route fields (`POST`, `maxDuration` …), so helpers live in `bot.ts`.
+
+## Edit mode (2026-10-16)
+- **Ask / Edit** switch above the Assistant input (`BotSettings.mode`, saved in the browser). Chat `@cocommit` always sends `mode: "ask"`.
+- Edit mode adds `edit_file` (exact, unique `old_text`; `applyEdit`), `write_file`, `delete_file`, `show_changes` (`EDIT_TOOLS`, `EDIT_PROMPT` in `bot.ts`). Changes are **staged in the request only** (`ToolContext.changes`, path → text or null); reads, search and listings see them. The answer returns `changes: ChangeView[]` with a line diff (`lineDiff`, plain LCS, 3 lines of context). The browser sends them back with the next question, so a follow-up builds on them.
+- Limits: 30 files, 200 KB per file, text only, not on don't-read paths or folders; 20 rounds, final answer forced after 240 s (`maxDuration` 300 on `/api/bot`).
+- **Create pull request** → `POST /api/bot/apply`: re-checks every path/size/exclusion, then `commitFiles` makes ONE commit on a NEW branch `assistant/<title-slug>-<4 random>` from the read branch, and `openPullRequest` opens a PR into it, using the asker's GitHub login. If the PR call fails after the commit, the error names the branch. It never commits to an existing branch.
+- Not done: running code or tests (no sandbox; Managed Agents would be the route), edits from chat, binary files.
+- Checked 2026-10-16: on real GitHub, staging and a follow-up edit to `COCOMMIT/TODO.md` (Sonnet), with nothing written. On a fake GitHub, the full UI: diff card → Create pull request → branch + one commit + PR link.
 
 ## Sources
 - `PLAN/2026-10-15-file-bot.md` (first version), `PLAN/2026-10-16-bot-code-and-models.md` (this version)

@@ -4,10 +4,13 @@
 // Pure text handling is in ./bot.ts.
 
 import {
+  applyEdit,
   findEntries,
   formatChat,
   grepRepo,
+  isEditToolName,
   isExcluded,
+  lineDiff,
   listFolder,
   logSince,
   memberWork,
@@ -15,9 +18,14 @@ import {
   overview,
   toGithubLink,
   trimForSummary,
+  MAX_CHANGED_FILES,
+  MAX_EDIT_BYTES,
   WORKSPACE_DIR,
+  type BotMode,
   type BotSource,
+  type ChangeView,
   type ChatLine,
+  type EditToolName,
   type ToolName,
   type WorkspaceFiles,
 } from "./bot";
@@ -59,12 +67,67 @@ const lines = (items: string[]) => items.join("\n") || "(nothing)";
 const kb = (bytes: number) => (bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(bytes < 10_240 ? 1 : 0)} KB`);
 const cut = (text: string, max: number) => (text.length > max ? `${text.slice(0, max)}\n…(cut: ${text.length - max} more characters)` : text);
 
-export type ToolContext = { repo: string; snap: Snapshot; chat: ChatLine[]; exclude: string[] };
+/** changes: staged edits (path → new text, null = deleted), only used in Edit mode. */
+export type ToolContext = { repo: string; snap: Snapshot; chat: ChatLine[]; exclude: string[]; mode?: BotMode; changes?: Map<string, string | null> };
 /** What a tool returns: text for Claude, plus what it read (shown as links under the answer). */
 export type ToolOutput = { text: string; used: BotSource[] };
 
+/** The repo as it would be with the staged changes. */
+function current(ctx: ToolContext): RepoFile[] {
+  if (!ctx.changes?.size) return ctx.snap.files;
+  const out = ctx.snap.files.filter((f) => !ctx.changes!.has(f.path));
+  for (const [path, content] of ctx.changes) if (content !== null) out.push({ path, size: Buffer.byteLength(content), text: content });
+  return out.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** One file as it would be with the staged changes (undefined if missing or staged for deletion). */
+function getFile(ctx: ToolContext, path: string): RepoFile | undefined {
+  if (ctx.changes?.has(path)) {
+    const content = ctx.changes.get(path)!;
+    return content === null ? undefined : { path, size: Buffer.byteLength(content), text: content };
+  }
+  return ctx.snap.byPath.get(path);
+}
+
 /** The files the user hasn't excluded. */
-const visible = (ctx: ToolContext) => (ctx.exclude.length ? ctx.snap.files.filter((f) => !isExcluded(f.path, ctx.exclude)) : ctx.snap.files);
+const visible = (ctx: ToolContext) => {
+  const files = current(ctx);
+  return ctx.exclude.length ? files.filter((f) => !isExcluded(f.path, ctx.exclude)) : files;
+};
+
+/** The staged changes as the Assistant shows them (no-op changes left out). */
+export function changeViews(ctx: ToolContext): ChangeView[] {
+  const views: ChangeView[] = [];
+  for (const [path, content] of ctx.changes ?? []) {
+    const before = ctx.snap.byPath.get(path);
+    if (content === null && !before) continue;
+    if (content !== null && before?.text === content) continue;
+    const diff = lineDiff(before?.text ?? null, content);
+    views.push({ path, content, status: content === null ? "deleted" : before ? "modified" : "added", additions: diff.additions, deletions: diff.deletions, diff: diff.lines });
+  }
+  return views.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+/** Why `path` can't be changed, or null if it can. */
+function cannotChange(ctx: ToolContext, path: string | null, content: string | null): string | null {
+  if (ctx.mode !== "edit" || !ctx.changes) return "Editing is off. Ask the user to switch the Assistant to Edit mode.";
+  if (!path) return "Give a file path inside the repo.";
+  if (path.length > 300) return "That path is too long.";
+  if (isExcluded(path, ctx.exclude)) return `${path} is excluded by the user's "don't read" settings, so it can't be changed.`;
+  if (current(ctx).some((f) => f.path.startsWith(`${path}/`))) return `${path} is a folder.`;
+  const original = ctx.snap.byPath.get(path);
+  if (content !== null && original && original.text === null && !ctx.changes.has(path)) return `${path} is a binary or very large file; it can't be edited as text.`;
+  if (content !== null && Buffer.byteLength(content) > MAX_EDIT_BYTES) return `New content is over ${MAX_EDIT_BYTES / 1000} KB.`;
+  if (!ctx.changes.has(path) && ctx.changes.size >= MAX_CHANGED_FILES) return `Already ${MAX_CHANGED_FILES} changed files; that's the limit for one pull request.`;
+  return null;
+}
+
+function stage(ctx: ToolContext, path: string, content: string | null): ToolOutput {
+  ctx.changes!.set(path, content);
+  const view = changeViews(ctx).find((v) => v.path === path);
+  const summary = view ? `${view.status} ${path} (+${view.additions} -${view.deletions})` : `${path}: no change from the original`;
+  return { text: `Staged: ${summary}. Not committed; the user reviews it first.`, used: content === null ? [] : [fileLink(ctx, path)] };
+}
 
 /** COCOMMIT/ texts, for the team-notes tools. */
 function workspace(ctx: ToolContext): WorkspaceFiles {
@@ -87,7 +150,7 @@ function projectOverview(ctx: ToolContext, languages: [string, number][], prs: n
   );
   const folders = new Map<string, number>();
   for (const f of files) if (f.path.includes("/")) folders.set(f.path.split("/")[0], (folders.get(f.path.split("/")[0]) ?? 0) + 1);
-  const notes = ["PROJECT.md", "HANDOFF.md"].map((n) => ctx.snap.byPath.get(`${WORKSPACE_DIR}/${n}`)).filter((f): f is RepoFile => !!f && !isExcluded(f.path, ctx.exclude));
+  const notes = ["PROJECT.md", "HANDOFF.md"].map((n) => getFile(ctx, `${WORKSPACE_DIR}/${n}`)).filter((f): f is RepoFile => !!f && !isExcluded(f.path, ctx.exclude));
   const total = languages.reduce((s, [, b]) => s + b, 0) || 1;
   const used = [readme, ...manifests, ...notes].filter((f): f is RepoFile => !!f).map((f) => fileLink(ctx, f.path));
   return {
@@ -104,7 +167,8 @@ function projectOverview(ctx: ToolContext, languages: [string, number][], prs: n
   };
 }
 
-export async function runTool(name: ToolName, input: Record<string, unknown>, ctx: ToolContext): Promise<ToolOutput> {
+export async function runTool(name: ToolName | EditToolName, input: Record<string, unknown>, ctx: ToolContext): Promise<ToolOutput> {
+  if (isEditToolName(name)) return runEditTool(name, input, ctx);
   switch (name) {
     case "get_project_overview": {
       const [languages, prs, issues] = await Promise.all([
@@ -130,7 +194,7 @@ export async function runTool(name: ToolName, input: Record<string, unknown>, ct
       const path = cleanPath(input.path);
       if (!path) return { text: "Give a path inside the repo.", used: [] };
       if (isExcluded(path, ctx.exclude)) return { text: `${path} is excluded by the user's "don't read" settings.`, used: [] };
-      const file = ctx.snap.byPath.get(path);
+      const file = getFile(ctx, path);
       if (!file) {
         const similar = grepRepo(visible(ctx), path.split("/").pop() ?? path).names.slice(0, 5);
         return { text: `No such file on ${ctx.snap.branch}: ${path}.${similar.length ? ` Did you mean: ${similar.join(", ")}?` : " Use search_files or list_folder."}`, used: [] };
@@ -148,7 +212,7 @@ export async function runTool(name: ToolName, input: Record<string, unknown>, ct
       const prefix = path ? `${path}/` : "";
       const described = entries.map((e) => {
         if (e.endsWith("/")) return `${e} (${files.filter((f) => f.path.startsWith(prefix + e)).length} files)`;
-        const f = ctx.snap.byPath.get(prefix + e);
+        const f = getFile(ctx, prefix + e);
         return `${e} (${kb(f?.size ?? 0)}${f && f.text === null ? ", binary" : ""})`;
       });
       return { text: entries.length ? described.join("\n") : `No folder "${path}" on ${ctx.snap.branch}.`, used: [] };
@@ -157,7 +221,7 @@ export async function runTool(name: ToolName, input: Record<string, unknown>, ct
       const path = cleanPath(input.path ?? "") ?? "";
       if (path && isExcluded(path, ctx.exclude)) return { text: `${path} is excluded by the user's "don't read" settings.`, used: [] };
       const commits = await listFileCommits(ctx.repo, path, 15, undefined, ctx.snap.branch);
-      return { text: lines(commits.map((c) => `${c.at.slice(0, 16)} ${c.author}: ${c.text}`)), used: path && ctx.snap.byPath.has(path) ? [fileLink(ctx, path)] : [] };
+      return { text: lines(commits.map((c) => `${c.at.slice(0, 16)} ${c.author}: ${c.text}`)), used: path && getFile(ctx, path) ? [fileLink(ctx, path)] : [] };
     }
     case "list_branches":
       return { text: lines(await listBranches(ctx.repo)), used: [] };
@@ -235,4 +299,43 @@ export async function runTool(name: ToolName, input: Record<string, unknown>, ct
     case "get_chat_messages":
       return { text: formatChat(ctx.chat, str(input, "since") || undefined), used: [] };
   }
+}
+
+function runEditTool(name: EditToolName, input: Record<string, unknown>, ctx: ToolContext): ToolOutput {
+  if (name === "show_changes") {
+    if (ctx.mode !== "edit") return { text: "Editing is off.", used: [] };
+    const views = changeViews(ctx);
+    if (!views.length) return { text: "No staged changes yet.", used: [] };
+    return {
+      text: views
+        .map((v) => `### ${v.path} (${v.status}, +${v.additions} -${v.deletions})\n${v.diff.map((l) => (l.kind === "…" ? "…" : `${l.kind} ${l.text}`)).join("\n")}`)
+        .join("\n\n")
+        .slice(0, 30_000),
+      used: [],
+    };
+  }
+  const path = cleanPath(input.path);
+  if (name === "delete_file") {
+    const why = cannotChange(ctx, path, null);
+    if (why) return { text: why, used: [] };
+    if (!getFile(ctx, path!)) return { text: `No such file: ${path}.`, used: [] };
+    return stage(ctx, path!, null);
+  }
+  const existing = path ? getFile(ctx, path) : undefined;
+  if (name === "write_file") {
+    const content = str(input, "content");
+    const why = cannotChange(ctx, path, content);
+    if (why) return { text: why, used: [] };
+    return stage(ctx, path!, content);
+  }
+  // edit_file
+  const why = cannotChange(ctx, path, "");
+  if (why) return { text: why, used: [] };
+  if (!existing) return { text: `No such file: ${path}. Use write_file to create it.`, used: [] };
+  if (existing.text === null) return { text: `${path} is a binary or very large file; it can't be edited as text.`, used: [] };
+  const result = applyEdit(existing.text, str(input, "old_text"), str(input, "new_text"));
+  if ("error" in result) return { text: `${path}: ${result.error}`, used: [] };
+  const sizeWhy = cannotChange(ctx, path, result.text);
+  if (sizeWhy) return { text: sizeWhy, used: [] };
+  return stage(ctx, path!, result.text);
 }

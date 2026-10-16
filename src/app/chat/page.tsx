@@ -9,7 +9,7 @@ import { MessagesShell } from "@/components/MessagesShell";
 import { Button, Card } from "@/components/ui";
 import { useRepos } from "@/components/useRepos";
 import { isBotMessage, shareText, stripTrigger, type BotAnswer } from "@/lib/bot";
-import { askBot, BotRequestError } from "@/lib/bot-client";
+import { askBot, BotRequestError, loadBotSettings } from "@/lib/bot-client";
 import {
   canPost,
   chatFake,
@@ -108,7 +108,7 @@ export default function ChatPage() {
     const recent = messages.filter((m) => m.kind === "text").map(({ author, text, createdAt }) => ({ author, text, createdAt }));
     try {
       // The bot reads a repo's COCOMMIT/ files: the picked repo, also from #general.
-      updateReply(id, { result: await askBot(repo, question, recent) });
+      updateReply(id, { result: await askBot(repo, question, recent, { ...loadBotSettings(), mode: "ask" }) }); // chat stays read-only
     } catch (err) {
       updateReply(id, {
         error: err instanceof Error ? err.message : "The bot couldn't answer.",

@@ -4,7 +4,8 @@
 //   import { askBot, BotRequestError, loadBotSettings } from "@/lib/bot-client";
 //   const { answer, sources } = await askBot("GI-04/CoCommit", "where is login handled?", chatLines, loadBotSettings());
 
-import { parsePatterns, type BotAnswer, type BotDebug, type ChatLine, type ModelChoice } from "./bot";
+import { parsePatterns, type BotAnswer, type BotDebug, type BotMode, type Change, type ChatLine, type ModelChoice } from "./bot";
+import type { Commit, PullRequest } from "./github-types";
 
 export class BotRequestError extends Error {
   status: number;
@@ -18,6 +19,8 @@ export class BotRequestError extends Error {
 }
 
 export type BotSettings = {
+  /** "edit" lets the Assistant stage file changes (never committed without "Create pull request"). */
+  mode: BotMode;
   model: ModelChoice;
   customModel: string;
   /** "" = the repo's default branch */
@@ -33,6 +36,7 @@ export type BotSettings = {
 };
 
 export const DEFAULT_SETTINGS: BotSettings = {
+  mode: "ask",
   model: "fast",
   customModel: "",
   branch: "",
@@ -85,7 +89,14 @@ export function saveBotSettings(s: BotSettings): void {
   write(() => sessionStorage, SECRET, s.rememberKey ? null : secret);
 }
 
-export async function askBot(repo: string, question: string, chat: ChatLine[] = [], settings: BotSettings = loadBotSettings()): Promise<BotAnswer> {
+/** `changes`: staged changes from the previous Edit answer, so the next question builds on them. */
+export async function askBot(
+  repo: string,
+  question: string,
+  chat: ChatLine[] = [],
+  settings: BotSettings = loadBotSettings(),
+  changes: Change[] = [],
+): Promise<BotAnswer> {
   const res = await fetch("/api/bot", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -101,9 +112,25 @@ export async function askBot(repo: string, question: string, chat: ChatLine[] = 
       apiKey: settings.apiKey || undefined,
       workspaceId: settings.workspaceId || undefined,
       apiUrl: settings.apiUrl || undefined,
+      mode: settings.mode,
+      changes: settings.mode === "edit" ? changes.map(({ path, content }) => ({ path, content })) : undefined,
     }),
   });
   const data = await res.json().catch(() => ({ error: res.statusText }));
   if (!res.ok) throw new BotRequestError(res.status, data?.error ?? res.statusText, data?.debug);
   return data as BotAnswer;
+}
+
+export type ApplyResult = { branch: string; commit: Commit; pr: PullRequest };
+
+/** "Create pull request": one commit with `changes` on a new assistant/… branch made from `base`, then a PR into `base`. */
+export async function applyChanges(repo: string, base: string, title: string, changes: Change[], settings: BotSettings = loadBotSettings(), note = ""): Promise<ApplyResult> {
+  const res = await fetch("/api/bot/apply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ repo, base: base || undefined, title, body: note, changes: changes.map(({ path, content }) => ({ path, content })), exclude: parsePatterns(settings.exclude) }),
+  });
+  const data = await res.json().catch(() => ({ error: res.statusText }));
+  if (!res.ok) throw new BotRequestError(res.status, data?.error ?? res.statusText);
+  return data as ApplyResult;
 }
