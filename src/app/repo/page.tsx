@@ -345,6 +345,9 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
             <Button onClick={commit} disabled={!edited || !message.trim() || busy !== null} className="mt-3 w-full py-3">
               {busy === "commit" ? "Committing…" : `Commit to ${target || "…"}`}
             </Button>
+            {busy === null && (!edited || !message.trim()) && (
+              <p className="mt-1.5 text-xs">{!edited ? "Edit a file first: Files list → pick a file → change it." : "Write what you changed to commit."}</p>
+            )}
             <input
               value={prTitle}
               onChange={(e) => setPrTitle(e.target.value)}
@@ -355,6 +358,9 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
             <Button variant="ghost" onClick={openPr} disabled={busy !== null || branch === base || !changed.length} className="mt-2 w-full bg-paper py-3">
               {busy === "pr" ? "Opening…" : `Open PR into ${base}`}
             </Button>
+            {busy === null && (branch === base || !changed.length) && (
+              <p className="mt-1.5 text-xs">{branch === base ? `Pick another branch first: a pull request needs changes on a branch, not on ${base}.` : "No changes on this branch yet."}</p>
+            )}
             {edited && (
               <Button variant="ghost" onClick={() => setText(original)} className="mt-2 flex w-full items-center justify-center gap-2 py-3">
                 <Icon name="trash" className="size-4" /> Discard edits

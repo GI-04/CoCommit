@@ -27,7 +27,7 @@ export function useRepo(): string | null {
   return repo;
 }
 
-function useLoad<T>(repo: string | null, load: (repo: string) => Promise<T>): Load<T> {
+function useLoad<T>(repo: string | null, load: (repo: string) => Promise<T>, rev = 0): Load<T> {
   const [state, setState] = useState<Load<T>>({ status: "loading" });
   useEffect(() => {
     if (!repo) return;
@@ -46,7 +46,7 @@ function useLoad<T>(repo: string | null, load: (repo: string) => Promise<T>): Lo
     };
     // `load` is always a module-level function below, so it never changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repo]);
+  }, [repo, rev]);
   return state;
 }
 
@@ -57,7 +57,7 @@ export const useCommits = (repo: string | null): Load<CommitDate[]> => useLoad(r
 export const useBoard = (repo: string | null): Load<Board> => useLoad(repo, loadBoard);
 export const useActivity = (repo: string | null): Load<Activity[]> => useLoad(repo, latestActivity);
 /** The `COCOMMIT/` team files; `ready` with `null` means the repo has no team context yet. */
-export const useWorkspace = (repo: string | null): Load<Workspace | null> => useLoad(repo, loadWorkspace);
+export const useWorkspace = (repo: string | null, rev = 0): Load<Workspace | null> => useLoad(repo, loadWorkspace, rev);
 
 /** One line for a card that can't show its data, or null while it is loading or ready. */
 export function problem(state: Load<unknown>): string | null {
