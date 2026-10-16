@@ -1,6 +1,6 @@
 # Plan: Chat only for logged-in people; "Get started" goes to login when signed out
 
-**Status:** active: approved by proud (2026-10-16 08:56, "แก้เลย"); built 09:05 on `proud/chat-privacy`, not committed; SQL not run yet <!-- proposed | active | done | rejected | superseded -->
+**Status:** active: approved by proud (2026-10-16 08:56, "แก้เลย"); built 09:05 on `proud/chat-privacy`, committed, PR open; SQL not run yet <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **By:** Claude-proud · **Asked by:** proud · **Needs OK from:** proud and the team (Pattadon runs the SQL; Trin owns the chat and landing pages) · **Superseded by:** —
 
 ## Why
