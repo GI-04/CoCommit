@@ -11,7 +11,8 @@ import { GitModeError, modesByPath, treeEntries, type TreeListing } from "./git-
 import { hasGitHubIdentity } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
 import { isMarkerPath, isSharedPath, MAX_FILE_BYTES, MAX_PARTS, PART_BYTES, partCount, splitShared } from "./files-util";
-import type { Change, Commit, FileEdit, GitHubActions, PullRequest, Repo, Session, SharedFile, SharedListing, User } from "./github-types";
+import { cleanUsername } from "./invite";
+import type { Change, Commit, FileEdit, GitHubActions, InviteResult, PullRequest, Repo, Session, SharedFile, SharedListing, User } from "./github-types";
 
 export type { Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
 
@@ -333,6 +334,22 @@ export async function openPullRequest(repo: string, head: string, base: string, 
   }
 }
 
+/** Invites a GitHub user to the repo as a collaborator (needs admin on the repo). */
+export async function inviteMember(repo: string, username: string): Promise<InviteResult> {
+  const name = cleanUsername(username);
+  if (!name) throw new GitHubError(400, "That doesn't look like a GitHub username.");
+  const r = repoPath(repo);
+  if (fakeMode) return { status: "invited", username: name };
+  try {
+    const res = await gh<unknown>(`${r}/collaborators/${encodeURIComponent(name)}`, { method: "PUT", body: { permission: "push" } });
+    return { status: res === undefined ? "already" : "invited", username: name };
+  } catch (e) {
+    if (e instanceof GitHubError && e.status === 404) throw new GitHubError(404, `Can't find "${name}" on GitHub, or you aren't an admin of ${repo}.`);
+    if (e instanceof GitHubError && e.status === 403) throw new GitHubError(403, `Only an admin of ${repo} can invite people.`);
+    throw e;
+  }
+}
+
 /** A text file's contents, or null if it doesn't exist. `branch: null` means the default branch. */
 export async function readFile(repo: string, branch: string | null, path: string): Promise<string | null> {
   if (fakeMode) return path === CONTEXT_PATH ? fake.context(repo) : `// ${path} (fake file)\n`;
@@ -550,6 +567,7 @@ export const actions: GitHubActions = {
   listCommits,
   listMergedPulls,
   listCommitDates,
+  inviteMember,
 };
 
 // ---------- Fake mode: used while GITHUB_CLIENT_ID is empty, so the screens work before the keys exist.
