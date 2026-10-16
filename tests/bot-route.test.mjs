@@ -312,3 +312,45 @@ test("team-notes tools still work on COCOMMIT/", async () => {
   assert.match(changes, /- 2026-10-16 · Kin — desktop builds done/);
   assert.match(changes, /kin: Add login/);
 });
+
+const oaiTool = (name, args) => ({ choices: [{ finish_reason: "tool_calls", message: { content: null, tool_calls: [{ id: "call_1", type: "function", function: { name, arguments: JSON.stringify(args) } }] } }], usage: { prompt_tokens: 40, completion_tokens: 6 } });
+const oaiText = (text) => ({ choices: [{ finish_reason: "stop", message: { content: text } }], usage: { prompt_tokens: 50, completion_tokens: 8 } });
+const GEMINI = "https://generativelanguage.googleapis.com/v1beta/openai";
+
+test("OpenAI-style API (Gemini): Bearer key, function tools, tool messages, answer with links", async () => {
+  const { post, requests } = setup({ key: "", replies: [oaiTool("search_files", { query: "export default" }), oaiText("It's in src/app/page.tsx.")] });
+  const res = await post({ repo: "o/r", question: "where is home?", model: "custom", customModel: "gemini-2.5-flash", apiKey: "AIza-mine", apiUrl: GEMINI, apiFormat: "openai", debug: true });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.answer, "It's in src/app/page.tsx.");
+  assert.deepEqual(plain(res.body.sources), [{ path: "src/app/page.tsx:1", url: "https://github.com/o/r/blob/main/src/app/page.tsx#L1" }]);
+  assert.deepEqual(plain(res.body.debug.rounds.map((r) => [r.stop, r.usage.input])), [["tool_use", 40], ["end_turn", 50]]);
+  assert.doesNotMatch(JSON.stringify(res.body), /AIza-mine/);
+
+  const [first, second] = requests;
+  assert.equal(first.url, `${GEMINI}/chat/completions`);
+  assert.equal(first.headers.authorization, "Bearer AIza-mine");
+  assert.equal(first.headers["x-api-key"], undefined);
+  assert.equal(first.body.model, "gemini-2.5-flash");
+  assert.equal(first.body.tool_choice, "auto");
+  assert.equal(first.body.system, undefined);
+  assert.equal(first.body.cache_control, undefined);
+  assert.equal(first.body.messages[0].role, "system");
+  assert.equal(first.body.tools[1].function.name, "search_files");
+  const [, , assistant, tool] = second.body.messages;
+  assert.equal(assistant.tool_calls[0].function.name, "search_files");
+  assert.equal(tool.role, "tool");
+  assert.equal(tool.tool_call_id, "call_1");
+  assert.match(tool.content, /src\/app\/page\.tsx:1: export default/);
+});
+
+test("OpenAI-style API needs your own key, a URL and a custom model ID", async () => {
+  const { post, requests } = setup({ replies: [{ httpStatus: 401, message: "API key not valid" }] });
+  const base = { repo: "o/r", question: "hi", apiFormat: "openai", model: "custom", customModel: "gemini-2.5-flash" };
+  assert.match((await post({ ...base, apiUrl: GEMINI })).body.error, /own API key/);
+  assert.match((await post({ ...base, apiKey: "k" })).body.error, /needs its API URL/);
+  assert.match((await post({ ...base, apiKey: "k", apiUrl: GEMINI, model: "fast" })).body.error, /pick Custom/);
+  assert.equal(requests.length, 0);
+  const bad = await post({ ...base, apiKey: "k", apiUrl: GEMINI });
+  assert.equal(bad.status, 400);
+  assert.match(bad.body.error, /AI API error \(401\): API key not valid/);
+});
