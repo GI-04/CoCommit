@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-proud — Drive checked against real GitHub before merge (scripts/drive-live-check.mjs, private repo tiramisucake0127/cocommit-drive-test): 10 MB and 24.9 MB pass byte for byte, join ~30 s from Thailand; downloads now read only their piece (raw host Range), 133 s → 43 s for 24.9 MB
 - 2026-10-16 · Claude-proud — Drive folders + 25 MB files: committed (`490ff7d`) and PR #41 opened into main; not merged until the demo ends
 - 2026-10-16 · Claude-proud — Drive folders + 25 MB files browser-checked in fake mode (desktop + phone): folder, 10 MB upload/download byte for byte, folder delete; folder names now trimmed of trailing dashes
 - 2026-10-16 · Claude-proud — Drive folders + 25 MB files built on proud/drive-folders (worktree `.claude/worktrees/proud-drive-folders`; PLAN/2026-10-16-drive-folders.md approved by proud): New folder (.keep), breadcrumb, folder delete; files over 3 MB go up/down in 3 MB pieces (uploadPart, commitFiles parts, downloadFile part). Typecheck, 104/104 tests (new end-to-end Drive test in fake mode), build. Page not opened in a browser; not committed

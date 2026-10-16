@@ -17,6 +17,8 @@ export type { Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, 
 
 const API = (process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, "");
 const WEB = (process.env.GITHUB_WEB_URL || "https://github.com").replace(/\/$/, "");
+// GitHub's raw file host, which can send part of a file (the API always sends all of it). Off for other GitHub hosts.
+const RAW = (process.env.GITHUB_RAW_URL || (API === "https://api.github.com" ? "https://raw.githubusercontent.com" : "")).replace(/\/$/, "");
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? "";
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET ?? "";
 
@@ -366,22 +368,47 @@ export async function listSharedFiles(repo: string): Promise<SharedListing> {
 export async function downloadFile(repo: string, path: string, part = 0): Promise<{ content: string; size: number; parts: number } | null> {
   if (!isSharedPath(path)) throw new GitHubError(400, `Not a shared file: ${path}`);
   if (!Number.isInteger(part) || part < 0) throw new GitHubError(400, "Pick a piece number from 0.");
-  let bytes: Buffer;
   if (fakeMode) {
     const b64 = fakeShared.get(repo)?.get(path);
-    if (b64 === undefined) return null;
-    bytes = Buffer.from(b64, "base64");
-  } else {
-    const sha = await branchSha(repo, await defaultBranch(repo));
-    const data = await gh<{ tree: { path: string; type: string; sha: string }[] }>(`${repoPath(repo)}/git/trees/${sha}?recursive=1`);
-    const entry = data.tree.find((t) => t.type === "blob" && t.path === path);
-    if (!entry) return null;
-    bytes = Buffer.from((await gh<{ content: string }>(`${repoPath(repo)}/git/blobs/${entry.sha}`)).content, "base64");
+    return b64 === undefined ? null : piece(Buffer.from(b64, "base64"), path, part);
   }
+  const commit = await branchSha(repo, await defaultBranch(repo));
+  const data = await gh<{ tree: { path: string; type: string; sha: string; size?: number }[] }>(`${repoPath(repo)}/git/trees/${commit}?recursive=1`);
+  const entry = data.tree.find((t) => t.type === "blob" && t.path === path);
+  if (!entry) return null;
+  // A big file: ask the raw host for just this piece, instead of reading the whole file for every piece.
+  const size = entry.size ?? 0;
+  const parts = partCount(size);
+  if (parts > 1 && part < parts) {
+    const start = part * PART_BYTES;
+    const bytes = await rawRange(repo, commit, path, start, Math.min(size, start + PART_BYTES));
+    if (bytes) return { content: bytes.toString("base64"), size, parts };
+  }
+  return piece(Buffer.from((await gh<{ content: string }>(`${repoPath(repo)}/git/blobs/${entry.sha}`)).content, "base64"), path, part);
+}
+
+/** Piece `part` of a whole file's bytes. */
+function piece(bytes: Buffer, path: string, part: number): { content: string; size: number; parts: number } {
   const parts = partCount(bytes.length);
   if (part >= parts) throw new GitHubError(400, `${path} has ${parts} piece${parts === 1 ? "" : "s"}.`);
-  const piece = bytes.subarray(part * PART_BYTES, (part + 1) * PART_BYTES);
-  return { content: piece.toString("base64"), size: bytes.length, parts };
+  return { content: bytes.subarray(part * PART_BYTES, (part + 1) * PART_BYTES).toString("base64"), size: bytes.length, parts };
+}
+
+/** Bytes [start, end) of `path` at `commit` from the raw host, or null when it can't send exactly that range. */
+async function rawRange(repo: string, commit: string, path: string, start: number, end: number): Promise<Buffer | null> {
+  if (!RAW) return null;
+  repoPath(repo);
+  try {
+    const res = await fetch(`${RAW}/${repo}/${commit}/${seg(path)}`, {
+      headers: { Authorization: `Bearer ${await token()}`, Range: `bytes=${start}-${end - 1}`, "User-Agent": "CoCommit" },
+      cache: "no-store",
+    });
+    if (res.status !== 206) return null;
+    const bytes = Buffer.from(await res.arrayBuffer());
+    return bytes.length === end - start ? bytes : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Stores one piece of a big shared file as a git blob (not in any commit until commitFiles joins the pieces). */
