@@ -23,6 +23,8 @@
 - **Keys:** `NEXT_PUBLIC_LIVEKIT_URL` (`wss://<project>.livekit.cloud`), `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET`, from a LiveKit Cloud project → Settings → Keys. Put them in `.env.local` and in Vercel (Production). Then redeploy, because `NEXT_PUBLIC_*` is baked in at build time.
 - **Desktop:** `src-tauri/Info.plist` adds camera/mic usage text for macOS, but the installers must be rebuilt for it to apply. Windows WebView2 asks for permission by itself. Not tested in the desktop app yet.
 
+- **Repo members only (2026-10-16, Claude-Kin, `PLAN/2026-10-16-repo-members-only.md`):** `/api/livekit-token` also asks GitHub whether the caller can see the repo (`canSeeRepo`): not a member or no GitHub sign-in → 403 (no token); GitHub unreachable → 502. Fake mode is unchanged.
+
 ## Sources
 - `CLAUDE/PLAN/2026-10-16-livekit-calls.md`
 - `tests/livekit-token.test.mjs`
