@@ -5,7 +5,6 @@ import { ActivityTab } from "@/components/home/ActivityTab";
 import { CardsTab } from "@/components/home/CardsTab";
 import { useRepo } from "@/components/home/data";
 import { OverviewTab } from "@/components/home/OverviewTab";
-import { DownloadButton } from "@/components/DownloadButton";
 import { Icon } from "@/components/icons";
 import { Button, PageHeader, Tabs } from "@/components/ui";
 import { HOME_TAB_KEY } from "@/lib/home";
@@ -62,7 +61,6 @@ export default function HomePage() {
       {tab === "overview" && <OverviewTab repo={repo} />}
       {tab === "activity" && <ActivityTab repo={repo} />}
 
-      {tab === "cards" && !customizing && <DownloadButton className="mt-8 max-w-xs lg:hidden" />}
     </div>
   );
 }

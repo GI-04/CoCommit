@@ -68,17 +68,8 @@ function AssistantDock() {
     }
   }
 
-  if (size === "closed")
-    return (
-      <button
-        type="button"
-        onClick={() => setSize("open")}
-        aria-label="Open the Assistant"
-        className="pop fixed bottom-4 right-4 z-40 grid size-14 place-items-center rounded-full bg-[var(--blue)] text-white shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-transform hover:scale-110 md:bottom-6 md:right-6"
-      >
-        <Icon name="sparkle" className="size-6" />
-      </button>
-    );
+  // Closed: nothing floats on the page. The Assistant item in the navigation (and Context's "Ask assistant") opens it.
+  if (size === "closed") return null;
 
   const box = wide ? "md:w-[34rem] md:h-[min(46rem,85dvh)]" : "md:w-[24rem] md:h-[min(33rem,80dvh)]";
   return (
