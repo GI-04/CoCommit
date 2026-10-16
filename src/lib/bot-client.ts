@@ -112,9 +112,11 @@ export async function askBot(
       branch: settings.branch || undefined,
       exclude: parsePatterns(settings.exclude),
       debug: settings.debug,
+      // The URL, workspace and format only go with your own key: the panel hides them without one,
+      // and a leftover URL would make the server refuse the team key.
       apiKey: settings.apiKey || undefined,
-      workspaceId: settings.workspaceId || undefined,
-      apiUrl: settings.apiUrl || undefined,
+      workspaceId: (settings.apiKey && settings.workspaceId) || undefined,
+      apiUrl: (settings.apiKey && settings.apiUrl) || undefined,
       mode: settings.mode,
       changes: settings.mode === "edit" ? changes.map(({ path, content }) => ({ path, content })) : undefined,
       apiFormat: settings.apiKey && settings.apiFormat === "openai" ? "openai" : undefined,
