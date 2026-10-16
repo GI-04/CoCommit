@@ -1,22 +1,24 @@
-# @cocommit chat bot (find and summarize COCOMMIT/ files)
+# @cocommit bot and Assistant (reads the whole repo)
 
 **Added:** 2026-10-16 · **Kind:** reference
 
 ## Takeaway
-Typing `@cocommit <question>` in `/chat` sends it to `POST /api/bot` instead of the chat. Claude (`claude-haiku-5-5`, plain `fetch`, no SDK) reads the repo's `COCOMMIT/` folder with 9 read-only tools and answers with GitHub links. Only the asker sees the reply until **Share to chat**. Needs `ANTHROPIC_API_KEY` (server only); without it the route returns 503 and chat still works. A key not scoped to a workspace (`sk-ant-usr-…`) also needs `ANTHROPIC_WORKSPACE_ID` (`wrkspc_…`), sent as the `anthropic-workspace-id` header; without it the API returns 400.
+`@cocommit <question>` in `/chat` and the floating **Assistant** both call `POST /api/bot`. Claude reads the whole repo on the chosen branch (code, `COCOMMIT/` team notes, history, pull requests, issues) with 15 read-only tools and answers with `path:line` links. Settings in the Assistant (sliders button), kept in the browser: model (Fast = `claude-haiku-5-5`, Balanced = `claude-sonnet-5-5`, Best = `claude-opus-5-5`, or a custom ID), branch, a "don't read" list, your own API key (+ optional workspace ID and https API URL), and debug mode. Server key: `ANTHROPIC_API_KEY` (+ `ANTHROPIC_WORKSPACE_ID` only for `sk-ant-usr-…` keys); with neither a server key nor the user's own key the route returns 503.
 
 ## Details
-- **Files:** `src/lib/bot.ts` (pure: trigger, search/score/snippet, overview, member work, log/chat filters, `shareText`, `SYSTEM_PROMPT`, `TOOLS`), `src/lib/bot-tools.ts` (server: `loadSnapshot`, `workspacePath`, `runTool`), `src/lib/bot-client.ts` (browser `askBot`), `src/app/api/bot/route.ts` (the loop), `src/app/chat/page.tsx` (UI).
-- **GitHub access:** the route uses the asker's own sign-in cookie (`getSession`, `listFolderFiles`, `readFile`, `listFileCommits` in `github.ts`; the last two are server-only, not in `actions`). Not signed in → 401. No `COCOMMIT/` folder → 404.
-- **Cache:** all text files under `COCOMMIT/` (max 80) are read once and cached 5 minutes per `login:repo` on the server instance.
-- **Tools:** `search_files`, `read_file`, `list_folder`, `get_file_history`, `find_entry`, `get_overview`, `get_changes_since`, `get_member_work`, `get_chat_messages` (chat lines are sent from the browser, last 200). Paths are forced inside `COCOMMIT/`; `..` is refused.
-- **Loop:** at most 5 rounds; the last round sends `tool_choice: none` so it must answer. The assistant turn goes back unchanged (Haiku 5.5 returns thinking blocks); all tool results go in one user turn. `effort: low`, `max_tokens` 4000, prompt caching on the fixed system prompt + top-level `cache_control`. Today's date goes in the user message, not the system prompt, so the cache keeps matching.
-- **Stop reasons:** `refusal` → fixed "can't help" reply; `max_tokens` → answer marked as cut.
-- **Not done:** no rate limit per user; the bot can't write files; the repo is still `repos[0]` like the rest of chat.
-- **Tests:** `tests/bot.test.mjs` (pure helpers), `tests/bot-route.test.mjs` (route with a scripted fake Claude and fake GitHub, no network).
+- **Files:** `src/lib/bot.ts` (pure: tools, prompt, `MODELS`/`pickModel`, `isExcluded`, `numberLines`, `grepRepo`, `readApiUrl`, `toGithubLink`, COCOMMIT helpers), `src/lib/repo-snapshot.ts` (server: unpacks GitHub's `.tar.gz` with `node:zlib`, no package), `src/lib/bot-tools.ts` (server: `loadSnapshot`, `runTool`), `src/lib/bot-client.ts` (browser: `askBot`, `loadBotSettings`/`saveBotSettings`), `src/app/api/bot/route.ts` (loop), `src/components/Assistant.tsx` (settings panel, debug fold-out), `src/app/chat/page.tsx`.
+- **Reading the repo:** one `GET /repos/{repo}/tarball/{branch}` per person + repo + branch, cached 5 minutes (max 20 copies per server instance). On this repo: 343 files, 13 MB download (mostly installers), 1.3 MB of text, about 0.4–0.5 s locally, 32 ms to unpack. Text files up to 1 MB are kept; binaries and bigger files keep only their size. Search (`grepRepo`) and reads run on that copy, so they work on any branch with exact line numbers and no code-search rate limit. GitHub code search is not used (it only covers the default branch and allows ~10 calls a minute).
+- **GitHub reads (server only, not in `actions`):** `resolveBranch`, `downloadTarball`, `listFileCommits` (now takes a branch; empty path = whole branch), `listPulls`, `getPull` (files + patches + both kinds of comments), `listIssues` (drops PRs), `getIssue`, `getLanguages`. All use the asker's own GitHub cookie.
+- **Don't read:** patterns (`folder/`, `*.lock`, `name.md`, `src/**/*.ts`) are sent with each question and enforced server-side in every tool (listings, search, reads, PR diffs). It's the only limit on what can be read.
+- **Loop:** up to 12 rounds; after 40 s the next round must answer (`tool_choice: none`), because Vercel stops at 60 s. `max_tokens` 8000. Effort `low` for Fast, `medium` for Balanced/Best, none for custom IDs. Balanced/Best send `fallbacks: "default"` + beta `server-side-fallback-2026-07-01`, only on Anthropic's own URL.
+- **Own key:** used for that request only; never stored, logged or included in `debug`. `apiUrl` must be https and not localhost/`.local`/`.internal`/an IP literal; a bare host gets `/v1/messages` added. A custom URL needs the user's own key. The server's workspace ID only goes with the server key.
+- **Debug:** `debug: true` adds `{ model, branch, snapshot, rounds[{ ms, stop, usage{input,output,cacheRead,cacheWrite}, tools[{ name, input, ms, result (400 chars), error }] }], totalMs, error }`, also on error replies.
+- **Errors:** Claude API errors come back as `Claude API error (<status>): <message>` (401/403 → HTTP 400, others 502).
+- **Tests:** `tests/bot.test.mjs` (helpers), `tests/bot-route.test.mjs` (builds a real `.tar.gz` in memory, scripted fake Claude + fake GitHub; covers models, fallbacks, own key/URL, don't-read, branch, PR/issue, debug, cache, 12-round limit).
+- **Gotchas:** in tests, objects made inside `vm` contexts fail `instanceof` against the outer realm, so `readApiUrl` returns `{ url } | { error }` rather than an `Error`. Next.js route files may only export route fields (`POST`, `maxDuration` …), so helpers live in `bot.ts`.
 
 ## Sources
-- `PLAN/2026-10-15-file-bot.md` (approved plan)
-- Code paths above
+- `PLAN/2026-10-15-file-bot.md` (first version), `PLAN/2026-10-16-bot-code-and-models.md` (this version)
+- Code paths above; Anthropic docs via the `claude-api` skill (Messages API, prompt caching, refusal fallbacks)
 
 **Last checked against sources:** 2026-10-16

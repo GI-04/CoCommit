@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-16 — @cocommit bot reads the repo from a tarball, not GitHub code search
+- **Status:** active
+- **Decision:** `/api/bot` downloads the chosen branch once as GitHub's `.tar.gz` (`/repos/{repo}/tarball/{branch}`), unpacks it in memory with `node:zlib` (`src/lib/repo-snapshot.ts`), keeps it 5 minutes per person + repo + branch, and searches/reads that copy. Plan: `PLAN/2026-10-16-bot-code-and-models.md` (approved by proud; the plan named code search, this replaced it while building).
+- **Why:** one request gives every file on any branch, search returns exact line numbers, and there's no ~10-a-minute code-search limit. Code search only covers the default branch, and only after indexing.
+- **Alternatives:** GitHub code search plus per-file reads (rate limits, default branch only); fetching each file through the contents API (hundreds of calls per question).
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-16 — Drive files up to 25 MB, sent in 3 MB pieces through our API; folders are .keep files
 - **Status:** active
 - **Decision:** Drive (`/files`) keeps storing files in the repo's `COCOMMIT/files/`. Files over 3 MB go up as 3 MB git blobs (`uploadPart`) that `commitFiles` joins into one blob, and come down piece by piece (`downloadFile(repo, path, part)`); limit 25 MB per file. A folder is created by committing an empty `.keep` inside it; up to 4 levels. Plan: `PLAN/2026-10-16-drive-folders.md` (approved by proud, who picked 25 MB over 10 or 50).

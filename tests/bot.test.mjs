@@ -9,7 +9,7 @@ const code = ts.transpileModule(readFileSync(new URL("../src/lib/bot.ts", import
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
 const bot = {};
-vm.runInNewContext(code, { exports: bot });
+vm.runInNewContext(code, { exports: bot, URL });
 // Arrays made inside the vm come from another realm; copy them before deepEqual.
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
@@ -118,7 +118,73 @@ test("shareText keeps links and stays under the chat limit", () => {
 });
 
 test("tool list is complete and named", () => {
-  assert.equal(bot.TOOLS.length, 9);
-  assert.equal(bot.isToolName("read_file"), true);
+  assert.equal(bot.TOOLS.length, 15);
+  for (const name of ["read_file", "search_files", "read_pull_request", "read_issue", "get_project_overview", "list_branches"]) assert.equal(bot.isToolName(name), true);
   assert.equal(bot.isToolName("delete_file"), false);
+});
+
+test("GitHub links can point at lines", () => {
+  assert.equal(bot.toGithubLink("o/r", "feat/x", "src/a.ts", 10, 20), "https://github.com/o/r/blob/feat%2Fx/src/a.ts#L10-L20");
+  assert.equal(bot.toGithubLink("o/r", "main", "src/a.ts", 7, 7), "https://github.com/o/r/blob/main/src/a.ts#L7");
+});
+
+test("don't-read patterns", () => {
+  assert.deepEqual(plain(bot.parsePatterns("src-tauri/\n# note\n\n*.lock, notes.md")), ["src-tauri/", "*.lock", "notes.md"]);
+  const ex = (path, ...p) => bot.isExcluded(path, p);
+  assert.equal(ex("src-tauri/src/lib.rs", "src-tauri/"), true);
+  assert.equal(ex("src/tauri.ts", "src-tauri/"), false);
+  assert.equal(ex("package-lock.json", "*.json"), true);
+  assert.equal(ex("src-tauri/Cargo.lock", "*.lock"), true);
+  assert.equal(ex("docs/notes.md", "notes.md"), true);
+  assert.equal(ex("src/lib/github.ts", "src/lib/github.ts"), true);
+  assert.equal(ex("src/lib/github.ts", "src/**/*.ts"), true);
+  assert.equal(ex("src/lib/github.ts", "src/lib"), true);
+  assert.equal(ex("README.md", "src/"), false);
+  assert.equal(ex("anything", ""), false);
+});
+
+test("numberLines pages with line numbers", () => {
+  const text = Array.from({ length: 1000 }, (_, i) => `line ${i + 1}`).join("\n");
+  const first = bot.numberLines(text);
+  assert.equal(first.from, 1);
+  assert.equal(first.to, bot.PAGE_LINES);
+  assert.equal(first.total, 1000);
+  assert.ok(first.text.startsWith("  1| line 1"));
+  const part = bot.numberLines(text, 995, 2000);
+  assert.deepEqual([part.from, part.to], [995, 1000]);
+  assert.ok(part.text.endsWith("1000| line 1000"));
+  assert.deepEqual([bot.numberLines("a\nb", 9).from, bot.numberLines("a\nb", 9).to], [2, 2]);
+});
+
+test("grepRepo finds names and lines with every word", () => {
+  const files = [
+    { path: "src/lib/github.ts", text: "const TOKEN_COOKIE = 1;\nfunction seal(token) {}\n// cookie token sealed here" },
+    { path: "src/cookie-banner.tsx", text: "export default 1" },
+    { path: "public/app.dmg", text: null },
+  ];
+  const r = bot.grepRepo(files, "token cookie");
+  assert.deepEqual(plain(r.names), []);
+  assert.deepEqual(plain(r.hits.map((h) => `${h.path}:${h.line}`)), ["src/lib/github.ts:1", "src/lib/github.ts:3"]);
+  assert.equal(r.filesWithHits, 1);
+  assert.deepEqual(plain(bot.grepRepo(files, "cookie").names), ["src/cookie-banner.tsx"]);
+  assert.equal(bot.grepRepo(files, " ").hits.length, 0);
+});
+
+test("pickModel keeps to the list unless a custom ID is valid", () => {
+  assert.deepEqual(plain(bot.pickModel("fast")), { model: "claude-haiku-5-5", effort: "low", fallbacks: false });
+  assert.deepEqual(plain(bot.pickModel("balanced")), { model: "claude-sonnet-5-5", effort: "medium", fallbacks: true });
+  assert.deepEqual(plain(bot.pickModel("best")), { model: "claude-opus-5-5", effort: "medium", fallbacks: true });
+  assert.equal(bot.pickModel("nonsense").model, "claude-haiku-5-5");
+  assert.deepEqual(plain(bot.pickModel("custom", " claude-sonnet-5 ")), { model: "claude-sonnet-5", fallbacks: false });
+  assert.equal(bot.pickModel("custom", "bad id; drop").model, "claude-haiku-5-5");
+});
+
+test("readApiUrl only allows public https hosts", () => {
+  assert.equal(bot.readApiUrl("").url, null);
+  assert.equal(bot.readApiUrl("https://proxy.example.com").url, "https://proxy.example.com/v1/messages");
+  assert.equal(bot.readApiUrl("https://proxy.example.com/v1/").url, "https://proxy.example.com/v1/messages");
+  assert.equal(bot.readApiUrl("https://proxy.example.com/anthropic/v1/messages").url, "https://proxy.example.com/anthropic/v1/messages");
+  for (const bad of ["http://proxy.example.com", "https://localhost:8080", "https://169.254.169.254", "https://[::1]/", "https://box.local", "not a url"]) {
+    assert.equal(typeof bot.readApiUrl(bad).error, "string", bad);
+  }
 });
