@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-16 — Deploy job hangs: Vercel blocks teammates' commits (Hobby plan)
+- **What failed:** "Deploy to Vercel" runs sat 11–15 min on "Deploy to production" and were cancelled; the live site stayed on an old build.
+- **Evidence:** `vercel ls` showed the deploys as **Blocked**; `vercel inspect` reason: "the commit author doesn't have permission to create deployments for this project" (author tiramisucake0127, a squash merge). The CLI waits on a blocked deploy instead of failing.
+- **Workaround:** the deploy step removes `.git` first, so the CLI sends no commit author (same as the old `git archive` hand deploys), and has `timeout-minutes: 8`.
+
 ## 2026-10-16 — GitHub's blob API ignores Range: every piece of a big download re-read the whole file
 - **What failed:** Drive downloads a big file in 3 MB pieces, but `GET /repos/<repo>/git/blobs/<sha>` (JSON or `Accept: application/vnd.github.raw`) always returns the whole file, even with a `Range` header, so a 24.9 MB download fetched ~25 MB nine times (133 s from Thailand).
 - **Evidence:** `curl -H "Range: bytes=3145728-6291455" -H "Accept: application/vnd.github.raw" …/git/blobs/<sha>` → HTTP 200, 26,109,863 bytes; the same range on `https://raw.githubusercontent.com/<repo>/<commit>/<path>` with the token → HTTP 206, 3,145,728 bytes.
