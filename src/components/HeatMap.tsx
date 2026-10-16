@@ -3,12 +3,11 @@
 // Commit activity grid for the picked repo (PLAN/2026-10-16-heat-map.md): one square per day, darker = more commits.
 // Figma look: a pink card with a black opacity ramp. The commits come from the Home screen, so the Overview tab can
 // reuse the same load for its numbers.
-import Link from "next/link";
 import { Fragment, useMemo, useState } from "react";
-import { problem, WEEKS, type Load } from "@/components/home/data";
-import { signInHref } from "@/lib/github-client";
+import { WEEKS, type Load } from "@/components/home/data";
+import { Trouble } from "@/components/home/Trouble";
 import { buildHeatMap, dayKey, type CommitDate, type HeatCell } from "@/lib/heatmap";
-import { Card } from "./ui";
+import { Card, Skeleton } from "./ui";
 
 const DAYS = ["", "Mon", "", "Wed", "", "Fri", ""];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -26,7 +25,6 @@ export function HeatMap({ repo, state }: { repo: string | null; state: Load<Comm
   const commits = state.status === "ready" ? state.data : null;
   const map = useMemo(() => (commits ? buildHeatMap(commits, WEEKS, new Date(), who || undefined) : null), [commits, who]);
   const today = dayKey(new Date());
-  const trouble = problem(state);
 
   // A month label above the first week that starts in that month.
   const monthAt = (week: (HeatCell | null)[], i: number) => {
@@ -39,17 +37,8 @@ export function HeatMap({ repo, state }: { repo: string | null; state: Load<Comm
 
   return (
     <Card tone="pink" title={`Commit activity${repo ? ` · ${repo}` : ""}`}>
-      {trouble && (
-        <p className="text-sm">
-          {trouble}{" "}
-          {state.status === "login" && (
-            <Link href={signInHref("/home")} className="font-medium underline">
-              Log in
-            </Link>
-          )}
-        </p>
-      )}
-      {!trouble && !map && <p className="text-sm">Loading…</p>}
+      <Trouble state={state} from="/home" />
+      {state.status === "loading" && <Skeleton lines={5} />}
       {map && (
         <>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
@@ -93,8 +82,8 @@ export function HeatMap({ repo, state }: { repo: string | null; state: Load<Comm
                       title={describe(cell)}
                       aria-label={describe(cell)}
                       onClick={() => setPicked(cell)}
-                      className={`h-5 w-full rounded-md sm:h-7 ${cell.date === today ? "outline outline-2 outline-offset-1 outline-black" : ""}`}
-                      style={{ background: shade(cell.level) }}
+                      className={`rise h-5 w-full rounded-md transition-transform hover:scale-110 sm:h-7 ${cell.date === today ? "outline outline-2 outline-offset-1 outline-black" : ""}`}
+                      style={{ background: shade(cell.level), "--d": `${i * 25}ms` } as React.CSSProperties}
                     />
                   ) : (
                     <span key={i} />

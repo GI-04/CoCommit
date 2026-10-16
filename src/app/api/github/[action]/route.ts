@@ -3,6 +3,10 @@ import { actions, GitHubError } from "@/lib/github";
 
 // POST /api/github/<action> with the arguments as a JSON array, e.g. /api/github/listBranches ["owner/repo"].
 // Browser code calls this through src/lib/github-client.ts.
+
+// Committing a big Drive file joins its pieces here (PLAN/2026-10-16-drive-folders.md); a 25 MB join took ~30 s, so 50 MB gets 300 s (Vercel's limit).
+export const maxDuration = 300;
+
 export async function POST(req: Request, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
   if (!Object.hasOwn(actions, action)) {

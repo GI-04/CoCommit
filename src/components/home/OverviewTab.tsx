@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { Avatar } from "@/components/Avatar";
 import { HeatMap } from "@/components/HeatMap";
-import { Card } from "@/components/ui";
-import { signInHref } from "@/lib/github-client";
+import { Card, Skeleton } from "@/components/ui";
 import { buildHeatMap } from "@/lib/heatmap";
 import { problem, useBoard, useCommits, WEEKS } from "./data";
+import { Trouble } from "./Trouble";
 
 // The Overview tab: three numbers, the commit activity grid and who is on the team. Everything is read from the
 // repo; a number that can't be read shows a dash and the reason instead of a made-up value.
@@ -45,14 +44,7 @@ export function OverviewTab({ repo }: { repo: string | null }) {
               <p className="text-sm">Nobody is listed in COLLAB.md yet.</p>
             )
           ) : (
-            <p className="text-sm">
-              {problem(board) ?? "Loading…"}{" "}
-              {board.status === "login" && (
-                <Link href={signInHref("/home")} className="font-medium underline">
-                  Log in
-                </Link>
-              )}
-            </p>
+            board.status === "loading" ? <Skeleton lines={4} /> : <Trouble state={board} from="/home" />
           )}
         </Card>
       </div>

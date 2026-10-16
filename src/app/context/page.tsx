@@ -5,7 +5,8 @@ import { useState } from "react";
 import { useAssistant } from "@/components/Assistant";
 import { problem, useRepo, useWorkspace } from "@/components/home/data";
 import { Icon } from "@/components/icons";
-import { Button, Card, PageHeader, Pill, Tabs } from "@/components/ui";
+import { SetupForm } from "@/components/SetupForm";
+import { Button, Card, PageHeader, Pill, Skeleton, Tabs } from "@/components/ui";
 import { FILES } from "@/lib/context";
 import { signInHref } from "@/lib/github-client";
 import type { Workspace } from "@/lib/workspace";
@@ -26,7 +27,8 @@ const TONES = ["pink", "cyan", "mustard", "green"] as const;
 // links to the file to change it (the save helpers in src/lib/workspace.ts are ready for a form).
 export default function ContextPage() {
   const repo = useRepo();
-  const ws = useWorkspace(repo);
+  const [rev, setRev] = useState(0);
+  const ws = useWorkspace(repo, rev);
   const assistant = useAssistant();
   const [tab, setTab] = useState("instructions");
 
@@ -45,7 +47,7 @@ export default function ContextPage() {
 
       <Tabs label="Context files" value={tab} onChange={setTab} tabs={TABS} className="mb-5" />
 
-      {ws.status === "loading" && <Card><p className="text-sm text-muted">Loading the team files…</p></Card>}
+      {ws.status === "loading" && <Card className="max-w-2xl"><Skeleton lines={5} /></Card>}
       {trouble && (
         <Card className="max-w-xl">
           <p className="text-sm">
@@ -58,11 +60,9 @@ export default function ContextPage() {
           </p>
         </Card>
       )}
-      {ws.status === "ready" && !data && (
-        <Card className="max-w-xl" title="No team context yet">
-          <p className="text-sm">
-            {repo} has no <code>COCOMMIT/CONTEXT.md</code>, so there is nothing to show. Add the <code>COCOMMIT/</code> folder to the repo (see the README) and it appears here.
-          </p>
+      {ws.status === "ready" && !data && repo && (
+        <Card tone="pink" className="max-w-2xl" title="Set up team context">
+          <SetupForm repo={repo} onDone={() => setRev((r) => r + 1)} />
         </Card>
       )}
       {data && <Tab tab={tab} data={data} file={file} />}

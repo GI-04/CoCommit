@@ -8,7 +8,7 @@
 import { postGitEvent } from "./chat";
 import type { GitHubActions as Actions } from "./github-types";
 
-export type { Activity, Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
+export type { Activity, Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, SharedListing, User } from "./github-types";
 
 export class GitHubRequestError extends Error {
   status: number;
@@ -42,6 +42,8 @@ export const listFiles = action("listFiles");
 export const readContext = action("readContext");
 export const listSharedFiles = action("listSharedFiles");
 export const downloadFile = action("downloadFile");
+/** One piece of a big Drive file; see uploadSharedFile in files.ts. */
+export const uploadPart = action("uploadPart");
 /** Latest commits / merged PRs as COCOMMIT/LOG.md activity items (see addActivity in context.ts). */
 export const listCommits = action("listCommits");
 export const listMergedPulls = action("listMergedPulls");

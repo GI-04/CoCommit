@@ -10,14 +10,16 @@ import type { CommitDate } from "./heatmap";
 import { GitModeError, modesByPath, treeEntries, type TreeListing } from "./git-modes";
 import { hasGitHubIdentity } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
-import { FILES_FOLDER, isSharedPath } from "./files-util";
+import { isMarkerPath, isSharedPath, MAX_FILE_BYTES, MAX_PARTS, PART_BYTES, partCount, splitShared } from "./files-util";
 import { cleanUsername } from "./invite";
-import type { Change, Commit, FileEdit, GitHubActions, InviteResult, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
+import type { Change, Commit, FileEdit, GitHubActions, InviteResult, PullRequest, Repo, Session, SharedFile, SharedListing, User } from "./github-types";
 
 export type { Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
 
 const API = (process.env.GITHUB_API_URL || "https://api.github.com").replace(/\/$/, "");
 const WEB = (process.env.GITHUB_WEB_URL || "https://github.com").replace(/\/$/, "");
+// GitHub's raw file host, which can send part of a file (the API always sends all of it). Off for other GitHub hosts.
+const RAW = (process.env.GITHUB_RAW_URL || (API === "https://api.github.com" ? "https://raw.githubusercontent.com" : "")).replace(/\/$/, "");
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID ?? "";
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET ?? "";
 
@@ -258,6 +260,7 @@ export async function getChanges(repo: string, branch: string): Promise<Change[]
 export async function commitFiles(repo: string, branch: string, files: FileEdit[], message: string, from?: string): Promise<Commit> {
   if (!Array.isArray(files) || files.length === 0) throw new GitHubError(400, "Pick at least one file to commit.");
   if (typeof message !== "string" || !message.trim()) throw new GitHubError(400, "Write a commit message.");
+  for (const f of files) if (f.parts !== undefined) checkParts(f);
   if (fakeMode) return fake.commit(repo, branch, files, message);
 
   const r = repoPath(repo);
@@ -271,10 +274,20 @@ export async function commitFiles(repo: string, branch: string, files: FileEdit[
   }
 
   // Binary files: upload the bytes as blobs first (the tree API only takes text), then point the tree at them.
+  // Big files arrive as pieces (uploadPart): join them into one blob, so the repo holds the whole file.
   const blobs = new Map<string, string>();
   for (const f of files) {
-    if (f.content !== null && f.encoding === "base64") {
-      const blob = await gh<{ sha: string }>(`${r}/git/blobs`, { method: "POST", body: { content: f.content, encoding: "base64" } });
+    if (f.content === null) continue;
+    let content = f.encoding === "base64" ? f.content : null;
+    if (f.parts) {
+      const pieces = [];
+      for (const sha of f.parts) pieces.push(Buffer.from((await gh<{ content: string }>(`${r}/git/blobs/${sha}`)).content, "base64"));
+      const whole = Buffer.concat(pieces);
+      if (whole.length > MAX_FILE_BYTES) throw new GitHubError(413, `${f.path} is bigger than ${MAX_FILE_BYTES / 1024 / 1024} MB.`);
+      content = whole.toString("base64");
+    }
+    if (content !== null) {
+      const blob = await gh<{ sha: string }>(`${r}/git/blobs`, { method: "POST", body: { content, encoding: "base64" } });
       blobs.set(f.path, blob.sha);
     }
   }
@@ -359,35 +372,93 @@ export async function listFiles(repo: string, branch: string): Promise<string[]>
   return data.tree.filter((t) => t.type === "blob").map((t) => t.path);
 }
 
-/** Files in COCOMMIT/files/ on the default branch, sorted by name. */
-export async function listSharedFiles(repo: string): Promise<SharedFile[]> {
-  if (fakeMode) return [...(fakeShared.get(repo) ?? new Map<string, string>())].map(([path, b64]) => sharedFile(path, Buffer.from(b64, "base64").length)).sort(byName);
+/** Files (any folder) and folder markers in COCOMMIT/files/ on the default branch. */
+export async function listSharedFiles(repo: string): Promise<SharedListing> {
+  if (fakeMode) return listing([...(fakeShared.get(repo) ?? new Map<string, string>())].map(([path, b64]) => ({ path, size: Buffer.from(b64, "base64").length })));
   const sha = await branchSha(repo, await defaultBranch(repo)).catch((e) => (is404(e) ? null : Promise.reject(e)));
-  if (!sha) return [];
+  if (!sha) return { files: [], markers: [] };
   const data = await gh<{ tree: { path: string; type: string; size?: number }[] }>(`${repoPath(repo)}/git/trees/${sha}?recursive=1`);
-  return data.tree
-    .filter((t) => t.type === "blob" && isSharedPath(t.path))
-    .map((t) => sharedFile(t.path, t.size ?? 0))
-    .sort(byName);
+  return listing(data.tree.filter((t) => t.type === "blob").map((t) => ({ path: t.path, size: t.size ?? 0 })));
 }
 
-/** A shared file's bytes as base64 (any size GitHub's blob API allows), or null if it doesn't exist. */
-export async function downloadFile(repo: string, path: string): Promise<{ content: string; size: number } | null> {
+/** One PART_BYTES piece of a shared file as base64 (a small file is one piece), or null if it doesn't exist. */
+export async function downloadFile(repo: string, path: string, part = 0): Promise<{ content: string; size: number; parts: number } | null> {
   if (!isSharedPath(path)) throw new GitHubError(400, `Not a shared file: ${path}`);
+  if (!Number.isInteger(part) || part < 0) throw new GitHubError(400, "Pick a piece number from 0.");
   if (fakeMode) {
     const b64 = fakeShared.get(repo)?.get(path);
-    return b64 === undefined ? null : { content: b64, size: Buffer.from(b64, "base64").length };
+    return b64 === undefined ? null : piece(Buffer.from(b64, "base64"), path, part);
   }
-  const sha = await branchSha(repo, await defaultBranch(repo));
-  const data = await gh<{ tree: { path: string; type: string; sha: string }[] }>(`${repoPath(repo)}/git/trees/${sha}?recursive=1`);
+  const commit = await branchSha(repo, await defaultBranch(repo));
+  const data = await gh<{ tree: { path: string; type: string; sha: string; size?: number }[] }>(`${repoPath(repo)}/git/trees/${commit}?recursive=1`);
   const entry = data.tree.find((t) => t.type === "blob" && t.path === path);
   if (!entry) return null;
-  const blob = await gh<{ content: string; size: number }>(`${repoPath(repo)}/git/blobs/${entry.sha}`);
-  return { content: blob.content.replace(/\n/g, ""), size: blob.size };
+  // A big file: ask the raw host for just this piece, instead of reading the whole file for every piece.
+  const size = entry.size ?? 0;
+  const parts = partCount(size);
+  if (parts > 1 && part < parts) {
+    const start = part * PART_BYTES;
+    const bytes = await rawRange(repo, commit, path, start, Math.min(size, start + PART_BYTES));
+    if (bytes) return { content: bytes.toString("base64"), size, parts };
+  }
+  return piece(Buffer.from((await gh<{ content: string }>(`${repoPath(repo)}/git/blobs/${entry.sha}`)).content, "base64"), path, part);
 }
 
-const sharedFile = (path: string, size: number): SharedFile => ({ name: path.slice(FILES_FOLDER.length + 1), path, size });
-const byName = (a: SharedFile, b: SharedFile) => a.name.localeCompare(b.name);
+/** Piece `part` of a whole file's bytes. */
+function piece(bytes: Buffer, path: string, part: number): { content: string; size: number; parts: number } {
+  const parts = partCount(bytes.length);
+  if (part >= parts) throw new GitHubError(400, `${path} has ${parts} piece${parts === 1 ? "" : "s"}.`);
+  return { content: bytes.subarray(part * PART_BYTES, (part + 1) * PART_BYTES).toString("base64"), size: bytes.length, parts };
+}
+
+/** Bytes [start, end) of `path` at `commit` from the raw host, or null when it can't send exactly that range. */
+async function rawRange(repo: string, commit: string, path: string, start: number, end: number): Promise<Buffer | null> {
+  if (!RAW) return null;
+  repoPath(repo);
+  try {
+    const res = await fetch(`${RAW}/${repo}/${commit}/${seg(path)}`, {
+      headers: { Authorization: `Bearer ${await token()}`, Range: `bytes=${start}-${end - 1}`, "User-Agent": "CoCommit" },
+      cache: "no-store",
+    });
+    if (res.status !== 206) return null;
+    const bytes = Buffer.from(await res.arrayBuffer());
+    return bytes.length === end - start ? bytes : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Stores one piece of a big shared file as a git blob (not in any commit until commitFiles joins the pieces). */
+export async function uploadPart(repo: string, content: string): Promise<{ sha: string }> {
+  if (typeof content !== "string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(content)) throw new GitHubError(400, "Send the piece as base64.");
+  const size = Buffer.from(content, "base64").length;
+  if (size > PART_BYTES) throw new GitHubError(413, `A piece can be at most ${PART_BYTES / 1024 / 1024} MB.`);
+  if (fakeMode) {
+    const sha = randomBytes(20).toString("hex");
+    fakeParts.set(sha, content);
+    return { sha };
+  }
+  const blob = await gh<{ sha: string }>(`${repoPath(repo)}/git/blobs`, { method: "POST", body: { content, encoding: "base64" } });
+  return { sha: blob.sha };
+}
+
+function checkParts(f: FileEdit): void {
+  const ok = Array.isArray(f.parts) && f.parts.length > 0 && f.parts.length <= MAX_PARTS && f.parts.every((p) => typeof p === "string" && /^[0-9a-f]{40}$/.test(p));
+  if (!ok) throw new GitHubError(400, `${f.path}: pieces must be 1 to ${MAX_PARTS} blob ids.`);
+  if (!isSharedPath(f.path)) throw new GitHubError(400, `Only Drive files can be sent in pieces: ${f.path}`);
+}
+
+/** Sorts a tree's blobs into Drive files and folder markers. */
+function listing(blobs: { path: string; size: number }[]): SharedListing {
+  const files: SharedFile[] = [];
+  const markers: string[] = [];
+  for (const b of blobs) {
+    if (isMarkerPath(b.path)) markers.push(b.path);
+    else if (isSharedPath(b.path)) files.push({ ...splitShared(b.path)!, path: b.path, size: b.size });
+  }
+  files.sort((a, b) => a.path.localeCompare(b.path));
+  return { files, markers: markers.sort() };
+}
 
 /** COCOMMIT.md on the default branch, or null if the repo doesn't have one yet. */
 export async function readContext(repo: string): Promise<string | null> {
@@ -490,6 +561,7 @@ export const actions: GitHubActions = {
   listFiles,
   listSharedFiles,
   downloadFile,
+  uploadPart,
   readContext,
   writeContext,
   listCommits,
@@ -504,6 +576,8 @@ const fakeContexts = ((globalThis as { __cocommitFakeContexts?: Map<string, stri
   new Map<string, string>());
 // Fake commits made on "main" during this dev server's life, newest first, so listCommits shows them.
 const fakeLog = ((globalThis as { __cocommitFakeLog?: Map<string, Activity[]> }).__cocommitFakeLog ??= new Map<string, Activity[]>());
+// Fake pieces of big shared files (uploadPart): blob id → base64.
+const fakeParts = ((globalThis as { __cocommitFakeParts?: Map<string, string> }).__cocommitFakeParts ??= new Map<string, string>());
 // Fake shared files: repo → path → base64.
 const fakeShared = ((globalThis as { __cocommitFakeShared?: Map<string, Map<string, string>> }).__cocommitFakeShared ??= new Map<
   string,
@@ -557,10 +631,14 @@ Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in .env.local.
     const context = files.find((f) => f.path === CONTEXT_PATH);
     if (context?.content != null) fakeContexts.set(repo, context.content);
     for (const f of files) {
-      if (!isSharedPath(f.path)) continue;
+      if (!isSharedPath(f.path) && !isMarkerPath(f.path)) continue;
       const store = fakeShared.get(repo) ?? fakeShared.set(repo, new Map()).get(repo)!;
       if (f.content === null) store.delete(f.path);
-      else store.set(f.path, f.encoding === "base64" ? f.content : Buffer.from(f.content).toString("base64"));
+      else if (f.parts) {
+        const pieces = f.parts.map((sha) => fakeParts.get(sha));
+        if (pieces.some((p) => p === undefined)) throw new GitHubError(422, `${f.path}: a piece is missing.`);
+        store.set(f.path, Buffer.concat(pieces.map((p) => Buffer.from(p!, "base64"))).toString("base64"));
+      } else store.set(f.path, f.encoding === "base64" ? f.content : Buffer.from(f.content).toString("base64"));
     }
     if (branch === "main") {
       const item: Activity = { kind: "commit", author: fake.user.login, text: message.split("\n")[0], at: new Date().toISOString() };

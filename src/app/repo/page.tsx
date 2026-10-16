@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LocalRepo } from "@/components/LocalRepo";
 import { DiffView } from "@/components/DiffView";
+import { FileTree } from "@/components/FileTree";
+import { friendlyError } from "@/lib/errors";
 import { Icon, type IconName } from "@/components/icons";
-import { Button, Card, PageHeader, Tabs } from "@/components/ui";
+import { Button, Card, PageHeader, Skeleton, Tabs } from "@/components/ui";
 import { setCurrentRepo } from "@/lib/current-repo";
 import { isDesktop } from "@/lib/local-git";
 import {
@@ -79,7 +81,6 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const [branch, setBranch] = useState("");
   const [newBranch, setNewBranch] = useState("");
   const [files, setFiles] = useState<string[]>([]);
-  const [filter, setFilter] = useState("");
   const [path, setPath] = useState<string | null>(null);
   const [original, setOriginal] = useState("");
   const [text, setText] = useState("");
@@ -92,6 +93,11 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   // Left list (the person's choice; until then Changes if there are any, else Files) and what the right panel shows.
   const [listTab, setListTab] = useState<"changes" | "files" | null>(null);
   const [mode, setMode] = useState<"diff" | "edit">("diff");
+  // The result banner sits at the top; bring it into view after a commit or pull request.
+  const noteRef = useRef<HTMLParagraphElement>(null);
+  useEffect(() => {
+    if (note) noteRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [note]);
 
   const current = repos.find((r) => r.fullName === repo);
   const base = current?.defaultBranch ?? "main";
@@ -100,7 +106,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   // One place for errors: 401 means "log in", anything else is shown to the user.
   const fail = useCallback((e: unknown) => {
     if (e instanceof GitHubRequestError && e.status === 401) setNeedsLogin(true);
-    else setNote({ kind: "error", text: e instanceof Error ? e.message : "Something went wrong." });
+    else setNote({ kind: "error", text: friendlyError(e) });
   }, []);
 
   useEffect(() => {
@@ -193,7 +199,6 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
     }
   };
 
-  const shown = useMemo(() => files.filter((f) => f.toLowerCase().includes(filter.toLowerCase())).slice(0, 200), [files, filter]);
   const diff = changes.find((c) => c.path === open);
   const edited = path !== null && text !== original;
 
@@ -243,8 +248,20 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
         </p>
       </div>
 
+      <details className="mb-4 text-sm text-muted">
+        <summary className="cursor-pointer text-white/85 hover:text-white">New to git? What these words mean</summary>
+        <dl className="mt-2 max-w-3xl space-y-1">
+          <div><dt className="inline font-medium text-white">Branch</dt> <dd className="inline">a separate copy of your work, so you can try things without touching main.</dd></div>
+          <div><dt className="inline font-medium text-white">Commit</dt> <dd className="inline">saving your change with a short note about what you did.</dd></div>
+          <div><dt className="inline font-medium text-white">Pull request (PR)</dt> <dd className="inline">asking your team to add your branch&apos;s changes to main.</dd></div>
+          <div><dt className="inline font-medium text-white">Diff</dt> <dd className="inline">the lines you added (green) and removed (red).</dd></div>
+        </dl>
+      </details>
+
       {note && (
         <p
+          ref={noteRef}
+          role="status"
           className={`mb-4 rounded-md border px-3 py-2 text-sm ${note.kind === "ok" ? "border-added/40 bg-added/10" : "border-removed/40 bg-removed/10"}`}
         >
           {note.text}{" "}
@@ -259,7 +276,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
         </p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[18.75rem_minmax(0,1fr)]">
         <div className="min-w-0 space-y-4">
           <Card>
             <div className="mb-3 inline-flex rounded-full border border-black bg-paper p-1 text-sm" role="tablist" aria-label="Files">
@@ -305,22 +322,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
                 </ul>
               )
             ) : (
-              <>
-                <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Find a file" aria-label="Find a file" className="mb-2 w-full rounded-full border border-black bg-bg px-4 py-2 text-sm" />
-                <ul className="max-h-[24rem] space-y-0.5 overflow-y-auto">
-                  {shown.map((f) => (
-                    <li key={f}>
-                      <button
-                        onClick={() => openFile(f)}
-                        className={`w-full truncate rounded-lg border px-2.5 py-1.5 text-left text-sm ${path === f && mode === "edit" ? "border-black bg-cyan font-medium" : "border-transparent hover:bg-fg/10"}`}
-                      >
-                        {f}
-                      </button>
-                    </li>
-                  ))}
-                  {!shown.length && <li className="px-2 text-sm text-muted">{files.length ? "No match." : "Loading…"}</li>}
-                </ul>
-              </>
+              <FileTree files={files} selected={mode === "edit" ? path : null} onOpen={openFile} />
             )}
           </Card>
 
@@ -345,6 +347,9 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
             <Button onClick={commit} disabled={!edited || !message.trim() || busy !== null} className="mt-3 w-full py-3">
               {busy === "commit" ? "Committing…" : `Commit to ${target || "…"}`}
             </Button>
+            {busy === null && (!edited || !message.trim()) && (
+              <p className="mt-1.5 text-xs">{!edited ? "Edit a file first: Files list → pick a file → change it." : "Write what you changed to commit."}</p>
+            )}
             <input
               value={prTitle}
               onChange={(e) => setPrTitle(e.target.value)}
@@ -355,8 +360,11 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
             <Button variant="ghost" onClick={openPr} disabled={busy !== null || branch === base || !changed.length} className="mt-2 w-full bg-paper py-3">
               {busy === "pr" ? "Opening…" : `Open PR into ${base}`}
             </Button>
+            {busy === null && (branch === base || !changed.length) && (
+              <p className="mt-1.5 text-xs">{branch === base ? `Pick another branch first: a pull request needs changes on a branch, not on ${base}.` : "No changes on this branch yet."}</p>
+            )}
             {edited && (
-              <Button variant="ghost" onClick={() => setText(original)} className="mt-2 flex w-full items-center justify-center gap-2 py-3">
+              <Button variant="ghost" onClick={() => window.confirm("Throw away your edits to this file?") && setText(original)} className="mt-2 flex w-full items-center justify-center gap-2 py-3">
                 <Icon name="trash" className="size-4" /> Discard edits
               </Button>
             )}
@@ -414,10 +422,10 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
 
 function PillSelect({ label, icon, value, options, onChange }: { label: string; icon: IconName; value: string; options: string[]; onChange: (v: string) => void }) {
   return (
-    <label className="glass relative flex min-w-[12rem] max-w-full items-center gap-3 rounded-full py-2 pl-4 pr-4">
+    <label className="glass relative flex min-w-[14rem] max-w-full items-center gap-3 rounded-full py-2 pl-4 pr-4 xl:min-w-[17.5rem]">
       <Icon name={icon} className="size-4 text-white/80" />
       <span className="min-w-0 flex-1">
-        <span className="block text-[10px] font-medium uppercase tracking-wider text-white/70">{label}</span>
+        <span className="block text-[11px] font-medium uppercase tracking-wider text-white/75">{label}</span>
         <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label} className="block w-full max-w-[16rem] appearance-none truncate bg-transparent text-sm font-medium text-white outline-none">
           {options.map((o) => (
             <option key={o} className="bg-[#2a2a2a]">

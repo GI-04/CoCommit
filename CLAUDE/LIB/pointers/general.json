@@ -49,7 +49,7 @@
         "identity",
         "anonymous"
       ],
-      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Only real accounts post (anonymous visitors read); the database sets author and a verified GitHub @login; the screen uses a fixed repo. Chat actions save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
+      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Only real accounts read, post or pin (no anonymous sessions; signed-out visitors see a login card); the database sets author and a verified GitHub @login; the screen uses a fixed repo. Chat actions save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
       "path": "knowledge/general/chat.md",
       "sources": [],
       "added": "2026-10-15"
@@ -166,7 +166,7 @@
         "chat",
         "profiles"
       ],
-      "summary": "Email/password helpers (sign up, log in, reset, sign out, friendly errors), what email/Google/GitHub users may do (permissions.ts), the profiles name fallback, the screens (EmailLogin on /login, /login/forgot, /login/reset, built 2026-10-16 but not yet run against real Supabase), and open gaps (Supabase settings are Pattadon's).",
+      "summary": "Email/password helpers (sign up, log in, reset, sign out, friendly errors), what email/Google/GitHub users may do (permissions.ts), the profiles name fallback, the screens (EmailLogin on /login, /login/forgot, /login/reset, live since PR #39), the live check (real sign-up passed 2026-10-16; reset email run not reported).",
       "path": "knowledge/general/email-login.md",
       "sources": [],
       "added": "2026-10-15"
@@ -186,7 +186,7 @@
         "downloads",
         "fonts"
       ],
-      "summary": "/ is the marketing landing page (no sidebar); the app home is /home. How AppShell hides the sidebar, the landing components (commit-graph rail, hero demo, downloads), the desktop-app redirect, and every place that defaults to /home.",
+      "summary": "/ is the marketing landing page (no sidebar); the app home is /home. How AppShell hides the sidebar, the landing components (commit-graph rail, hero demo, downloads), the desktop-app redirect, Get started (login page for visitors, /home when signed in), and every place that defaults to /home.",
       "path": "knowledge/general/landing-page.md",
       "sources": [
         "PLAN/2026-10-15-landing-page.md",
@@ -302,7 +302,7 @@
     },
     {
       "id": "files",
-      "title": "Shared files (/files, COCOMMIT/files/)",
+      "title": "Shared files: Drive (/files, COCOMMIT/files/)",
       "kind": "reference",
       "tags": [
         "files",
@@ -312,12 +312,21 @@
         "binary",
         "base64",
         "blob",
-        "cocommit-folder"
+        "cocommit-folder",
+        "drive",
+        "folders",
+        "big-files",
+        "pieces",
+        "upload-part",
+        "live-check",
+        "range"
       ],
-      "summary": "How /files works: files committed to COCOMMIT/files/ on the default branch, base64 blobs in commitFiles, listSharedFiles/downloadFile actions, 3 MB limit, fake mode and tests.",
+      "summary": "How Drive (/files) works: files and folders (.keep markers, up to 4 deep) committed to COCOMMIT/files/ on the default branch; up to 50 MB per file, sent up (uploadPart + commitFiles parts) and down (downloadFile part, raw-host Range reads) in 3 MB pieces because of Vercel's 4.5 MB limit; fake mode, tests, and scripts/drive-live-check.mjs for real GitHub.",
       "path": "knowledge/general/files.md",
       "sources": [
-        "PLAN/2026-10-16-files.md"
+        "PLAN/2026-10-16-files.md",
+        "PLAN/2026-10-16-drive-folders.md",
+        "scripts/drive-live-check.mjs"
       ],
       "added": "2026-10-16"
     },

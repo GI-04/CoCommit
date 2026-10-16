@@ -2,7 +2,7 @@
 
 Git without the terminal, plus team chat and one shared context for everyone's AI agents. Built for small teams of beginners who currently bounce between Discord and GitHub.
 
-**Live:** https://cocommit.vercel.app · **Desktop:** Windows `.msi` and macOS `.dmg` (Tauri) · Hackathon prototype, deadline 2026-10-16 11:30.
+**Live:** https://cocommit.vercel.app · **Desktop:** Windows `.msi` and macOS `.dmg` (Tauri) · Hackathon prototype, submission due 2026-10-16 14:00.
 
 ## What works today
 
@@ -19,8 +19,8 @@ Git without the terminal, plus team chat and one shared context for everyone's A
 | **Tasks** | ✅ live | `/tasks`: a Pending / Taken / Done board over the repo's `COCOMMIT/BOARD/` task files, the same ones AI agents use. **New task**, **Take**, **Done** (also adds a `LOG.md` line) and **Release** each make one commit, which shows in chat. Needs GitHub login and a set-up `COCOMMIT/`. |
 | **Home** | 🟡 built, demo data only | `/home` has Cards (a card per screen, finished tasks, a small team board; **Customize** hides and reorders cards, saved on the device), Overview (commits, tasks done, open tasks, the **commit heat map**, team) and Activity (recent commits, merged PRs and pinned chat, commits today, day streak). Reads the repo through GitHub; needs GitHub login. |
 | **Look** | 🟡 built | The whole app follows the Figma design: dark theme, glass navigation (sidebar on desktop, icon rail on tablet, top bar and menu on phone), colour-block cards; Messages groups Chat, Team and Call; Repository has a Changes / Files list and a numbered diff; Drive is a card grid; Profile and Agent Context are tabbed. Light mode is gone on purpose. |
-| **Assistant** | 🟡 built, needs `ANTHROPIC_API_KEY` | A floating button on every app page opens a small window: ask about your team's handoff, decisions or gotchas; it answers from the repo's `COCOMMIT/` files and links its sources (the same bot as `@cocommit` in chat). |
-| **Files** | 🟡 built, not yet tried on real GitHub | `/files`: upload (drag-and-drop, 3 MB each), download and delete team files. They are saved in the repo's `COCOMMIT/files/` folder as normal commits. |
+| **Assistant** | 🟡 built, needs `ANTHROPIC_API_KEY` | The **Assistant** item in the navigation (sidebar, rail or phone menu) opens a small window: ask about your team's handoff, decisions or gotchas; it answers from the repo's `COCOMMIT/` files and links its sources (the same bot as `@cocommit` in chat). |
+| **Files** | 🟡 built, not yet tried on real GitHub | `/files` (Drive): folders (up to 4 deep), upload (drag-and-drop, up to 50 MB each; big files go up and come down in 3 MB pieces), download and delete team files and folders. They are saved in the repo's `COCOMMIT/files/` folder as normal commits. |
 
 ## Stack
 Next.js 16 (App Router) + React 19 + TypeScript + Tailwind 4 · GitHub REST API (no Octokit) · Supabase (auth, Postgres, Realtime) · Tauri 2 (desktop) · Vercel (hosting). Plans and decisions: `CLAUDE/PLAN/`, `CLAUDE/DECISIONS.md`.
@@ -90,7 +90,7 @@ The installed app shows whatever is deployed at https://cocommit.vercel.app, so 
 
 Why not Vercel's own Git connection? On the Hobby plan it can't deploy a private organization repo. The workflow uses Pattadon's token, stored as the secret `VERCEL_TOKEN` in the GitHub environment `Production`.
 
-**One-time Supabase setup** (already done for the team project): run `supabase/profiles.sql`, then `supabase/schema.sql` in the SQL editor, turn on anonymous sign-ins (chat) and the Email and Google providers, and set the Site URL and redirect URLs (`/auth/*`).
+**One-time Supabase setup** (already done for the team project): run `supabase/profiles.sql`, then `supabase/schema.sql` in the SQL editor, then `supabase/chat-privacy.sql` (chat for real accounts only; check it from outside with `node scripts/check-chat-privacy.mjs`, which must print 0 and 0), turn on the Email and Google providers (anonymous sign-ins are no longer needed; turn them off), and set the Site URL and redirect URLs (`/auth/*`).
 
 ## Project layout
 | Path | What |

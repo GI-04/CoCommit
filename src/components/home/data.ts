@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { NoWorkspaceError } from "@/lib/chat-pins";
 import type { Activity } from "@/lib/context";
 import { getCurrentRepo } from "@/lib/current-repo";
+import { friendlyError } from "@/lib/errors";
 import { GitHubRequestError, listCommitDates } from "@/lib/github-client";
 import { windowStart, type CommitDate } from "@/lib/heatmap";
 import { loadBoard, type Board } from "@/lib/tasks";
@@ -27,7 +28,7 @@ export function useRepo(): string | null {
   return repo;
 }
 
-function useLoad<T>(repo: string | null, load: (repo: string) => Promise<T>): Load<T> {
+function useLoad<T>(repo: string | null, load: (repo: string) => Promise<T>, rev = 0): Load<T> {
   const [state, setState] = useState<Load<T>>({ status: "loading" });
   useEffect(() => {
     if (!repo) return;
@@ -39,14 +40,14 @@ function useLoad<T>(repo: string | null, load: (repo: string) => Promise<T>): Lo
         if (!live) return;
         if (e instanceof GitHubRequestError && e.status === 401) setState({ status: "login" });
         else if (e instanceof NoWorkspaceError) setState({ status: "no-workspace" });
-        else setState({ status: "error", message: e instanceof Error ? e.message : "Something went wrong." });
+        else setState({ status: "error", message: friendlyError(e) });
       });
     return () => {
       live = false;
     };
     // `load` is always a module-level function below, so it never changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [repo]);
+  }, [repo, rev]);
   return state;
 }
 
@@ -57,12 +58,12 @@ export const useCommits = (repo: string | null): Load<CommitDate[]> => useLoad(r
 export const useBoard = (repo: string | null): Load<Board> => useLoad(repo, loadBoard);
 export const useActivity = (repo: string | null): Load<Activity[]> => useLoad(repo, latestActivity);
 /** The `COCOMMIT/` team files; `ready` with `null` means the repo has no team context yet. */
-export const useWorkspace = (repo: string | null): Load<Workspace | null> => useLoad(repo, loadWorkspace);
+export const useWorkspace = (repo: string | null, rev = 0): Load<Workspace | null> => useLoad(repo, loadWorkspace, rev);
 
 /** One line for a card that can't show its data, or null while it is loading or ready. */
 export function problem(state: Load<unknown>): string | null {
   if (state.status === "login") return "Log in with GitHub to see this.";
-  if (state.status === "no-workspace") return "This repo has no team context yet. Set it up on the Agent Context screen.";
+  if (state.status === "no-workspace") return "This repo has no team context yet.";
   if (state.status === "error") return state.message;
   return null;
 }

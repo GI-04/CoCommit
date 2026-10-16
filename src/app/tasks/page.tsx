@@ -6,8 +6,9 @@ import { Avatar } from "@/components/Avatar";
 import { Icon } from "@/components/icons";
 import { ListPanel, repoItem } from "@/components/ListPanel";
 import { MessagesShell } from "@/components/MessagesShell";
-import { Button, Card, Pill } from "@/components/ui";
+import { Button, Card, Pill, Skeleton } from "@/components/ui";
 import { useRepos } from "@/components/useRepos";
+import { friendlyError } from "@/lib/errors";
 import { NoWorkspaceError } from "@/lib/chat-pins";
 import { DEFAULT_REPO, getCurrentRepo, setCurrentRepo } from "@/lib/current-repo";
 import { getSession, GitHubRequestError, inviteMember, signInHref, type User } from "@/lib/github-client";
@@ -73,7 +74,7 @@ export default function TasksPage() {
       if (e instanceof NoWorkspaceError) setState("no-workspace");
       else if (e instanceof GitHubRequestError && e.status === 401) setState("login");
       else {
-        setError(e instanceof Error ? e.message : "Couldn't load the board.");
+        setError(friendlyError(e, "Couldn't load the board."));
         setState("error");
       }
     }
@@ -102,7 +103,7 @@ export default function TasksPage() {
       setNote({ ok: true, text: done, href: commit.url });
     } catch (e) {
       if (e instanceof GitHubRequestError && e.status === 401) setState("login");
-      else setNote({ ok: false, text: e instanceof TaskMovedError || e instanceof Error ? e.message : "Couldn't save. Try again." });
+      else setNote({ ok: false, text: e instanceof TaskMovedError ? e.message : friendlyError(e, "Couldn't save. Try again.") });
     } finally {
       setBusy(false);
     }
@@ -187,7 +188,7 @@ export default function TasksPage() {
   if (state !== "ready" || !board)
     return shell(
         <Card className="max-w-xl">
-          {state === "loading" && <p className="text-sm text-muted">Loading the board…</p>}
+          {state === "loading" && <Skeleton lines={4} />}
           {state === "login" && (
             <>
               <p className="mb-4 text-sm">Log in with GitHub to see and move tasks.</p>
@@ -411,6 +412,16 @@ export default function TasksPage() {
                   );
                 })}
               </ul>
+              {col.status === "pending" && (
+                <button
+                  type="button"
+                  onClick={() => setForm(form ? null : { ...blankTask })}
+                  disabled={busy}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-black py-2.5 text-sm font-medium hover:bg-black/5 disabled:opacity-50"
+                >
+                  <Icon name="plus" className="size-4" /> Add task
+                </button>
+              )}
             </Card>
           );
         })}

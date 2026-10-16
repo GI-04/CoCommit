@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, Initials } from "@/components/Avatar";
+import { DownloadButton } from "@/components/DownloadButton";
 import { problem, useActivity, useCommits, useRepo, WEEKS } from "@/components/home/data";
 import { Card, Pill } from "@/components/ui";
 import { useRepos } from "@/components/useRepos";
@@ -23,28 +24,32 @@ export function ProfileOverview({ name, profile, github, onEdit }: { name: strin
 
   return (
     <div className="grid items-start gap-4 lg:grid-cols-[22rem_1fr]">
-      <Card tone="cyan" className="flex flex-col items-center gap-3 text-center">
-        <Avatar name={name} url={profile?.avatarUrl ?? github?.avatarUrl} className="size-28 text-4xl" />
-        <h2 className="break-words text-xl font-semibold">{name}</h2>
-        <p className="text-sm">{profile ? "CoCommit account" : "Signed in with GitHub"}</p>
-        <div className="w-full space-y-2 text-left text-sm">
-          {github && (
-            <p className="flex items-center justify-between gap-3 rounded-xl border border-black bg-paper px-4 py-3">
-              <span className="font-medium">GitHub</span>
-              <span className="truncate text-muted">@{github.login}</span>
-            </p>
-          )}
-          {profile?.email && (
-            <p className="flex items-center justify-between gap-3 rounded-xl border border-black bg-paper px-4 py-3">
-              <span className="font-medium">Email</span>
-              <span className="truncate text-muted">{profile.email}</span>
-            </p>
-          )}
-        </div>
-        <button type="button" onClick={onEdit} className="mt-2 w-full rounded-xl bg-black px-4 py-3 text-sm font-medium text-white hover:opacity-90">
-          Edit profile
-        </button>
-      </Card>
+      <div className="min-w-0 space-y-4">
+        <Card tone="cyan" className="flex flex-col items-center gap-3 text-center">
+          <Avatar name={name} url={profile?.avatarUrl ?? github?.avatarUrl} className="size-28 text-4xl" />
+          <h2 className="break-words text-xl font-semibold">{name}</h2>
+          <p className="text-sm">{profile ? "CoCommit account" : "Signed in with GitHub"}</p>
+          <div className="w-full space-y-2 text-left text-sm">
+            {github && (
+              <p className="flex items-center justify-between gap-3 rounded-xl border border-black bg-paper px-4 py-3">
+                <span className="font-medium">GitHub</span>
+                <span className="truncate text-muted">@{github.login}</span>
+              </p>
+            )}
+            {profile?.email && (
+              <p className="flex items-center justify-between gap-3 rounded-xl border border-black bg-paper px-4 py-3">
+                <span className="font-medium">Email</span>
+                <span className="truncate text-muted">{profile.email}</span>
+              </p>
+            )}
+          </div>
+          <button type="button" onClick={onEdit} className="mt-2 w-full rounded-xl bg-black px-4 py-3 text-sm font-medium text-white hover:opacity-90">
+            Edit profile
+          </button>
+        </Card>
+        {/* The desktop app download (hidden inside the desktop app itself). */}
+        <DownloadButton />
+      </div>
 
       <div className="min-w-0 space-y-4">
         <div className="grid grid-cols-2 gap-4">

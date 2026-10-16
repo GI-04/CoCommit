@@ -113,7 +113,7 @@ export function EmailLogin({ returnTo, available }: { returnTo: string; availabl
       <button type="submit" disabled={busy || !available} className={`${authButtons.next} mt-6 w-full`}>
         {busy ? "One moment…" : mode === "login" ? "Log in" : "Create account"}
       </button>
-      <p className="mt-3 text-center text-sm">Chat and files only. Sign in with GitHub to commit.</p>
+      <p className="mt-3 text-center text-sm">Email accounts can use chat. Repository, Tasks, Drive and Agent Context need GitHub: sign in with GitHub for those.</p>
     </form>
   );
 }

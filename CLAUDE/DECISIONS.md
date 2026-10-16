@@ -2,6 +2,20 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-16 — Drive files up to 25 MB, sent in 3 MB pieces through our API; folders are .keep files
+- **Status:** active
+- **Decision:** Drive (`/files`) keeps storing files in the repo's `COCOMMIT/files/`. Files over 3 MB go up as 3 MB git blobs (`uploadPart`) that `commitFiles` joins into one blob, and come down piece by piece (`downloadFile(repo, path, part)`); limit 25 MB per file. A folder is created by committing an empty `.keep` inside it; up to 4 levels. Plan: `PLAN/2026-10-16-drive-folders.md` (approved by proud, who picked 25 MB over 10 or 50).
+- **Why:** Vercel caps each request and response at 4.5 MB, so one-shot uploads stopped at 3 MB and downloads would too. Pieces keep the GitHub token on the server, need no new service, package or SQL, and the repo still holds the real whole file. 25 MB keeps clones reasonable (git keeps every version).
+- **Alternatives:** Supabase Storage (direct browser upload, bigger files, but a second place for files and bucket rules to set up); sending GitHub's temporary raw download links to the browser (leaks a short-lived token); storing the pieces as separate files in the repo (the repo wouldn't hold the real file).
+- **Supersedes / superseded by:** extends the 2026-10-16 Files choice (`PLAN/2026-10-16-files.md`: repo storage, 3 MB).
+
+## 2026-10-16 — Chat is for real accounts only; no anonymous Supabase sessions
+- **Status:** active
+- **Decision:** chat no longer signs visitors in to Supabase anonymously; signed out, `/chat` shows a login card. The `messages` select and pin rules and the `profiles` select rule refuse anonymous sessions, enforced on the live project by RESTRICTIVE policies so no other policy can reopen it (`supabase/chat-privacy.sql`, live 2026-10-16 09:33). Get started on `/` goes to the login page unless you're signed in. Plan: `PLAN/2026-10-16-chat-privacy-get-started.md` (approved by proud).
+- **Why:** anonymous users count as `authenticated`, and the anon key is public, so anyone could read every chat straight from Supabase (proud's screen recording, GOTCHAS 2026-10-16).
+- **Alternatives:** keep anonymous reading and hide chat in the UI only (the data would still be readable through the API); turn the login wall back on for every page (blocks the landing demo and guests looking around).
+- **Supersedes / superseded by:** supersedes the "chat signs in to Supabase anonymously" part of "Demo uses GitHub sign-in only" (2026-10-15).
+
 ## 2026-10-16 — Tasks board stores tasks as files in the repo's COCOMMIT/BOARD/, not in a Supabase table
 - **Status:** active
 - **Decision:** `/tasks` reads and moves the Markdown task files in `COCOMMIT/BOARD/Pending|Taken|Done/` through the GitHub API; each move is one commit. Plan: `PLAN/2026-10-16-tasks-board.md` (approved by proud).
@@ -52,7 +66,7 @@
 - **Supersedes / superseded by:** supersedes the one-file part of "Demo scope" (2026-10-15)
 
 ## 2026-10-15 — Demo uses GitHub sign-in only; chat signs in to Supabase anonymously
-- **Status:** active
+- **Status:** active for the login wall; the anonymous chat part is superseded by "Chat is for real accounts only" (2026-10-16)
 - **Decision:** `src/proxy.ts` skips the Google login wall unless `REQUIRE_GOOGLE_LOGIN=true`. Chat signs in to Supabase anonymously and shows the GitHub account's name. `UserChip` hides anonymous users.
 - **Why:** Pattadon wants GitHub sign-in only for the demo (board task `open-pr-github-api`), and the live site already has Supabase keys, so the wall would block everyone. Anonymous users still count as `authenticated`, so the chat table rules work unchanged.
 - **Alternatives:** keep Google (needs its own setup); open the table to `anon` (anyone with the public key could post as anyone); chat in browser-only demo mode.

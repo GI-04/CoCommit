@@ -29,6 +29,16 @@ test("remembers a picked repo", () => {
   assert.equal(r.getCurrentRepo(), "KINKIN-007/Github101");
 });
 
+test("sign-out forgets the picked repo", () => {
+  const r = load(memory());
+  r.setCurrentRepo("KINKIN-007/Github101");
+  r.clearCurrentRepo();
+  assert.equal(r.getCurrentRepo(), "GI-04/CoCommit");
+  // Blocked storage doesn't throw.
+  const blocked = load({ getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); }, removeItem() { throw new Error("blocked"); } });
+  assert.doesNotThrow(() => blocked.clearCurrentRepo());
+});
+
 test("#general and odd values are never saved or read as a repo", () => {
   const store = memory();
   const r = load(store);

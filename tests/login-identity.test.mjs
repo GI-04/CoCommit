@@ -41,6 +41,13 @@ test("the callback URL carries the return page and the GitHub marker", () => {
   assert.equal(id.GITHUB_SCOPES, "repo read:user");
 });
 
+test("Get started: the app when signed in or in demo mode, else the login page", () => {
+  assert.equal(id.getStartedHref({ account: false, github: false, demo: false }), "/login?returnTo=/home");
+  assert.equal(id.getStartedHref({ account: true, github: false, demo: false }), "/home");
+  assert.equal(id.getStartedHref({ account: false, github: true, demo: false }), "/home");
+  assert.equal(id.getStartedHref({ account: false, github: false, demo: true }), "/home");
+});
+
 test("only a GitHub sign-in's token is kept", () => {
   const session = (user, token = "gho_abc") => ({ provider_token: token, user });
   assert.equal(id.githubTokenFromSession("github", session(githubUser)), "gho_abc");

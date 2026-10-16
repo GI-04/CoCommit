@@ -35,3 +35,12 @@ export function setCurrentRepo(fullName: string): void {
     // Storage blocked: chat keeps using the demo repo.
   }
 }
+
+/** Forgets the picked repo (on sign-out), so the next person on this browser doesn't open that repo's chat. */
+export function clearCurrentRepo(): void {
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    // Storage blocked: nothing was saved either.
+  }
+}
