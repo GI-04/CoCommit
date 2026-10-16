@@ -1,26 +1,109 @@
-// Asks the @cocommit bot from browser code ("use client" screens), through POST /api/bot.
+// Asks the @cocommit bot from browser code ("use client" screens), through POST /api/bot, and keeps the
+// Assistant's settings (model, branch, don't-read list, own API key, debug) in this browser.
 //
-//   import { askBot, BotRequestError } from "@/lib/bot-client";
-//   const { answer, sources } = await askBot("GI-04/CoCommit", "where is the login decision?", chatLines);
+//   import { askBot, BotRequestError, loadBotSettings } from "@/lib/bot-client";
+//   const { answer, sources } = await askBot("GI-04/CoCommit", "where is login handled?", chatLines, loadBotSettings());
 
-import type { BotAnswer, ChatLine } from "./bot";
+import { parsePatterns, type BotAnswer, type BotDebug, type ChatLine, type ModelChoice } from "./bot";
 
 export class BotRequestError extends Error {
   status: number;
-  constructor(status: number, message: string) {
+  debug?: BotDebug;
+  constructor(status: number, message: string, debug?: BotDebug) {
     super(message);
     this.name = "BotRequestError";
     this.status = status;
+    this.debug = debug;
   }
 }
 
-export async function askBot(repo: string, question: string, chat: ChatLine[] = []): Promise<BotAnswer> {
+export type BotSettings = {
+  model: ModelChoice;
+  customModel: string;
+  /** "" = the repo's default branch */
+  branch: string;
+  /** One don't-read pattern per line. */
+  exclude: string;
+  debug: boolean;
+  apiKey: string;
+  workspaceId: string;
+  apiUrl: string;
+  /** Keep the API key after the tab closes (localStorage instead of sessionStorage). */
+  rememberKey: boolean;
+};
+
+export const DEFAULT_SETTINGS: BotSettings = {
+  model: "fast",
+  customModel: "",
+  branch: "",
+  exclude: "",
+  debug: false,
+  apiKey: "",
+  workspaceId: "",
+  apiUrl: "",
+  rememberKey: false,
+};
+
+const KEY = "cocommit.bot.settings";
+const SECRET = "cocommit.bot.key";
+
+// Storage can throw (private windows, blocked site data); settings then just aren't kept.
+const read = (store: () => Storage, key: string) => {
+  try {
+    return store().getItem(key);
+  } catch {
+    return null;
+  }
+};
+const write = (store: () => Storage, key: string, value: string | null) => {
+  try {
+    if (value === null) store().removeItem(key);
+    else store().setItem(key, value);
+  } catch {}
+};
+
+export function loadBotSettings(): BotSettings {
+  if (typeof window === "undefined") return DEFAULT_SETTINGS;
+  let saved: Partial<BotSettings> = {};
+  try {
+    saved = JSON.parse(read(() => localStorage, KEY) ?? "{}");
+  } catch {}
+  const secret = read(() => localStorage, SECRET) ?? read(() => sessionStorage, SECRET) ?? "";
+  let key: { apiKey?: string; workspaceId?: string; apiUrl?: string } = {};
+  try {
+    key = JSON.parse(secret || "{}");
+  } catch {}
+  return { ...DEFAULT_SETTINGS, ...saved, apiKey: key.apiKey ?? "", workspaceId: key.workspaceId ?? "", apiUrl: key.apiUrl ?? "" };
+}
+
+/** The API key, workspace ID and URL go to sessionStorage, or localStorage when rememberKey is on; the rest to localStorage. */
+export function saveBotSettings(s: BotSettings): void {
+  const { apiKey, workspaceId, apiUrl, ...rest } = s;
+  write(() => localStorage, KEY, JSON.stringify(rest));
+  const secret = apiKey || workspaceId || apiUrl ? JSON.stringify({ apiKey, workspaceId, apiUrl }) : null;
+  write(() => localStorage, SECRET, s.rememberKey ? secret : null);
+  write(() => sessionStorage, SECRET, s.rememberKey ? null : secret);
+}
+
+export async function askBot(repo: string, question: string, chat: ChatLine[] = [], settings: BotSettings = loadBotSettings()): Promise<BotAnswer> {
   const res = await fetch("/api/bot", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ repo, question, chat }),
+    body: JSON.stringify({
+      repo,
+      question,
+      chat,
+      model: settings.model,
+      customModel: settings.customModel || undefined,
+      branch: settings.branch || undefined,
+      exclude: parsePatterns(settings.exclude),
+      debug: settings.debug,
+      apiKey: settings.apiKey || undefined,
+      workspaceId: settings.workspaceId || undefined,
+      apiUrl: settings.apiUrl || undefined,
+    }),
   });
   const data = await res.json().catch(() => ({ error: res.statusText }));
-  if (!res.ok) throw new BotRequestError(res.status, data?.error ?? res.statusText);
+  if (!res.ok) throw new BotRequestError(res.status, data?.error ?? res.statusText, data?.debug);
   return data as BotAnswer;
 }

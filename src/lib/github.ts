@@ -524,19 +524,31 @@ export async function listMergedPulls(repo: string, limit = 10): Promise<Activit
 
 // ---------- For the @cocommit bot (server only, not in `actions`)
 
-/** File paths under `folder` on the default branch, plus that branch's name (for links). */
-export async function listFolderFiles(repo: string, folder: string): Promise<{ branch: string; paths: string[] }> {
-  const prefix = `${folder.replace(/\/+$/, "")}/`;
-  if (fakeMode) return { branch: "main", paths: fake.files.filter((p) => p.startsWith(prefix)) };
-  const branch = await defaultBranch(repo);
-  return { branch, paths: (await listFiles(repo, branch)).filter((p) => p.startsWith(prefix)) };
+/** `branch`, or the repo's default branch when it's null or empty. */
+export async function resolveBranch(repo: string, branch: string | null): Promise<string> {
+  if (branch) return branch;
+  return fakeMode ? "main" : defaultBranch(repo);
 }
 
-/** Commits on the default branch that changed `path` (a file or folder), newest first. `since` is an ISO date. */
-export async function listFileCommits(repo: string, path: string, limit = 10, since?: string): Promise<Activity[]> {
+/** The whole branch as a .tar.gz (GitHub's tarball download): one request for every file. */
+export async function downloadTarball(repo: string, branch: string): Promise<Buffer> {
+  if (fakeMode) throw new GitHubError(400, "GitHub isn't set up here (fake mode), so the bot can't read the repo.");
+  const res = await fetch(`${API}${repoPath(repo)}/tarball/${seg(branch)}`, {
+    headers: { Authorization: `Bearer ${await token()}`, "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "CoCommit" },
+    redirect: "follow",
+    cache: "no-store",
+  });
+  if (!res.ok) throw new GitHubError(res.status, res.status === 404 ? `No branch "${branch}" in ${repo}, or no access.` : res.statusText);
+  return Buffer.from(await res.arrayBuffer());
+}
+
+/** Commits on `branch` (default branch when null) that changed `path` (a file or folder), newest first. `since` is an ISO date. */
+export async function listFileCommits(repo: string, path: string, limit = 10, since?: string, branch?: string | null): Promise<Activity[]> {
   const n = clampLimit(limit);
   if (fakeMode) return fake.commits(repo).slice(0, n);
-  const query = new URLSearchParams({ path, per_page: String(n) });
+  const query = new URLSearchParams({ per_page: String(n) });
+  if (path) query.set("path", path);
+  if (branch) query.set("sha", branch);
   if (since && !Number.isNaN(Date.parse(since))) query.set("since", new Date(since).toISOString());
   const data = await gh<{ author: { login: string } | null; commit: { message: string; author: { name: string; date: string } | null } }[]>(
     `${repoPath(repo)}/commits?${query}`,
@@ -547,6 +559,107 @@ export async function listFileCommits(repo: string, path: string, limit = 10, si
     text: c.commit.message.split("\n")[0],
     at: c.commit.author?.date ?? new Date(0).toISOString(),
   }));
+}
+
+export type IssueState = "open" | "closed" | "all";
+export type PullSummary = { number: number; title: string; author: string; state: string; merged: boolean; head: string; base: string; updatedAt: string; url: string };
+export type IssueSummary = { number: number; title: string; author: string; state: string; labels: string[]; commentCount: number; updatedAt: string; url: string };
+export type Comment = { author: string; at: string; body: string; path?: string; line?: number | null };
+export type PullDetail = PullSummary & {
+  body: string;
+  files: { path: string; status: string; additions: number; deletions: number; patch: string | null }[];
+  comments: Comment[];
+};
+export type IssueDetail = IssueSummary & { body: string; comments: Comment[] };
+
+const issueState = (s: unknown): IssueState => (s === "closed" || s === "all" ? s : "open");
+type GhUser = { login: string } | null;
+const who = (u: GhUser) => u?.login ?? "someone";
+
+export async function listPulls(repo: string, state: IssueState = "open", limit = 20): Promise<PullSummary[]> {
+  if (fakeMode) return [];
+  const data = await gh<
+    { number: number; title: string; user: GhUser; state: string; merged_at: string | null; head: { ref: string }; base: { ref: string }; updated_at: string; html_url: string }[]
+  >(`${repoPath(repo)}/pulls?state=${issueState(state)}&sort=updated&direction=desc&per_page=${clampLimit(limit)}`);
+  return data.map((p) => ({
+    number: p.number,
+    title: p.title,
+    author: who(p.user),
+    state: p.state,
+    merged: Boolean(p.merged_at),
+    head: p.head.ref,
+    base: p.base.ref,
+    updatedAt: p.updated_at,
+    url: p.html_url,
+  }));
+}
+
+export async function getPull(repo: string, number: number): Promise<PullDetail> {
+  if (fakeMode) throw new GitHubError(400, "GitHub isn't set up here (fake mode).");
+  const n = Math.trunc(Number(number));
+  if (!(n > 0)) throw new GitHubError(400, "Give a pull request number.");
+  const [p, files, talk, reviews] = await Promise.all([
+    gh<{ number: number; title: string; body: string | null; user: GhUser; state: string; merged_at: string | null; head: { ref: string }; base: { ref: string }; updated_at: string; html_url: string }>(
+      `${repoPath(repo)}/pulls/${n}`,
+    ),
+    gh<{ filename: string; status: string; additions: number; deletions: number; patch?: string }[]>(`${repoPath(repo)}/pulls/${n}/files?per_page=100`),
+    gh<{ user: GhUser; created_at: string; body: string | null }[]>(`${repoPath(repo)}/issues/${n}/comments?per_page=100`),
+    gh<{ user: GhUser; created_at: string; body: string | null; path: string; line: number | null }[]>(`${repoPath(repo)}/pulls/${n}/comments?per_page=100`),
+  ]);
+  return {
+    number: p.number,
+    title: p.title,
+    author: who(p.user),
+    state: p.state,
+    merged: Boolean(p.merged_at),
+    head: p.head.ref,
+    base: p.base.ref,
+    updatedAt: p.updated_at,
+    url: p.html_url,
+    body: p.body ?? "",
+    files: files.map((f) => ({ path: f.filename, status: f.status, additions: f.additions, deletions: f.deletions, patch: f.patch ?? null })),
+    comments: [
+      ...talk.map((c) => ({ author: who(c.user), at: c.created_at, body: c.body ?? "" })),
+      ...reviews.map((c) => ({ author: who(c.user), at: c.created_at, body: c.body ?? "", path: c.path, line: c.line })),
+    ].sort((a, b) => a.at.localeCompare(b.at)),
+  };
+}
+
+type GhIssue = { number: number; title: string; body: string | null; user: GhUser; state: string; labels: ({ name?: string } | string)[]; comments: number; updated_at: string; html_url: string; pull_request?: unknown };
+const toIssue = (i: GhIssue): IssueSummary => ({
+  number: i.number,
+  title: i.title,
+  author: who(i.user),
+  state: i.state,
+  labels: i.labels.map((l) => (typeof l === "string" ? l : (l.name ?? ""))).filter(Boolean),
+  commentCount: i.comments,
+  updatedAt: i.updated_at,
+  url: i.html_url,
+});
+
+/** Issues only: GitHub's issues list also returns pull requests, which are dropped here. */
+export async function listIssues(repo: string, state: IssueState = "open", limit = 20): Promise<IssueSummary[]> {
+  if (fakeMode) return [];
+  const data = await gh<GhIssue[]>(`${repoPath(repo)}/issues?state=${issueState(state)}&sort=updated&direction=desc&per_page=${clampLimit(limit)}`);
+  return data.filter((i) => !i.pull_request).map(toIssue);
+}
+
+export async function getIssue(repo: string, number: number): Promise<IssueDetail> {
+  if (fakeMode) throw new GitHubError(400, "GitHub isn't set up here (fake mode).");
+  const n = Math.trunc(Number(number));
+  if (!(n > 0)) throw new GitHubError(400, "Give an issue number.");
+  const [i, comments] = await Promise.all([
+    gh<GhIssue>(`${repoPath(repo)}/issues/${n}`),
+    gh<{ user: GhUser; created_at: string; body: string | null }[]>(`${repoPath(repo)}/issues/${n}/comments?per_page=100`),
+  ]);
+  return { ...toIssue(i), body: i.body ?? "", comments: comments.map((c) => ({ author: who(c.user), at: c.created_at, body: c.body ?? "" })) };
+}
+
+/** Bytes of code per language, biggest first. */
+export async function getLanguages(repo: string): Promise<[string, number][]> {
+  if (fakeMode) return [];
+  const data = await gh<Record<string, number>>(`${repoPath(repo)}/languages`);
+  return Object.entries(data).sort((a, b) => b[1] - a[1]);
 }
 
 /** What browser code may call through POST /api/github/<name> (see github-client.ts). */

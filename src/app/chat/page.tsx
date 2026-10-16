@@ -304,7 +304,7 @@ export default function ChatPage() {
                       ✕
                     </button>
                   </p>
-                  {!r.result && !r.error && <p className="mt-1 text-muted">Looking through COCOMMIT/…</p>}
+                  {!r.result && !r.error && <p className="mt-1 text-muted">Reading the repo…</p>}
                   {r.error && (
                     <p className="mt-1 text-removed">
                       {r.error}{" "}

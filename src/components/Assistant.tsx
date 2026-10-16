@@ -1,17 +1,18 @@
 "use client";
 
-// The floating Assistant of the Figma design, built on the @cocommit bot (POST /api/bot): it answers from the
-// COCOMMIT/ files of the picked repo and shows its sources. The conversation lives in the provider, so it stays when
+// The floating Assistant of the Figma design, built on the @cocommit bot (POST /api/bot): it reads the picked repo
+// (code, team notes, PRs, issues) on the chosen branch and shows its sources. Settings (model, branch, don't-read list,
+// own API key, debug) live in this browser (src/lib/bot-client.ts). The conversation lives in the provider, so it stays when
 // you open another page. Without ANTHROPIC_API_KEY the server says it isn't set up and the window shows that.
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "@/components/icons";
-import type { BotAnswer } from "@/lib/bot";
-import { askBot, BotRequestError } from "@/lib/bot-client";
+import { MODELS, type BotAnswer, type BotDebug } from "@/lib/bot";
+import { askBot, BotRequestError, DEFAULT_SETTINGS, loadBotSettings, saveBotSettings, type BotSettings } from "@/lib/bot-client";
 import { getCurrentRepo } from "@/lib/current-repo";
-import { signInHref } from "@/lib/github-client";
+import { listBranches, signInHref } from "@/lib/github-client";
 
-type Msg = { id: string; role: "user" | "assistant"; text: string; sources?: BotAnswer["sources"]; error?: boolean; needsLogin?: boolean };
+type Msg = { id: string; role: "user" | "assistant"; text: string; sources?: BotAnswer["sources"]; debug?: BotDebug; error?: boolean; needsLogin?: boolean };
 type Size = "closed" | "open" | "minimised";
 
 type Ctx = { size: Size; setSize: (s: Size) => void; toggle: () => void };
@@ -29,7 +30,9 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
   );
 }
 
-const SUGGESTIONS = ["What's the team status?", "What did we decide lately?", "What changed today?"];
+const SUGGESTIONS = ["Summarize this project", "What's the team status?", "Where is login handled?", "What are the open pull requests?"];
+
+const modelLabel = (s: BotSettings) => (s.model === "custom" ? s.customModel || "custom model" : (MODELS.find((m) => m.id === s.model) ?? MODELS[0]).label);
 
 function AssistantDock() {
   const { size, setSize } = useAssistant();
@@ -38,7 +41,16 @@ function AssistantDock() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [wide, setWide] = useState(false);
+  const [settings, setSettings] = useState<BotSettings>(DEFAULT_SETTINGS);
+  const [showSettings, setShowSettings] = useState(false);
   const end = useRef<HTMLDivElement>(null);
+
+  // Settings are read after mount (they live in this browser's storage).
+  useEffect(() => setSettings(loadBotSettings()), []);
+  const changeSettings = (next: BotSettings) => {
+    setSettings(next);
+    saveBotSettings(next);
+  };
 
   // The repo is read after mount (it lives in this browser's storage) and again each time the window opens.
   useEffect(() => {
@@ -56,12 +68,19 @@ function AssistantDock() {
     setBusy(true);
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: "user", text: q }]);
     try {
-      const { answer, sources } = await askBot(target, q);
-      setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", text: answer, sources }]);
+      const { answer, sources, debug } = await askBot(target, q, [], settings);
+      setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", text: answer, sources, debug }]);
     } catch (e) {
       setMessages((m) => [
         ...m,
-        { id: crypto.randomUUID(), role: "assistant", text: e instanceof Error ? e.message : "The assistant couldn't answer.", error: true, needsLogin: e instanceof BotRequestError && e.status === 401 },
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: e instanceof Error ? e.message : "The assistant couldn't answer.",
+          error: true,
+          needsLogin: e instanceof BotRequestError && e.status === 401,
+          debug: e instanceof BotRequestError ? e.debug : undefined,
+        },
       ]);
     } finally {
       setBusy(false);
@@ -84,8 +103,24 @@ function AssistantDock() {
         </span>
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-semibold leading-5">Assistant</h2>
-          <p className="truncate text-xs text-white/70">Using {repo ? `${repo}/COCOMMIT` : "the team files"}</p>
+          <p className="truncate text-xs text-white/70">
+            {repo ?? "your repo"} · {settings.branch || "default branch"} · {modelLabel(settings)}
+            {settings.apiKey ? " · your key" : ""}
+            {settings.debug ? " · debug" : ""}
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={() => {
+            setShowSettings((v) => !v);
+            if (size === "minimised") setSize("open");
+          }}
+          aria-label={showSettings ? "Close Assistant settings" : "Assistant settings"}
+          aria-pressed={showSettings}
+          className={`grid size-8 place-items-center rounded-full hover:bg-white/25 ${showSettings ? "bg-white/30" : "bg-white/15"}`}
+        >
+          <Icon name="sliders" className="size-4" />
+        </button>
         <button type="button" onClick={() => setWide((w) => !w)} aria-label={wide ? "Make the Assistant smaller" : "Make the Assistant larger"} className="hidden size-8 place-items-center rounded-full bg-white/15 hover:bg-white/25 md:grid">
           <Icon name="expand" className="size-4" />
         </button>
@@ -97,12 +132,17 @@ function AssistantDock() {
         </button>
       </header>
 
-      {size === "open" && (
+      {size === "open" && showSettings && <SettingsPanel repo={repo} settings={settings} onChange={changeSettings} onClose={() => setShowSettings(false)} />}
+
+      {size === "open" && !showSettings && (
         <>
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4" aria-live="polite">
             {messages.length === 0 && (
               <div className="space-y-3 text-sm text-white/80">
-                <p>Ask about your team&apos;s handoff, decisions or gotchas. I read the COCOMMIT/ files of {repo ?? "your repo"} and show where an answer came from.</p>
+                <p>
+                  Ask about {repo ?? "your repo"}: the code, the team notes in COCOMMIT/, pull requests and issues. I say where an answer came from (file and line).
+                  Model, branch and what not to read are in settings.
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {SUGGESTIONS.map((s) => (
                     <button key={s} type="button" onClick={() => void ask(s)} className="rounded-full border border-white/25 px-3 py-1.5 text-xs hover:bg-white/15">
@@ -131,6 +171,7 @@ function AssistantDock() {
                         </Link>
                       </p>
                     )}
+                    {m.debug && <DebugView debug={m.debug} />}
                     {!!m.sources?.length && (
                       <ul className="mt-2 space-y-0.5 text-xs">
                         {m.sources.map((s) => (
@@ -146,7 +187,7 @@ function AssistantDock() {
                 </div>
               ),
             )}
-            {busy && <p className="text-xs text-white/70">Looking through COCOMMIT/…</p>}
+            {busy && <p className="text-xs text-white/70">Reading the repo with {modelLabel(settings)}…</p>}
             <div ref={end} />
           </div>
           <form
@@ -173,5 +214,127 @@ function AssistantDock() {
         </>
       )}
     </section>
+  );
+}
+
+const field = "w-full rounded-xl bg-white/15 px-3 py-2 text-sm text-white placeholder:text-white/50";
+
+function SettingsPanel({ repo, settings, onChange, onClose }: { repo: string | null; settings: BotSettings; onChange: (s: BotSettings) => void; onClose: () => void }) {
+  const [branches, setBranches] = useState<string[] | null>(null);
+  const set = <K extends keyof BotSettings>(key: K, value: BotSettings[K]) => onChange({ ...settings, [key]: value });
+
+  useEffect(() => {
+    if (!repo) return;
+    listBranches(repo)
+      .then(setBranches)
+      .catch(() => setBranches([]));
+  }, [repo]);
+
+  return (
+    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 text-sm">
+      <fieldset className="space-y-2">
+        <legend className="mb-1 font-semibold">Model</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {[...MODELS, { id: "custom" as const, label: "Custom", note: "type a model ID" }].map((m) => (
+            <label key={m.id} className={`cursor-pointer rounded-xl border px-3 py-2 ${settings.model === m.id ? "border-[var(--blue)] bg-white/20" : "border-white/20"}`}>
+              <input type="radio" name="bot-model" value={m.id} checked={settings.model === m.id} onChange={() => set("model", m.id)} className="sr-only" />
+              <span className="block font-medium">{m.label}</span>
+              <span className="block text-xs text-white/70">{m.note}</span>
+            </label>
+          ))}
+        </div>
+        {settings.model === "custom" && (
+          <input aria-label="Custom model ID" value={settings.customModel} onChange={(e) => set("customModel", e.target.value.trim())} placeholder="e.g. claude-sonnet-5" className={field} />
+        )}
+      </fieldset>
+
+      <label className="block space-y-1">
+        <span className="font-semibold">Branch</span>
+        <select value={settings.branch} onChange={(e) => set("branch", e.target.value)} className={`${field} appearance-auto`}>
+          <option value="">Default branch</option>
+          {settings.branch && !branches?.includes(settings.branch) && <option value={settings.branch}>{settings.branch}</option>}
+          {(branches ?? []).map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+        {branches === null && repo && <span className="text-xs text-white/60">Loading branches…</span>}
+      </label>
+
+      <label className="block space-y-1">
+        <span className="font-semibold">Don&apos;t read</span>
+        <span className="block text-xs text-white/70">One per line. Everything else in the repo can be read. Examples: src-tauri/ · *.lock · notes/private.md</span>
+        <textarea value={settings.exclude} onChange={(e) => set("exclude", e.target.value)} rows={3} placeholder="folder/&#10;*.lock" className={`${field} font-mono text-xs`} />
+      </label>
+
+      <fieldset className="space-y-2">
+        <legend className="mb-1 font-semibold">Your own API key (optional)</legend>
+        <p className="text-xs text-white/70">Used instead of the team&apos;s key, for your questions only. Sent with each question; the server doesn&apos;t keep it.</p>
+        <input type="password" autoComplete="off" aria-label="Anthropic API key" value={settings.apiKey} onChange={(e) => set("apiKey", e.target.value.trim())} placeholder="sk-ant-…" className={field} />
+        {settings.apiKey && (
+          <>
+            <input aria-label="Workspace ID (only for keys without a workspace)" value={settings.workspaceId} onChange={(e) => set("workspaceId", e.target.value.trim())} placeholder="Workspace ID, only if your key needs one (wrkspc_…)" className={field} />
+            <input aria-label="API URL (optional)" value={settings.apiUrl} onChange={(e) => set("apiUrl", e.target.value.trim())} placeholder="API URL, empty = Anthropic (https://…)" className={field} />
+            {settings.apiUrl && <p className="text-xs text-amber-200">Your questions, the repo&apos;s code and your key will go to this URL.</p>}
+            <label className="flex items-start gap-2 text-xs">
+              <input type="checkbox" checked={settings.rememberKey} onChange={(e) => set("rememberKey", e.target.checked)} className="mt-0.5" />
+              <span>Remember on this device. Otherwise it&apos;s forgotten when this tab closes. Anyone using this browser could use it.</span>
+            </label>
+          </>
+        )}
+      </fieldset>
+
+      <label className="flex items-center gap-2">
+        <input type="checkbox" checked={settings.debug} onChange={(e) => set("debug", e.target.checked)} />
+        <span>
+          <span className="font-semibold">Debug mode</span> <span className="text-xs text-white/70">shows tool calls, tokens and timing under each answer</span>
+        </span>
+      </label>
+
+      <div className="flex gap-2 pt-1">
+        <button type="button" onClick={onClose} className="rounded-full bg-[var(--blue)] px-4 py-2 font-medium hover:opacity-90">
+          Done
+        </button>
+        <button type="button" onClick={() => onChange({ ...DEFAULT_SETTINGS })} className="rounded-full border border-white/25 px-4 py-2 hover:bg-white/15">
+          Reset
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DebugView({ debug }: { debug: BotDebug }) {
+  const total = debug.rounds.reduce(
+    (t, r) => ({ input: t.input + r.usage.input, output: t.output + r.usage.output, cacheRead: t.cacheRead + r.usage.cacheRead, cacheWrite: t.cacheWrite + r.usage.cacheWrite }),
+    { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+  );
+  return (
+    <details className="mt-2 rounded-lg border border-black/20 bg-black/5 px-2 py-1 text-xs">
+      <summary className="cursor-pointer select-none font-medium">
+        Debug · {debug.model} · {debug.rounds.length} rounds · {(debug.totalMs / 1000).toFixed(1)} s · {total.input + total.cacheRead + total.cacheWrite} in / {total.output} out tokens
+      </summary>
+      <div className="mt-1 space-y-2 font-mono text-[11px] leading-4">
+        <p>
+          branch {debug.branch || "?"} · repo: {debug.snapshot || "not loaded"} · cache read {total.cacheRead}, write {total.cacheWrite}
+        </p>
+        {debug.error && <p className="text-red-700">error: {debug.error}</p>}
+        {debug.rounds.map((r) => (
+          <div key={r.round}>
+            <p className="font-semibold">
+              round {r.round} · {(r.ms / 1000).toFixed(1)} s · stop {r.stop ?? "?"} · in {r.usage.input} (+{r.usage.cacheRead} cached, +{r.usage.cacheWrite} written) · out {r.usage.output}
+            </p>
+            {r.tools.map((t, i) => (
+              <div key={i} className="ml-2 border-l border-black/20 pl-2">
+                <p className={t.error ? "text-red-700" : ""}>
+                  {t.name}({JSON.stringify(t.input)}) · {t.ms} ms
+                </p>
+                <p className="whitespace-pre-wrap break-words text-black/60">{t.result}</p>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
