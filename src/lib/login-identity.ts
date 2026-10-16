@@ -17,8 +17,10 @@ export function safeReturnTo(path: string | null | undefined, fallback = "/repo"
 }
 
 /** Where Supabase sends the browser after GitHub: our callback, with the page to return to. */
-export function githubCallbackUrl(origin: string, returnTo: string | null | undefined): string {
+export function githubCallbackUrl(origin: string, returnTo: string | null | undefined, desktop = false): string {
   const params = new URLSearchParams({ next: safeReturnTo(returnTo), provider: GITHUB_PROVIDER_PARAM });
+  // The sign-in runs in the system browser; /auth/callback then hands the session to the desktop app.
+  if (desktop) params.set("desktop", "1");
   return `${origin}/auth/callback?${params}`;
 }
 

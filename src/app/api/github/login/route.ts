@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const supabase = await getSupabaseServer();
   const result = await supabase?.auth.signInWithOAuth({
     provider: "github",
-    options: { redirectTo: githubCallbackUrl(origin, returnTo), scopes: GITHUB_SCOPES, skipBrowserRedirect: true },
+    options: { redirectTo: githubCallbackUrl(origin, returnTo, req.nextUrl.searchParams.get("desktop") === "1"), scopes: GITHUB_SCOPES, skipBrowserRedirect: true },
   });
   if (!result?.data.url || result.error) return NextResponse.redirect(new URL("/login?error=signin_failed", origin));
   return NextResponse.redirect(result.data.url);
