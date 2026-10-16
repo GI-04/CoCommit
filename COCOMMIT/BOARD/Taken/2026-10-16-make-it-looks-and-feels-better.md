@@ -9,7 +9,7 @@ just do ur job
 - ok
 
 ## Taken
-- **Owner:** — · **Progress:** — · **Blockers:** none
+- **Owner:** @owlwee-sudo · **Progress:** — · **Blockers:** none
 
 ## Done
 - **Verified by:** —
