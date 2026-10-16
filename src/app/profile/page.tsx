@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { Avatar } from "@/components/Avatar";
 import { Icon } from "@/components/icons";
 import { ProfileOverview } from "@/components/profile/Overview";
-import { Button, Card, PageHeader, Tabs } from "@/components/ui";
+import { Button, Card, PageHeader, Tabs, buttonClass } from "@/components/ui";
 import { MIN_PASSWORD_LENGTH, signOut } from "@/lib/auth-email";
 import { changeEmail, changePassword, loadAccounts, saveProfile, type AccountProfile, type Accounts } from "@/lib/profile";
 import { getSupabase } from "@/lib/supabase";
@@ -99,7 +99,7 @@ export default function ProfilePage() {
           {!profile && !github ? (
             <Card title="Make yourself at home">
               <p className="mb-4 text-sm text-muted">Log in to view your profile and manage your account details.</p>
-              <Link href="/login?returnTo=/profile" className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg">Log in to your account</Link>
+              <Link href="/login?returnTo=/profile" className={buttonClass("primary", "inline-block")}>Log in to your account</Link>
             </Card>
           ) : tab === "overview" ? (
             <ProfileOverview name={name} profile={profile} github={github} onEdit={() => setTab("account")} />

@@ -156,3 +156,47 @@ test("driveSummary: three file names, then how many more", () => {
   assert.deepEqual([...h.driveSummary(f("a", "b", "c", "d", "e"))], ["a, b, c", "+2 more"]);
   assert.deepEqual([...h.driveSummary([])], []);
 });
+
+test("nextStepLine skips code fences, tables, rules and HTML under the heading", () => {
+  assert.equal(h.nextStepLine("## Next step\n```bash\nnpm test\n```\n"), "npm test");
+  assert.equal(h.nextStepLine("## Next step\n| who | what |\n|---|---|\n---\n***\n<details>\nShip it"), "Ship it");
+  assert.equal(h.nextStepLine("## Next step\n~~~\n~~~\nAfter the fence"), "After the fence");
+});
+
+test("nextStepLine reads on into sub-headings but not into the next section, and ignores a heading inside code", () => {
+  assert.equal(h.nextStepLine("## Next steps\n### Now\n1. Do the thing\n## Later\nx"), "Do the thing");
+  assert.equal(h.nextStepLine("## Next step\n### Now\n## Later\nx"), null);
+  assert.equal(h.nextStepLine("```md\n## Next step\nnot real\n```\n"), null);
+  assert.equal(h.nextStepLine("# Handoff\n## Next step\nreal\n"), "real");
+});
+
+test("contextSummary drops a leading Next label instead of repeating it", () => {
+  assert.deepEqual([...h.contextSummary("Next: ship it")], ["Next: ship it"]);
+  assert.deepEqual([...h.contextSummary("Next step - ship it")], ["Next: ship it"]);
+  assert.deepEqual([...h.contextSummary("Nextcloud is down")], ["Next: Nextcloud is down"]);
+});
+
+test("stripMarkdown keeps dunder names, caps a huge line, and still removes __bold text__", () => {
+  assert.equal(h.stripMarkdown("call __init__ and __main__ first"), "call __init__ and __main__ first");
+  assert.equal(h.stripMarkdown("a __bold text__ here"), "a bold text here");
+  const t0 = Date.now();
+  assert.ok(h.stripMarkdown("*a ".repeat(20000)).length <= 500);
+  assert.ok(Date.now() - t0 < 500, "a huge line must not freeze the page");
+});
+
+test("chatText removes a link with its brackets and a trailing colon", () => {
+  assert.equal(h.chatText("see (https://x.y/z) now"), "see now");
+  assert.equal(h.chatText("details: https://x.y/z"), "details");
+  assert.equal(h.chatText("committed “a” · https://g.com/x"), "committed “a”");
+});
+
+test("relativeTime gives nothing for the epoch (a missing date) and commitSummary then shows only who", () => {
+  assert.equal(h.relativeTime("1970-01-01T00:00:00.000Z", now), "");
+  assert.deepEqual([...h.commitSummary({ author: "Kin", text: "Fix it", at: "1970-01-01T00:00:00.000Z" }, now)], ["Fix it", "Kin"]);
+});
+
+test("driveSummary puts top-folder files first and names the folder of the others; it does not claim newest", () => {
+  const files = [{ name: "logo.png", folder: "designs" }, { name: "a.md", folder: "" }, { name: "b.md", folder: "" }, { name: "c.md", folder: "" }];
+  assert.deepEqual([...h.driveSummary(files)], ["a.md, b.md, c.md", "+1 more"]);
+  assert.deepEqual([...h.driveSummary(files.slice(0, 2))], ["designs/logo.png, a.md"].map(() => "a.md, designs/logo.png"));
+});

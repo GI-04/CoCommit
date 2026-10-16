@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { detectOs, downloads, type Download, type OsId } from "@/lib/downloads";
 
-const base = "block rounded-md px-3 py-2 text-center text-sm font-medium";
+const base = "block rounded-full px-3 py-2 text-center text-sm font-medium";
 
 function Option({ item, primary }: { item: Download; primary: boolean }) {
   if (!item.href) {

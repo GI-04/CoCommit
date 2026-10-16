@@ -40,7 +40,9 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
   const commits = useCommits(repo);
   const [layout, setLayout] = useState<HomeLayout>(() => resolveLayout(ALL, null));
   // Nothing is read while arranging cards, or for a card that is hidden; what was loaded before stays.
-  const reads = (id: string) => !customizing && !layout.hidden.includes(id);
+  // The saved layout is read in an effect, so wait for it: a hidden card must not start a read on the first render.
+  const [layoutReady, setLayoutReady] = useState(false);
+  const reads = (id: string) => layoutReady && !customizing && !layout.hidden.includes(id);
   const latest = useLatestCommit(repo, reads("/repo"));
   const chat = useRecentChat(repo, reads("/chat"));
   const next = useNextStep(repo, reads("/context"));
@@ -58,6 +60,7 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
     } catch {
       // Storage blocked or damaged: the default layout is fine.
     }
+    setLayoutReady(true);
   }, []);
 
   const update = (next: HomeLayout) => {
@@ -141,7 +144,7 @@ function GoTo({ section, tone, link, lines }: { section: (typeof SCREENS)[number
       </span>
     </>
   );
-  const look = `block-${tone} lift flex min-h-[8.5rem] items-center gap-4 p-5`;
+  const look = `block-${tone} lift flex h-full min-h-[8.5rem] items-center gap-4 p-5`;
   return link ? (
     <Link href={section.href} className={`${look} hover:opacity-95`}>
       {body}

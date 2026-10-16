@@ -73,7 +73,7 @@ export default function CallChat({ repo }: { repo: string }) {
           onChange={(e) => setText(e.target.value)}
           placeholder={mayPost === false ? "Log in to chat" : "Message the team"}
           disabled={mayPost === false}
-          className="min-w-0 flex-1 rounded-md border border-line bg-bg px-2 py-1.5 text-sm"
+          className="min-w-0 flex-1 rounded-full border border-line bg-bg px-4 py-2.5 text-sm"
         />
         <Button type="submit" disabled={!text.trim() || mayPost === false}>
           Send

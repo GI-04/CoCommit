@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-16: Tailwind 4 picks the winner by value, not by class order (square "glass" buttons)
+- **What failed:** `Button` had `rounded-md` in its base and `rounded-full` in the glass variant; the buttons rendered square. A `py-1` passed in `className` is ignored for the same reason (the base `py-2.5` wins).
+- **Evidence:** compiled CSS orders same-property utilities by value (`py-1, py-1.5, py-2, py-2.5, py-3`), and the later rule wins whatever the order in the `class` string; computed `border-radius` was 8 px on the live "Ask assistant". Unlayered rules in `globals.css` (like `.btn-glass`) beat every Tailwind utility.
+- **Workaround:** one radius per element (`buttonClass` in `ui.tsx`; `tests/ui.test.mjs` fails on a second one); use `!py-1` for an override, never put a `border-radius` or a `transition` shorthand in a custom class that sits on a button.
+
 ## 2026-10-16 — GitHub's blob API ignores Range: every piece of a big download re-read the whole file
 - **What failed:** Drive downloads a big file in 3 MB pieces, but `GET /repos/<repo>/git/blobs/<sha>` (JSON or `Accept: application/vnd.github.raw`) always returns the whole file, even with a `Range` header, so a 24.9 MB download fetched ~25 MB nine times (133 s from Thailand).
 - **Evidence:** `curl -H "Range: bytes=3145728-6291455" -H "Accept: application/vnd.github.raw" …/git/blobs/<sha>` → HTTP 200, 26,109,863 bytes; the same range on `https://raw.githubusercontent.com/<repo>/<commit>/<path>` with the token → HTTP 206, 3,145,728 bytes.

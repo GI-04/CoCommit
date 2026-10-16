@@ -1,6 +1,6 @@
 # Plan: glass pill buttons, tab slide everywhere, team spines, Home summaries
 
-**Status:** active <!-- proposed | active | done | rejected | superseded -->
+**Status:** done <!-- proposed | active | done | rejected | superseded -->
 **Date:** 2026-10-16 · **Superseded by:** —
 **Proposed by:** Claude-Trin (for Trin) · **Approved by:** Trin (2026-10-16, in chat: "Plan approved: set it to active and build it. Commit locally in phases, don't push.")
 
@@ -32,3 +32,11 @@ Team cards = **stacked spines** (Dumbling.FM style); on **Agent Context → Team
 
 ## How we'll verify
 `npm run typecheck`, `npm test` (new `team` test), `npm run build`; browser on demo data at 390 / 834 / 1440 px: pill radius on every button group, thumb moves from the old tab to the new one on Chat → Team → Call, spines open/close with mouse and keyboard, agents sit under their person, Home cards show summaries and fall back, no console errors. **Not verifiable here:** real GitHub / Supabase data in the summaries.
+
+## Changes while building (Claude-Trin, 2026-10-16)
+- Built as planned in three commits (buttons + tabs; team spines + Invite + a demo roster in demo mode; Home summaries). Two build agents did the spines and the Home summaries in parallel on separate files; three read-only review agents then checked all three commits, and their real findings were fixed (below).
+- **Buttons:** also made pills: the signed-out "Log in" links on Repository, Drive, Tasks and Profile, the Download button, and the call chat input. Not touched: landing-page buttons, form fields, chips. A `className` padding on `Button` (`py-1`, `py-1.5`, `py-2`) still loses to the base `py-2.5` (Tailwind 4 sorts same-property utilities by value; GOTCHAS), so the compact buttons are full size, as before.
+- **Tabs:** `Tabs` got a `paper` variant and a `sm` size. `LinkTabs` forgets where the thumb was after 2 s, so coming back to Messages from another screen doesn't replay a slide. The sidebar navigation's highlight still jumps (not asked for; it is a separate piece).
+- **Team spines:** an agent's label uses the dash that matched its owner ("Claude-Opus-Pattadon" reads "Claude-Opus · Pattadon's agent"). Home → Overview's Team card still shows a flat list; it was not moved to the spines.
+- **Home summaries:** "Drive" is the first three files (top folder first, folders named), not the newest: shared files carry no date. Hidden cards no longer start a read on the first render; the card grid no longer widens on phones; cards in a row share one height. The Messages card shows the last two chat lines to any real account, the same rule `/chat` already has (`supabase/chat-privacy.sql`: a real account, not membership of the repo).
+- Checked: typecheck, `npm test` 146/146, `npm run build`; in the browser (demo data) at 375 / 390 / 800 / 1280 px: pill radius on the buttons, thumb transition on Chat → Team, spines open with the agents hanging under their person, Home summaries and no sideways scroll. **Not checked:** real GitHub / Supabase data in the summaries, the animations running in a normal browser (the test pane freezes them), the desktop app.

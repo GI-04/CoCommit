@@ -5,7 +5,7 @@ import { LocalRepo } from "@/components/LocalRepo";
 import { DiffView } from "@/components/DiffView";
 import { friendlyError } from "@/lib/errors";
 import { Icon, type IconName } from "@/components/icons";
-import { Button, Card, PageHeader, Skeleton, Tabs } from "@/components/ui";
+import { Button, Card, PageHeader, Skeleton, Tabs, buttonClass } from "@/components/ui";
 import { setCurrentRepo } from "@/lib/current-repo";
 import { isDesktop } from "@/lib/local-git";
 import {
@@ -209,7 +209,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
         <PageHeader title="Repository" subtitle="Commit and open pull requests with buttons." />
         <Card>
           <p className="mb-4 text-sm">Log in with GitHub to see your repositories.</p>
-          <a href={signInHref("/repo")} className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
+          <a href={signInHref("/repo")} className={buttonClass("primary", "inline-block")}>
             Continue with GitHub
           </a>
         </Card>

@@ -21,7 +21,7 @@ export function TeamSpines({ members, actions }: { members: Member[]; actions?: 
             <ul className="ml-3 mt-2 space-y-2 border-l-2 border-white/25 pl-2.5 sm:ml-8 sm:pl-4">
               {g.agents.map((a, j) => (
                 <li key={`${a.title}-${j}`} className="relative before:absolute before:-left-2.5 before:top-[29px] before:h-0.5 before:w-2.5 before:bg-white/25 sm:before:-left-4 sm:before:w-4">
-                  <Spine member={a} tone={g.tone} agent actions={actions} />
+                  <Spine member={a} tone={g.tone} agent owner={g.person} actions={actions} />
                 </li>
               ))}
             </ul>
@@ -32,10 +32,10 @@ export function TeamSpines({ members, actions }: { members: Member[]; actions?: 
   );
 }
 
-function Spine({ member, tone, agent = false, actions }: { member: Member; tone: TeamTone; agent?: boolean; actions?: (member: Member, label: string) => ReactNode }) {
+function Spine({ member, tone, agent = false, owner, actions }: { member: Member; tone: TeamTone; agent?: boolean; owner?: Member; actions?: (member: Member, label: string) => ReactNode }) {
   const [open, setOpen] = useState(false);
   const panel = `${useId()}-panel`;
-  const label = agent ? agentLabel(member) : member.name || member.title;
+  const label = agent ? agentLabel(member, owner) : member.name || member.title;
   const role = member.role || member.title;
   // An agent's long name ("Claude Opus 5.5, Pattadon's agent (runs on …)") is read here instead of on the bar.
   const fields: [string, string][] = [["Role", member.role], ["Can do", member.capability], ["Available", member.availability], ["May write", member.writeScope]];

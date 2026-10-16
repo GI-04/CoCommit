@@ -9,7 +9,7 @@ const LINE_MAX = 140;
 /** "just now", "5 min ago", "2h ago", "3 days ago", then the date. A bad date gives "", a clock a little ahead "just now". */
 export function relativeTime(iso: string, now = new Date()): string {
   const then = new Date(iso);
-  if (Number.isNaN(then.getTime())) return "";
+  if (Number.isNaN(then.getTime()) || then.getTime() <= 0) return ""; // listCommits falls back to the epoch for a missing date
   const ms = now.getTime() - then.getTime();
   if (ms < MINUTE) return "just now";
   const minutes = Math.floor(ms / MINUTE);
@@ -45,6 +45,7 @@ export function truncate(text: string, max: number): string {
 /** One line of markdown as plain text: no quote, heading or list marks, no **bold**, `code` or link syntax. */
 export function stripMarkdown(text: string): string {
   return String(text ?? "")
+    .slice(0, 500) // the card shows far less, and the patterns below are slow on a huge single line
     .replace(/^\s*(?:>\s*)*/, "") // quote marks
     .replace(/^#{1,6}\s+/, "") // heading marks
     .replace(/^(?:[-*+]|\d{1,3}[.)])\s+/, "") // list marker: "- ", "* ", "2. ", "3) "
@@ -53,22 +54,37 @@ export function stripMarkdown(text: string): string {
     .replace(/\[([^\]]+)\]\[[^\]]*\]/g, "$1") // [text][ref]
     .replace(/<(https?:\/\/[^>\s]+)>/g, "$1") // <https://…>
     .replace(/`+([^`]*)`+/g, "$1") // `code`
-    .replace(/(\*\*|__|~~)(.+?)\1/g, "$2") // **bold**, __bold__, ~~strike~~
-    .replace(/(^|[\s(])([*_])(\S(?:.*?\S)?)\2(?=$|[\s).,;:!?])/g, "$1$3") // *italic*, _italic_ (not snake_case)
+    .replace(/(\*\*|~~)(.+?)\1/g, "$2") // **bold**, ~~strike~~
+    .replace(/(^|\W)__([^_\s][^_]*\s[^_]*[^_\s])__(?=\W|$)/g, "$1$2") // __bold text__ (a lone name like __init__ stays)
+    .replace(/(^|[\s(])([*_])(?!\2)(\S(?:.*?\S)?)(?<!\2)\2(?=$|[\s).,;:!?])/g, "$1$3") // *italic*, _italic_ (not snake_case or __init__)
     .replace(/\s+/g, " ")
     .trim();
 }
 
 /**
- * The first line under a heading that contains "next step" (any level, any case), as plain text.
- * A heading with nothing under it is skipped for the next such heading; null if there is none.
+ * The first line under a heading that contains "next step" (any level, any case), as plain text. Sub-headings under it
+ * are skipped over (the section ends at a heading of the same or a higher level); fenced code marks, table rows, rules
+ * and HTML lines are not text and are skipped; a heading inside a code block doesn't count. A heading with nothing under
+ * it is skipped for the next such heading; null if there is none.
  */
 export function nextStepLine(md: string): string | null {
   const lines = String(md ?? "").replace(/<!--[\s\S]*?-->/g, "").replace(/\r\n?/g, "\n").split("\n");
+  const level = (line: string) => /^\s{0,3}(#{1,6})\s/.exec(line)?.[1].length ?? 0;
+  let fenced = false;
   for (let i = 0; i < lines.length; i++) {
-    if (!/^\s{0,3}#{1,6}\s+.*next step/i.test(lines[i])) continue;
+    if (/^\s{0,3}(`{3,}|~{3,})/.test(lines[i])) fenced = !fenced;
+    if (fenced || !level(lines[i]) || !/next step/i.test(lines[i])) continue;
+    const mine = level(lines[i]);
+    let inFence = false;
     for (const raw of lines.slice(i + 1)) {
-      if (/^\s{0,3}#{1,6}\s/.test(raw)) break; // the next heading: this section had nothing
+      if (/^\s{0,3}(`{3,}|~{3,})/.test(raw)) {
+        inFence = !inFence;
+        continue;
+      }
+      const l = inFence ? 0 : level(raw);
+      if (l && l <= mine) break; // the next section of the same or a higher level: this one had nothing
+      if (l) continue; // a sub-heading: read on into its text
+      if (!inFence && /^\s*(\||<|(?:[-*_]\s*){3,}$)/.test(raw)) continue; // table row, HTML, rule
       const text = stripMarkdown(raw);
       if (text) return text;
     }
@@ -78,7 +94,7 @@ export function nextStepLine(md: string): string | null {
 
 /** A chat line as plain text: one line, no links (a git event ends with its GitHub link), no dangling "·". */
 export function chatText(text: string): string {
-  return oneLine(String(text ?? "").replace(/https?:\/\/\S+/g, "")).replace(/\s*[·|]\s*$/, "").trim();
+  return oneLine(String(text ?? "").replace(/[([<]?\bhttps?:\/\/\S*/g, "")).replace(/[\s·|:]+$/, "").trim();
 }
 
 /** Repository card: the latest commit's message, then "author · 2h ago". */
@@ -103,14 +119,19 @@ export function chatSummary(messages: { author: string; text: string }[], count 
 
 /** Agent Context card: "Next:" and the handoff's next step (nothing when there is none). */
 export function contextSummary(next: string | null): string[] {
-  const text = next ? oneLine(next) : "";
+  const text = next ? oneLine(next).replace(/^next(?:\s+steps?)?\s*[:\-–—]\s*/i, "") : ""; // the card says "Next:" itself
   return text ? [truncate(`Next: ${text}`, LINE_MAX)] : [];
 }
 
-/** Drive card: the names of the first `count` files (in the order GitHub lists them: shared files carry no date), then "+N more". */
-export function driveSummary(files: { name: string }[], count = 3): string[] {
-  const names = files.slice(0, count).map((f) => oneLine(f.name)).filter(Boolean);
-  if (names.length === 0) return [];
-  const more = files.length - count;
-  return more > 0 ? [truncate(names.join(", "), LINE_MAX), `+${more} more`] : [truncate(names.join(", "), LINE_MAX)];
+/**
+ * Drive card: the first `count` files, then "+N more". Shared files carry no date, so this is not "the newest": files in
+ * the top folder come first, then the rest by path, each named with its folder ("designs/logo.png").
+ */
+export function driveSummary(files: { name: string; folder?: string }[], count = 3): string[] {
+  const label = (f: { name: string; folder?: string }) => oneLine(f.folder ? `${f.folder}/${f.name}` : f.name);
+  const ordered = [...files.filter((f) => !f.folder), ...files.filter((f) => f.folder)].filter((f) => label(f));
+  if (ordered.length === 0) return [];
+  const names = truncate(ordered.slice(0, count).map(label).join(", "), LINE_MAX);
+  const more = ordered.length - count;
+  return more > 0 ? [names, `+${more} more`] : [names];
 }

@@ -169,7 +169,7 @@ export default function TasksPage() {
           {state === "login" && (
             <>
               <p className="mb-4 text-sm">Log in with GitHub to see and move tasks.</p>
-              <a href={signInHref("/tasks")} className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
+              <a href={signInHref("/tasks")} className={buttonClass("primary", "inline-block")}>
                 Continue with GitHub
               </a>
             </>

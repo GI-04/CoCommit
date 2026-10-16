@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "@/components/icons";
-import { Button, Card, PageHeader, Skeleton } from "@/components/ui";
+import { Button, Card, PageHeader, Skeleton, buttonClass } from "@/components/ui";
 import { getCurrentRepo } from "@/lib/current-repo";
 import { friendlyError } from "@/lib/errors";
 import {
@@ -251,7 +251,7 @@ export default function FilesPage() {
       {needsLogin && (
         <Card className="mb-4">
           <p className="mb-3 text-sm text-muted">Sign in with GitHub to see and share the team's files.</p>
-          <a href={signInHref("/files")} className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
+          <a href={signInHref("/files")} className={buttonClass("primary", "inline-block")}>
             Sign in with GitHub
           </a>
         </Card>

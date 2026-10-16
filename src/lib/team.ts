@@ -45,9 +45,19 @@ export function groupTeam(members: Member[]): TeamGroup[] {
   return groups;
 }
 
-/** Short name for an agent, e.g. "Claude · Pattadon's agent" for the title "Claude-Pattadon" (the title itself if it has no dash). */
-export function agentLabel(m: Member): string {
+/**
+ * Short name for an agent, e.g. "Claude · Pattadon's agent" for the title "Claude-Pattadon" (the title itself if it has no
+ * dash). Pass the owner it was filed under so the label uses the dash that matched ("Claude-Opus-Pattadon" reads
+ * "Claude-Opus · Pattadon's agent", not "Claude · Opus-Pattadon's agent").
+ */
+export function agentLabel(m: Member, owner?: Member): string {
   const title = m.title.trim();
+  if (owner) {
+    for (let i = title.indexOf("-"); i > 0 && i < title.length - 1; i = title.indexOf("-", i + 1)) {
+      const text = title.slice(i + 1);
+      if (same(owner.title, text) || (owner.name && same(owner.name, text))) return `${title.slice(0, i)} · ${owner.title.trim()}'s agent`;
+    }
+  }
   const i = title.indexOf("-");
   if (i <= 0 || i === title.length - 1) return title || m.name;
   return `${title.slice(0, i)} · ${title.slice(i + 1)}'s agent`;

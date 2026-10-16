@@ -3,23 +3,31 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-// Where each tab group's glass thumb was last. It lives at module level so it survives the page change (every tab here is
-// its own page): the new page starts the thumb at the old tab and slides it to the new one.
-const lastIndex = new Map<string, number>();
+// Where each tab group's glass thumb was last, and when that page went away. It lives at module level so it survives the
+// page change (every tab here is its own page): the new page starts the thumb at the old tab and slides it to the new
+// one. A place older than a couple of seconds is forgotten, so coming back from another screen doesn't replay a slide.
+const last = new Map<string, { index: number; left: number }>();
+const fresh = (label: string) => {
+  const seen = last.get(label);
+  return seen && Date.now() - seen.left < 2000 ? seen.index : undefined;
+};
 
 // The glass tab pill as page links (Messages: Chat / Team / Call). Same look and slide as `Tabs` in ui.tsx, which stays
 // free of next/link and React so tests can load it.
 export function LinkTabs({ tabs, value, label }: { tabs: { id: string; label: string; href: string }[]; value: string; label: string }) {
   const index = tabs.findIndex((t) => t.id === value);
-  const [shown, setShown] = useState(() => lastIndex.get(label) ?? index);
+  const [shown, setShown] = useState(() => fresh(label) ?? index);
   const thumb = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    lastIndex.set(label, index);
+    last.set(label, { index, left: Infinity });
     if (shown === index) return;
     thumb.current?.getBoundingClientRect(); // settle the starting place first, so the move below animates
     setShown(index);
   }, [index, label, shown]);
+
+  // When the page goes away, note the time: the next tab page started within 2 s slides from here.
+  useEffect(() => () => void last.set(label, { index, left: Date.now() }), [index, label]);
 
   return (
     <nav aria-label={label} className="glass max-w-full overflow-x-auto rounded-full">

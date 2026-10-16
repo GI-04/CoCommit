@@ -70,10 +70,30 @@ test("owners with a dash in their name are found; a loop or a chain loses nobody
   assert.deepEqual(shape(t.groupTeam([member("Claude-Opus-Pattadon"), member("Pattadon")])), [
     { person: "Pattadon", agents: ["Claude-Opus-Pattadon"], tone: "pink" },
   ]);
-  const loop = t.groupTeam([member("A-B"), member("B-A")]);
-  assert.deepEqual(shape(loop).map((g) => g.person), ["A-B", "B-A"]);
+  // A real loop: each one's owner text matches the other's name, so neither counts as an agent and both stay listed.
+  const loop = t.groupTeam([member("Foo-Bar", "Foo"), member("Bar-Foo", "Bar")]);
+  assert.deepEqual(shape(loop).map((g) => g.person), ["Foo-Bar", "Bar-Foo"]);
   const chain = t.groupTeam([member("Pattadon"), member("Claude-Pattadon"), member("Helper-Claude-Pattadon")]);
   assert.equal(shape(chain).flatMap((g) => [g.person, ...g.agents]).length, 3);
+});
+
+test("agentLabel with the owner uses the dash that matched", () => {
+  const pattadon = member("Pattadon");
+  assert.equal(t.agentLabel(member("Claude-Opus-Pattadon"), pattadon), "Claude-Opus · Pattadon's agent");
+  assert.equal(t.agentLabel(member("Claude-pattadon"), pattadon), "Claude · Pattadon's agent");
+  assert.equal(t.agentLabel(member("Claude-Mary-Jane"), member("Mary-Jane")), "Claude · Mary-Jane's agent");
+  assert.equal(t.agentLabel(member("Claude-Tm"), member("Tm", "Trin")), "Claude · Tm's agent");
+  assert.equal(t.agentLabel(member("Codex-Trin"), member("Tm", "Trin")), "Codex · Tm's agent");
+  assert.equal(t.agentLabel(member("Claude-Nobody"), pattadon), "Claude · Nobody's agent");
+});
+
+test("a typical roster: people with one or two agents each, and one person alone", () => {
+  const roster = ["Mina", "Claude-Mina", "Ben", "Claude-Ben", "Codex-Ben", "Sam"].map((n) => member(n));
+  assert.deepEqual(shape(t.groupTeam(roster)), [
+    { person: "Mina", agents: ["Claude-Mina"], tone: "pink" },
+    { person: "Ben", agents: ["Claude-Ben", "Codex-Ben"], tone: "cyan" },
+    { person: "Sam", agents: [], tone: "mustard" },
+  ]);
 });
 
 test("an empty list gives no groups, and people with no agents are fine", () => {
