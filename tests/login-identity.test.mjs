@@ -95,7 +95,7 @@ function chatWith(user, { insertError = null, row = {} } = {}) {
       },
     }),
   };
-  const chat = load("chat", { "./supabase": { getSupabase: () => client, supabaseConfigured: true } }, {
+  const chat = load("chat", { "./current-repo": { GENERAL: "general" }, "./supabase": { getSupabase: () => client, supabaseConfigured: true } }, {
     fetch: async () => ({ ok: true, json: async () => ({ user: null, fake: false }) }),
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
   });
@@ -142,7 +142,7 @@ test("names: account name first, never a picked name", async () => {
 });
 
 test("demo mode (no Supabase keys) still lets anyone post locally", async () => {
-  const chat = load("chat", { "./supabase": { getSupabase: () => null, supabaseConfigured: false } }, {
+  const chat = load("chat", { "./current-repo": { GENERAL: "general" }, "./supabase": { getSupabase: () => null, supabaseConfigured: false } }, {
     fetch: async () => ({ ok: true, json: async () => ({ user: null, fake: true }) }),
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
   });

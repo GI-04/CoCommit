@@ -141,7 +141,7 @@ test("password changes write only auth credentials, never public profile data", 
 });
 test("future chat messages use fresh profile names, then GitHub or guest fallback", async () => {
   let account = user();
-  const api = load("chat", { "./supabase": { supabaseConfigured: true, getSupabase: () => ({ auth: { getUser: async () => ({ data: { user: account } }) } }) } }, {
+  const api = load("chat", { "./current-repo": { GENERAL: "general" }, "./supabase": { supabaseConfigured: true, getSupabase: () => ({ auth: { getUser: async () => ({ data: { user: account } }) } }) } }, {
     fetch: async () => ({ ok: true, json: async () => ({ user: { login: "git-person" }, fake: false }) }),
     sessionStorage: { getItem: () => "Guest 123" },
   });

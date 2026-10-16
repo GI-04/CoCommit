@@ -17,6 +17,7 @@ import {
   loadMessages,
   mergeMessage,
   myName,
+  NotMemberError,
   onlineUsers,
   pinMessage,
   sendMessage,
@@ -56,6 +57,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [mayPost, setMayPost] = useState<boolean | null>(null); // null while checking
+  const [closed, setClosed] = useState<string | null>(null); // why this repo's chat is closed to you (not a member)
   const [pinForm, setPinForm] = useState<PinForm | null>(null);
   const [pinNote, setPinNote] = useState<PinNote | null>(null);
   const [saving, setSaving] = useState(false);
@@ -80,9 +82,10 @@ export default function ChatPage() {
     setMessages([]);
     setPinForm(null);
     setPinNote(null);
+    setClosed(null);
     loadMessages(chat)
       .then((list) => current && setMessages((now) => list.reduce(mergeMessage, now)))
-      .catch((e: Error) => current && setError(e.message));
+      .catch((e: Error) => current && (e instanceof NotMemberError ? setClosed(e.message) : setError(e.message)));
     const stop = subscribe(chat, (m) => current && setMessages((now) => mergeMessage(now, m)));
     return () => {
       current = false;
@@ -231,6 +234,14 @@ export default function ChatPage() {
                 Log in
               </Link>
             </div>
+          ) : closed ? (
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-10 text-center">
+              <p className="text-base font-semibold">{closed}</p>
+              <p className="max-w-sm text-sm text-muted">A repo&apos;s chat and call are only for people GitHub lets see that repo. # general is open to everyone on the team.</p>
+              <button type="button" onClick={() => openChat(GENERAL)} className="rounded-full bg-[var(--blue)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90">
+                Open # general
+              </button>
+            </div>
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
               {messages.length === 0 && botReplies.length === 0 && (
@@ -355,7 +366,7 @@ export default function ChatPage() {
               </button>
             </p>
           )}
-          {mayPost !== false && (
+          {mayPost !== false && !closed && (
             <>
               <p className="mt-3 text-xs text-muted">
                 You: <span className="font-medium text-fg">{name ?? "…"}</span>

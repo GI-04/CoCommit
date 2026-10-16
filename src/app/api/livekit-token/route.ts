@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
-import { fakeMode, getSession } from "@/lib/github";
+import { canSeeRepo, fakeMode, getSession } from "@/lib/github";
 import { createToken, liveKitKeys, roomForRepo } from "@/lib/livekit-token";
+import { accessError } from "@/lib/repo-access";
 import { getSupabaseServer } from "@/lib/supabase-server";
 
 // POST /api/livekit-token {"repo":"owner/name"} → {token, url, room} for that repo's call.
 // Only signed-in people get a token (a real Supabase account or a GitHub session); anonymous visitors don't.
+// And only members of the repo: GitHub must let the caller see it (PLAN/2026-10-16-repo-members-only.md).
 export async function POST(req: Request) {
   const keys = liveKitKeys();
   if (!keys) return NextResponse.json({ error: "Calls aren't set up yet: the LiveKit keys are missing." }, { status: 503 });
@@ -15,6 +17,15 @@ export async function POST(req: Request) {
 
   const who = await caller();
   if (!who) return NextResponse.json({ error: "Log in to join the call." }, { status: 401 });
+
+  let access;
+  try {
+    access = await canSeeRepo(body?.repo as string);
+  } catch {
+    return NextResponse.json({ error: "Couldn't check this repo on GitHub. Try again in a moment." }, { status: 502 });
+  }
+  const closed = accessError(access);
+  if (closed) return NextResponse.json(closed, { status: closed.status });
 
   return NextResponse.json({ token: createToken(keys, who, room), url: keys.url, room });
 }

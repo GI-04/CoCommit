@@ -17,6 +17,7 @@ const checks = [
   ["GITHUB_CLIENT_SECRET", "GitHub sign-in", (v) => /^[a-f0-9]{40}$/i.test(v)],
   ["NEXT_PUBLIC_SUPABASE_URL", "Chat, Google sign-in", (v) => /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(v)],
   ["NEXT_PUBLIC_SUPABASE_ANON_KEY", "Chat, Google sign-in", (v) => v.startsWith("eyJ") || v.startsWith("sb_publishable_")],
+  ["SUPABASE_SERVICE_ROLE_KEY", "members-only repo chats", (v) => v.startsWith("eyJ") || v.startsWith("sb_secret_"), "optional"],
   ["ANTHROPIC_API_KEY", "@cocommit chat bot", (v) => v.startsWith("sk-ant-"), "optional"],
   ["ANTHROPIC_WORKSPACE_ID", "@cocommit bot, keys without a workspace", (v) => v.startsWith("wrkspc_"), "optional"],
 ];
