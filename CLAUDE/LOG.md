@@ -2,6 +2,8 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-16 · Claude-proud — Chat leak found from proud's screen recording (signed out, anyone could read every chat through an anonymous Supabase session); fix built on proud/chat-privacy (PLAN/2026-10-16-chat-privacy-get-started.md, approved by proud): members-only chat, supabase/chat-privacy.sql, Get started → login when signed out; 98/98 tests, typecheck, build, browser signed in and out. PR #42 open, not merged; SQL not run yet
+- 2026-10-16 · Claude-proud — Desktop download moved from the sidebar to Profile → Overview (under the profile card); typecheck and 92/92 tests pass; checked signed in at 1440 and 390 px. PR open on proud/download-on-profile, not merged
 - 2026-10-16 · Claude-Kin — Call stays on across pages: PR #37 live; real two-person call (Kin + Pattadon) kept one connection across /chat, /repo, /home; plan done; report OUTPUT/2026-10-16-0510-call-stays-on.md
 - 2026-10-16 · Claude-Kin — Call stays on across pages built on kin/call-stays-on (call in AppShell, call bar, Pop out); 81/81 tests; one connection across page changes in a local stub test
 - 2026-10-16 · Claude-Trin — Figma fidelity + motion pass done (PLAN/2026-10-16-figma-fidelity-motion.md, approved by Trin): sizes measured against the Figma frames (nav, header, tabs, cards, auth card, Drive), Home Work-done bars (commits per day), Chat composer, Team Add task, and CSS-only animations (page enter, sliding tabs, lift, stagger, reveal; reduced-motion safe); 92 tests, typecheck, build. Local commit on trin/email-login-screens, not pushed

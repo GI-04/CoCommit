@@ -3,6 +3,7 @@
 // See CLAUDE/PLAN/2026-10-15-email-password-login.md. Every helper returns { error } instead of throwing,
 // so the login screens can show the message as is.
 import type { AuthError } from "@supabase/supabase-js";
+import { clearCurrentRepo } from "./current-repo";
 import { signOutOfGitHub } from "./github-client";
 import { getSupabase } from "./supabase";
 
@@ -80,8 +81,9 @@ export async function updatePassword(password: string): Promise<AuthResult> {
   return { error: error ? friendly(error) : null };
 }
 
-/** Signs out of everything: the Supabase session (email, Google, chat) and the GitHub cookie. */
+/** Signs out of everything: the Supabase session (email, Google, chat), the GitHub cookie and the picked repo. */
 export async function signOut(): Promise<AuthResult> {
+  clearCurrentRepo();
   const supabase = getSupabase();
   const [supa, github] = await Promise.allSettled([supabase?.auth.signOut(), signOutOfGitHub()]);
   if (supa.status === "rejected" || github.status === "rejected") return { error: "Couldn't sign out. Check the connection and try again." };

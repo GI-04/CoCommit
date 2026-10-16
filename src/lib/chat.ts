@@ -1,7 +1,8 @@
 // Chat: one live channel per repo, through Supabase Realtime. Browser code only ("use client" screens).
-// Visitors who aren't logged in are signed in to Supabase anonymously so they can read (Anonymous sign-ins must
-// be on); only real accounts (GitHub, email or Google) can post. The database sets each message's author and
-// verified GitHub login (supabase/chat-author.sql), so nobody can post under someone else's name.
+// Only real accounts (GitHub, email or Google) can read, post or pin: signed-out visitors get NotSignedInError and see
+// a login card (PLAN/2026-10-16-chat-privacy-get-started.md). Chat never signs anyone in anonymously; the table rules
+// also refuse anonymous sessions (supabase/schema.sql). The database sets each message's author and verified GitHub
+// login (supabase/chat-author.sql), so nobody can post under someone else's name.
 // Without the Supabase keys it runs in fake mode: messages are kept in this browser (localStorage) and
 // reach other tabs instantly (BroadcastChannel), so two tabs can chat before the keys exist.
 // Table and access rules: supabase/schema.sql.
@@ -70,7 +71,7 @@ export async function myName(): Promise<string> {
   return fake.name();
 }
 
-/** Whether you can post: in demo mode always; otherwise only with a real account (anonymous visitors only read). */
+/** Whether you can read and post: in demo mode always; otherwise only with a real account (not an anonymous session). */
 export async function canPost(): Promise<boolean> {
   const supabase = getSupabase();
   if (!supabase) return true;
@@ -78,30 +79,20 @@ export async function canPost(): Promise<boolean> {
   return Boolean(data.user && !data.user.is_anonymous);
 }
 
-export const LOGIN_TO_CHAT = "Log in to chat: anyone can read, but only team members with an account can post.";
+export const LOGIN_TO_CHAT = "Log in to see and join the team chat.";
 
-let sessionOnce: Promise<void> | null = null;
+/** Thrown when someone without a real account (signed out, or an old anonymous session) opens chat. */
+export class NotSignedInError extends Error {
+  constructor() {
+    super(LOGIN_TO_CHAT);
+    this.name = "NotSignedInError";
+  }
+}
 
-/** Signs in to Supabase anonymously (once per page) if nobody is signed in, so the "signed-in users only" table rules let chat through. */
-function ensureSession(supabase: Supabase): Promise<void> {
-  sessionOnce ??= (async () => {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) return;
-    const { error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      throw new Error(
-        /anonymous/i.test(error.message)
-          ? "Chat needs Anonymous sign-ins turned on in Supabase (Authentication > Sign In / Providers)."
-          : /fetch/i.test(error.message)
-            ? "Can't reach the chat server (Supabase). Check the internet connection and the Supabase keys."
-            : error.message,
-      );
-    }
-  })().catch((e: Error) => {
-    sessionOnce = null;
-    throw e;
-  });
-  return sessionOnce;
+/** Chat is for real accounts only: the table rules hide everything from signed-out visitors and anonymous sessions. */
+async function requireAccount(supabase: Supabase): Promise<void> {
+  const { data } = await supabase.auth.getSession();
+  if (!data.session || data.session.user.is_anonymous) throw new NotSignedInError();
 }
 
 /** Turns a Supabase error into a message people can act on. */
@@ -117,7 +108,7 @@ function friendly(e: { code?: string; message: string }): string {
 export async function loadMessages(repo: string, limit = 100): Promise<ChatMessage[]> {
   const supabase = getSupabase();
   if (!supabase) return fake.read().filter((m) => m.repo === repo).slice(-limit);
-  await ensureSession(supabase);
+  await requireAccount(supabase);
   const { data, error } = await supabase
     .from("messages")
     .select(COLUMNS)
@@ -147,7 +138,7 @@ async function post(repo: string, text: string, kind: ChatMessage["kind"]): Prom
     fake.save(m);
     return m;
   }
-  await ensureSession(supabase);
+  await requireAccount(supabase);
   if (!(await canPost())) throw new Error(LOGIN_TO_CHAT);
   // The database overwrites author (and sets author_login), so this is only a hint.
   const { data, error } = await supabase.from("messages").insert({ repo, author, text: body, kind }).select(COLUMNS).single();
@@ -166,7 +157,7 @@ export async function listPinned(repo: string, limit = 10): Promise<Activity[]> 
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, limit);
   } else {
-    await ensureSession(supabase);
+    await requireAccount(supabase);
     const { data, error } = await supabase
       .from("messages")
       .select(COLUMNS)
@@ -188,7 +179,7 @@ export async function pinMessage(id: string, pinned = true): Promise<void> {
     if (m) fake.save({ ...m, pinned });
     return;
   }
-  await ensureSession(supabase);
+  await requireAccount(supabase);
   const { error } = await supabase.from("messages").update({ pinned }).eq("id", id);
   if (error) throw new Error(friendly(error));
 }
@@ -201,11 +192,11 @@ export function subscribe(repo: string, onMessage: (m: ChatMessage) => void): ()
     channel.onmessage = (e: MessageEvent<ChatMessage>) => onMessage(e.data);
     return () => channel.close();
   }
-  // Listen only after signing in: the table rules hide live changes from signed-out clients.
+  // Listen only with a real account: the table rules hide live changes from everyone else.
   let channel: RealtimeChannel | null = null;
   let stopped = false;
   const filter = `repo=eq.${repo}`;
-  ensureSession(supabase)
+  requireAccount(supabase)
     .then(() => {
       if (stopped) return;
       channel = supabase
@@ -215,7 +206,7 @@ export function subscribe(repo: string, onMessage: (m: ChatMessage) => void): ()
         .subscribe();
     })
     .catch(() => {
-      // loadMessages shows the same error to the user.
+      // Signed out or offline: loadMessages shows the error to the user.
     });
   return () => {
     stopped = true;
@@ -240,7 +231,7 @@ export function onlineUsers(repo: string, onChange: (names: string[]) => void): 
 
   let channel: RealtimeChannel | null = null;
   let stopped = false;
-  Promise.all([myName(), ensureSession(supabase)]).then(([name]) => {
+  Promise.all([myName(), requireAccount(supabase)]).then(([name]) => {
     if (stopped) return;
     const ch = supabase.channel(`online:${repo}`, { config: { presence: { key: crypto.randomUUID() } } });
     channel = ch;
@@ -251,7 +242,7 @@ export function onlineUsers(repo: string, onChange: (names: string[]) => void): 
       if (status === "SUBSCRIBED") void ch.track({ name });
     });
   }).catch(() => {
-    // loadMessages shows the same error to the user.
+    // Signed out or offline: loadMessages shows the error to the user.
   });
   return () => {
     stopped = true;

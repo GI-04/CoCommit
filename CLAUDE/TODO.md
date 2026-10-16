@@ -3,6 +3,8 @@
 <!-- Backlog and open questions. Not claimed work: when someone commits to an item, it becomes a task on BOARD/. Prune done items. -->
 
 ## Backlog
+- [ ] Run `supabase/chat-privacy.sql` in the Supabase SQL Editor (closes the chat leak even before the code deploys); after `proud/chat-privacy` is live, turn off Authentication → Sign In / Providers → "Allow anonymous sign-ins". (Pattadon)
+- [ ] Chat privacy, after `PLAN/2026-10-16-chat-privacy-get-started.md`: limit each repo's chat to people who can see that repo on GitHub (now any logged-in account can read any repo's chat by name), and make the who's-online presence channels private (Realtime private channels).
 - [ ] Profile QA with a real signed-in account: save/reload name/photo, sidebar/future chat, email confirmation and password update. Implementation tested with fixtures; no live credentials changed. (Pattadon)
 - [ ] Sign-in screen copy: say that GitHub's `repo` scope gives full access to your repos (needed for private repos). (Trin)
 

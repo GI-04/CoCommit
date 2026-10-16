@@ -4,6 +4,7 @@ import { JetBrains_Mono } from "next/font/google";
 import { Icon, type IconName } from "@/components/icons";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { DesktopRedirect, Downloads, HeroDownload } from "@/components/landing/Downloads";
+import { GetStarted } from "@/components/landing/GetStarted";
 
 // HeroDemo's terminal reads --font-mono.
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
@@ -75,9 +76,7 @@ export default function Landing() {
             <Link href="/login?returnTo=/home" className={`glass hidden rounded-full px-5 py-2.5 text-sm font-medium text-white hover:bg-white/10 sm:block ${focus}`}>
               Sign in
             </Link>
-            <Link href="/home" className={`rounded-full bg-[var(--blue)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90 ${focus}`}>
-              Get started
-            </Link>
+            <GetStarted className={`rounded-full bg-[var(--blue)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90 ${focus}`} />
           </div>
         </div>
       </header>
@@ -92,9 +91,7 @@ export default function Landing() {
             Commit, branch and share what you know with your team and your AI agents. No terminal needed.
           </p>
           <div className="rise mt-8 flex flex-wrap justify-center gap-3 [--d:160ms]">
-            <Link href="/home" className={blueButton}>
-              Get started
-            </Link>
+            <GetStarted className={blueButton} />
             <HeroDownload />
           </div>
           <div className="rise glass mt-12 rounded-3xl p-3 text-left [--d:240ms] md:mt-16 md:p-5">
@@ -182,9 +179,7 @@ export default function Landing() {
             </h2>
             <p className="mx-auto mt-3 max-w-lg text-base md:text-lg">Use it in your browser or install the desktop app. On a phone, open the web app and add it to your home screen.</p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/home" className={blueButton}>
-                Get started
-              </Link>
+              <GetStarted className={blueButton} />
               <Downloads />
             </div>
           </div>

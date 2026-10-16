@@ -47,3 +47,12 @@ export function githubTokenFromSession(providerParam: string | null | undefined,
   const token = session?.provider_token;
   return token && hasGitHubIdentity(session?.user) ? token : null;
 }
+
+/**
+ * Where "Get started" on the landing page goes (PLAN/2026-10-16-chat-privacy-get-started.md): the app for anyone
+ * signed in (a real Supabase account or a GitHub session) and in demo mode (no keys, every screen is open), else
+ * the login page, which comes back to /home.
+ */
+export function getStartedHref(state: { account: boolean; github: boolean; demo: boolean }): string {
+  return state.account || state.github || state.demo ? "/home" : "/login?returnTo=/home";
+}

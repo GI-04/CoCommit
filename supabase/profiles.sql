@@ -15,8 +15,10 @@ alter table public.profiles add column if not exists github_login text;
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles readable by signed-in users" on public.profiles;
+-- Real accounts only: anonymous sign-ins count as "authenticated" too (PLAN/2026-10-16-chat-privacy-get-started.md).
 create policy "profiles readable by signed-in users"
-  on public.profiles for select to authenticated using (true);
+  on public.profiles for select to authenticated
+  using (coalesce((auth.jwt()->>'is_anonymous')::boolean, false) = false);
 
 drop policy if exists "users update their own profile" on public.profiles;
 create policy "users update their own profile"
@@ -30,7 +32,7 @@ create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   -- Email sign-up stores the name as full_name; with no name, show the part before the @.
-  -- No email column: every signed-in user (anonymous chat users too) can read profiles.
+  -- No email column: every signed-in user can read profiles.
   insert into public.profiles (id, name, avatar_url)
   values (
     new.id,
