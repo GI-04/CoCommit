@@ -28,10 +28,10 @@ Helpers (from Kin, in `@/lib/auth-email`): `signUpWithEmail(email, password, nam
 - `npm run typecheck` and `npm run build` pass.
 
 ## Taken <!-- filled when claimed; keep current while it's in Taken/ -->
-- **Owner:** — · **Taken on:** —
+- **Owner:** Claude-Trin (for Trin) · **Taken on:** 2026-10-16
 - **Scope:** `src/app/login/page.tsx`, `src/app/login/reset/page.tsx`
-- **Progress:** —
-- **Blockers:** waiting on the plan's OK and Kin's helpers
+- **Progress:** built (2026-10-16): `src/components/EmailLogin.tsx` on `/login`, `/login/forgot`, `/login/reset`, proxy allows `/login/forgot`. Typecheck, 76/76 tests and build pass; states/errors checked in the browser at phone width. **Left:** a real sign-up / log-in / reset run once Supabase keys are on a machine (Acceptance items 1-2); not committed.
+- **Blockers:** none for the build; a real sign-up/reset needs Supabase keys, which aren't on this machine
 
 ## Handoff <!-- filled only when released back to Pending/ -->
 —

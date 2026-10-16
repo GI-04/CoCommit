@@ -2,9 +2,14 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { Avatar } from "@/components/Avatar";
+import { Icon } from "@/components/icons";
+import { ListPanel, repoItem } from "@/components/ListPanel";
+import { MessagesShell } from "@/components/MessagesShell";
+import { Button, Card, Pill } from "@/components/ui";
+import { useRepos } from "@/components/useRepos";
 import { NoWorkspaceError } from "@/lib/chat-pins";
-import { DEFAULT_REPO, getCurrentRepo } from "@/lib/current-repo";
+import { DEFAULT_REPO, getCurrentRepo, setCurrentRepo } from "@/lib/current-repo";
 import { getSession, GitHubRequestError, signInHref, type User } from "@/lib/github-client";
 import {
   createTask,
@@ -26,10 +31,11 @@ type State = "loading" | "login" | "no-workspace" | "ready" | "error";
 type Action = { path: string; kind: "take" | "done" | "release"; who: string; text: string };
 type Note = { ok: boolean; text: string; href?: string };
 
-const COLUMNS: { status: TaskStatus; title: string; empty: string }[] = [
-  { status: "pending", title: "Pending", empty: "Nothing waiting. Add a task." },
-  { status: "taken", title: "Taken", empty: "Nobody is on a task right now." },
-  { status: "done", title: "Done", empty: "Nothing finished yet." },
+// The folder is the status (Pending / Taken / Done); "Taken" shows as "Doing", as in the Figma board.
+const COLUMNS: { status: TaskStatus; title: string; empty: string; tone: "pink" | "mustard" | "green" }[] = [
+  { status: "pending", title: "Pending", empty: "Nothing waiting. Add a task.", tone: "pink" },
+  { status: "taken", title: "Doing", empty: "Nobody is on a task right now.", tone: "mustard" },
+  { status: "done", title: "Done", empty: "Nothing finished yet.", tone: "green" },
 ];
 const input = "w-full rounded-md border border-line bg-bg px-2 py-1 text-sm";
 const blankTask: NewTaskForm = { title: "", to: "anyone", what: "", acceptance: "" };
@@ -107,29 +113,57 @@ export default function TasksPage() {
     if (action.kind === "release") void save(() => releaseTask(board, task, action.text, me), task.path, "Released back to Pending.");
   }
 
-  const header = (
-    <PageHeader title="Tasks" subtitle={`The task board in ${repo}/COCOMMIT/BOARD/. Every move is a commit that your team's AI agents read too.`}>
-      <div className="flex flex-wrap items-center gap-2">
-        {fake && <span className="rounded-full border border-line px-2 py-1 text-xs text-muted">demo data</span>}
-        {state === "ready" && (
-          <>
-            <Button variant="ghost" onClick={() => void load(repo)} disabled={busy}>
-              Refresh
-            </Button>
-            <Button onClick={() => setForm(form ? null : { ...blankTask })} disabled={busy}>
-              New task
-            </Button>
-          </>
-        )}
+  // The teams on the left are the person's repos; picking one switches the board (and the repo chat and calls use).
+  const { repos: myRepos, fake: demoRepos } = useRepos();
+  const teams = [repo, ...myRepos.map((r) => r.fullName).filter((n) => n !== repo)].slice(0, 12).map(repoItem);
+  const openTeam = (id: string) => {
+    setRepo(id);
+    if (!demoRepos) setCurrentRepo(id);
+    setForm(null);
+    setAction(null);
+    void load(id);
+  };
+
+  const toolbar = (
+    <div className="mb-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[28px] font-semibold leading-tight text-white">{repo.split("/")[1] ?? repo} team</h2>
+        <div className="flex flex-wrap items-center gap-2">
+          {fake && <span className="rounded-full border border-line px-2.5 py-1 text-xs text-muted">demo data</span>}
+          {state === "ready" && (
+            <>
+              <Button variant="glass" onClick={() => void load(repo)} disabled={busy}>
+                Refresh
+              </Button>
+              <Button variant="glass" onClick={() => setForm(form ? null : { ...blankTask })} disabled={busy}>
+                New task
+              </Button>
+            </>
+          )}
+          <a href={`https://github.com/${repo}/settings/access`} target="_blank" rel="noreferrer" className="rounded-xl border border-black bg-[var(--blue)] px-6 py-2.5 text-sm font-medium text-white hover:opacity-90">
+            Invite
+          </a>
+        </div>
       </div>
-    </PageHeader>
+      <p className="mt-1 text-sm text-muted">The task board in {repo}/COCOMMIT/BOARD/. Every move is a commit that your team&apos;s AI agents read too.</p>
+    </div>
+  );
+
+  const shell = (content: React.ReactNode) => (
+    <MessagesShell active="team">
+      <div className="grid gap-4 max-lg:grid-cols-[minmax(0,1fr)] lg:grid-cols-[20rem_minmax(0,1fr)]">
+        <ListPanel title="Teams" items={teams} value={repo} onSelect={openTeam} />
+        <div className="min-w-0">
+          {toolbar}
+          {content}
+        </div>
+      </div>
+    </MessagesShell>
   );
 
   if (state !== "ready" || !board)
-    return (
-      <div className="max-w-xl">
-        {header}
-        <Card>
+    return shell(
+        <Card className="max-w-xl">
           {state === "loading" && <p className="text-sm text-muted">Loading the board…</p>}
           {state === "login" && (
             <>
@@ -154,22 +188,19 @@ export default function TasksPage() {
           )}
           {state === "error" && (
             <>
-              <p className="mb-3 text-sm text-red-600">{error}</p>
+              <p className="mb-3 text-sm text-removed">{error}</p>
               <Button variant="ghost" onClick={() => void load(repo)}>
                 Try again
               </Button>
             </>
           )}
-        </Card>
-      </div>
+        </Card>,
     );
 
-  return (
-    <div className="max-w-6xl">
-      {header}
-
+  return shell(
+    <>
       {note && (
-        <p className={`mb-4 text-sm ${note.ok ? "text-muted" : "text-red-600"}`} role="status">
+        <p className={`mb-4 text-sm ${note.ok ? "text-muted" : "text-removed"}`} role="status">
           {note.text}{" "}
           {note.href && (
             <a href={note.href} target="_blank" rel="noreferrer" className="underline">
@@ -230,18 +261,18 @@ export default function TasksPage() {
         ))}
       </datalist>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
         {COLUMNS.map((col) => {
           const tasks = board.tasks.filter((t) => t.status === col.status);
           return (
-            <Card key={col.status} title={`${col.title} (${tasks.length})`}>
+            <Card key={col.status} tone={col.tone} title={`${col.title} (${tasks.length})`}>
               {tasks.length === 0 && <p className="text-sm text-muted">{col.empty}</p>}
               <ul className="space-y-3">
                 {tasks.map((task) => {
                   const isOpen = open === task.path;
                   const act = action?.path === task.path ? action : null;
                   return (
-                    <li key={task.path} className="rounded-md border border-line bg-bg p-3">
+                    <li key={task.path} className="rounded-lg border border-black bg-bg p-3">
                       <button type="button" className="w-full text-left text-sm font-semibold hover:underline" onClick={() => setOpen(isOpen ? null : task.path)} aria-expanded={isOpen}>
                         {task.title}
                       </button>
@@ -332,6 +363,33 @@ export default function TasksPage() {
           );
         })}
       </div>
-    </div>
+
+      <section className="mt-8" aria-label="Members">
+        <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
+          Members <Pill>{board.members.length}</Pill>
+        </h3>
+        {board.members.length === 0 ? (
+          <p className="text-sm text-muted">Nobody is listed in COLLAB.md yet.</p>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {board.members.map((m, i) => (
+              <li key={m.title} className={`block-${(["pink", "cyan", "mustard", "green"] as const)[i % 4]} flex items-center gap-3 p-4`}>
+                <Avatar name={m.name || m.title} className="size-14 text-xl" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold">{m.name || m.title}</span>
+                  <span className="block truncate text-xs">{m.role || m.title}</span>
+                </span>
+                <Link href="/chat" aria-label={`Message ${m.name || m.title}`} className="grid size-10 place-items-center rounded-full border border-black bg-paper">
+                  <Icon name="message" className="size-4" />
+                </Link>
+                <Link href="/calls" aria-label={`Call ${m.name || m.title}`} className="grid size-10 place-items-center rounded-full border border-black bg-paper">
+                  <Icon name="phone" className="size-4" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>,
   );
 }

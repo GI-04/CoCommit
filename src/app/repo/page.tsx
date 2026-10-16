@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { LocalRepo } from "@/components/LocalRepo";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { DiffView } from "@/components/DiffView";
+import { Icon, type IconName } from "@/components/icons";
+import { Button, Card, PageHeader, Tabs } from "@/components/ui";
 import { setCurrentRepo } from "@/lib/current-repo";
 import { isDesktop } from "@/lib/local-git";
 import {
@@ -20,7 +22,7 @@ import {
   type Repo,
 } from "@/lib/github-client";
 
-const badge: Record<Change["status"], string> = { added: "text-added", modified: "text-accent", deleted: "text-removed" };
+const badge: Record<Change["status"], string> = { added: "text-added", modified: "text-accent-soft", deleted: "text-removed" };
 const field = "rounded-md border border-line bg-surface px-2 py-2 text-sm";
 
 type Note = { kind: "ok" | "error"; text: string; href?: string };
@@ -45,38 +47,30 @@ export default function RepoPage() {
   };
 
   const tabs = desktop && (
-    <div className="mb-4 inline-flex rounded-md border border-line bg-surface p-0.5 text-sm" role="tablist">
-      {(["github", "local"] as const).map((m) => (
-        <button
-          key={m}
-          role="tab"
-          aria-selected={mode === m}
-          onClick={() => choose(m)}
-          className={`rounded px-3 py-1 ${mode === m ? "bg-accent text-accent-fg" : "hover:bg-line/60"}`}
-        >
-          {m === "github" ? "GitHub" : "Local folder"}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      label="Repository mode"
+      value={mode}
+      onChange={(id) => choose(id as "github" | "local")}
+      tabs={[
+        { id: "github", label: "Web" },
+        { id: "local", label: "Local folder" },
+      ]}
+    />
   );
 
   if (mode === "local")
     return (
       <div className="max-w-6xl">
-        <PageHeader title="Repo" subtitle="Your clone on this computer: stage, commit, pull and push with buttons." />
-        {tabs}
+        <PageHeader title="Repository" subtitle="Your clone on this computer: stage, commit, pull and push with buttons.">
+          {tabs}
+        </PageHeader>
         <LocalRepo />
       </div>
     );
-  return (
-    <>
-      {desktop && <div className="max-w-6xl">{tabs}</div>}
-      <GitHubRepo />
-    </>
-  );
+  return <GitHubRepo modeTabs={tabs || null} />;
 }
 
-function GitHubRepo() {
+function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const [fake, setFake] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [repos, setRepos] = useState<Repo[]>([]);
@@ -95,6 +89,9 @@ function GitHubRepo() {
   const [prTitle, setPrTitle] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<Note | null>(null);
+  // Left list (the person's choice; until then Changes if there are any, else Files) and what the right panel shows.
+  const [listTab, setListTab] = useState<"changes" | "files" | null>(null);
+  const [mode, setMode] = useState<"diff" | "edit">("diff");
 
   const current = repos.find((r) => r.fullName === repo);
   const base = current?.defaultBranch ?? "main";
@@ -154,6 +151,7 @@ function GitHubRepo() {
       setPath(p);
       setOriginal(content);
       setText(content);
+      setMode("edit");
     } catch (e) {
       fail(e);
     } finally {
@@ -170,6 +168,7 @@ function GitHubRepo() {
       setNote({ kind: "ok", text: `Committed “${message.trim()}” to ${c.branch}.`, href: c.url });
       setMessage("");
       setOriginal(text);
+      setMode("diff");
       if (!branches.includes(c.branch)) setBranches((bs) => [...bs, c.branch]);
       setNewBranch("");
       if (c.branch !== branch) setBranch(c.branch);
@@ -201,7 +200,7 @@ function GitHubRepo() {
   if (needsLogin)
     return (
       <div className="max-w-xl">
-        <PageHeader title="Repo" subtitle="Commit and open pull requests with buttons." />
+        <PageHeader title="Repository" subtitle="Commit and open pull requests with buttons." />
         <Card>
           <p className="mb-4 text-sm">Log in with GitHub to see your repositories.</p>
           <a href={signInHref("/repo")} className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg hover:opacity-90">
@@ -211,32 +210,38 @@ function GitHubRepo() {
       </div>
     );
 
+  // Files changed on this branch compared with the default branch (what its pull request would contain).
+  const changed = branch === base ? [] : changes;
+  const tab = listTab ?? (changed.length ? "changes" : "files");
+  const fileOf = mode === "edit" ? path : (diff?.path ?? null);
+  const baseName = (p: string) => p.split("/").pop() ?? p;
+
   return (
     <div className="max-w-6xl">
-      <PageHeader title="Repo" subtitle="Pick a branch, edit a file, commit, then open a pull request.">
-        <div className="flex flex-wrap items-center gap-2">
-          {fake && <span className="rounded-full border border-line px-2 py-1 text-xs text-muted">demo data</span>}
-          <select
-            value={repo}
-            onChange={(e) => {
-              setRepo(e.target.value);
-              // Chat opens this repo's chat next time, but never one from the signed-out sample list.
-              if (!fake) setCurrentRepo(e.target.value);
-            }}
-            className={field}
-            aria-label="Repository"
-          >
-            {repos.map((r) => (
-              <option key={r.fullName}>{r.fullName}</option>
-            ))}
-          </select>
-          <select value={branch} onChange={(e) => setBranch(e.target.value)} className={field} aria-label="Branch">
-            {branches.map((b) => (
-              <option key={b}>{b}</option>
-            ))}
-          </select>
-        </div>
+      <PageHeader title="Repository" subtitle="Pick a branch, edit a file, commit, then open a pull request.">
+        {modeTabs}
+        <span className="hidden w-24 lg:block" aria-hidden />
       </PageHeader>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <PillSelect
+          label="Team"
+          icon="user"
+          value={repo}
+          options={repos.map((r) => r.fullName)}
+          onChange={(v) => {
+            setRepo(v);
+            // Chat opens this repo's chat next time, but never one from the signed-out sample list.
+            if (!fake) setCurrentRepo(v);
+          }}
+        />
+        <PillSelect label="Branch" icon="branch" value={branch} options={branches} onChange={setBranch} />
+        <p className="ml-auto flex items-center gap-2 text-sm text-muted">
+          {fake && <span className="rounded-full border border-line px-2.5 py-1 text-xs">demo data</span>}
+          <span className="size-2 rounded-full bg-green" aria-hidden />
+          {branch === base ? `on ${base}` : `${changed.length} changed ${changed.length === 1 ? "file" : "files"} vs ${base}`}
+        </p>
+      </div>
 
       {note && (
         <p
@@ -254,95 +259,174 @@ function GitHubRepo() {
         </p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
-        <Card title={`Files on ${branch || "…"}`}>
-          <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Find a file" className={`${field} mb-2 w-full bg-bg`} />
-          <ul className="max-h-[28rem] space-y-0.5 overflow-y-auto">
-            {shown.map((f) => (
-              <li key={f}>
-                <button
-                  onClick={() => openFile(f)}
-                  className={`w-full truncate rounded px-2 py-1 text-left text-sm ${path === f ? "bg-accent text-accent-fg" : "hover:bg-line/60"}`}
-                >
-                  {f}
-                </button>
-              </li>
-            ))}
-            {!shown.length && <li className="px-2 text-sm text-muted">{files.length ? "No match." : "Loading…"}</li>}
-          </ul>
-        </Card>
-
+      <div className="grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
         <div className="min-w-0 space-y-4">
-          <Card title={path ? `Editing ${path}` : "Edit a file"}>
-            {path === null ? (
-              <p className="text-sm text-muted">{busy === "file" ? "Opening…" : "Pick a file on the left to change it."}</p>
+          <Card>
+            <div className="mb-3 inline-flex rounded-full border border-black bg-paper p-1 text-sm" role="tablist" aria-label="Files">
+              {(["changes", "files"] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === t}
+                  onClick={() => setListTab(t)}
+                  className={`rounded-full px-4 py-1.5 font-medium ${tab === t ? "bg-black text-white" : "hover:bg-black/10"}`}
+                >
+                  {t === "changes" ? `Changes ${changed.length}` : "Files"}
+                </button>
+              ))}
+            </div>
+            {tab === "changes" ? (
+              changed.length === 0 ? (
+                <p className="text-sm text-muted">{branch === base ? `You're on ${base}. Switch to another branch to see what its pull request would contain.` : "No changes yet: commit something first."}</p>
+              ) : (
+                <ul className="max-h-[26rem] space-y-1.5 overflow-y-auto">
+                  {changed.map((c) => (
+                    <li key={c.path}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOpen(c.path);
+                          setMode("diff");
+                        }}
+                        title={c.path}
+                        className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm ${open === c.path && mode === "diff" ? "border-black bg-cyan" : "border-transparent hover:bg-fg/10"}`}
+                      >
+                        <span className={`grid size-6 shrink-0 place-items-center rounded-full border border-black text-[11px] font-semibold ${c.status === "added" ? "bg-green" : c.status === "deleted" ? "bg-clay" : "bg-mustard"}`}>
+                          {c.status[0].toUpperCase()}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate font-medium">{baseName(c.path)}</span>
+                        <span className="shrink-0 text-xs">
+                          <span className="rounded-full bg-green px-1.5 py-0.5">+{c.additions}</span> <span className="rounded-full bg-clay px-1.5 py-0.5">−{c.deletions}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )
             ) : (
               <>
-                <textarea
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  rows={14}
-                  spellCheck={false}
-                  className="w-full rounded-md border border-line bg-bg p-2 font-mono text-sm"
-                />
-                <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_12rem_auto]">
-                  <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="What did you change?" className={`${field} bg-bg`} />
-                  <input
-                    value={newBranch}
-                    onChange={(e) => setNewBranch(e.target.value.replace(/\s+/g, "-"))}
-                    placeholder="New branch (optional)"
-                    className={`${field} bg-bg`}
-                  />
-                  <Button onClick={commit} disabled={!edited || !message.trim() || busy !== null}>
-                    {busy === "commit" ? "Committing…" : `Commit to ${target}`}
-                  </Button>
-                </div>
-                {target === base && <p className="mt-2 text-xs text-muted">Tip: type a new branch name to keep {base} safe and open a pull request after.</p>}
+                <input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Find a file" aria-label="Find a file" className="mb-2 w-full rounded-full border border-black bg-bg px-4 py-2 text-sm" />
+                <ul className="max-h-[24rem] space-y-0.5 overflow-y-auto">
+                  {shown.map((f) => (
+                    <li key={f}>
+                      <button
+                        onClick={() => openFile(f)}
+                        className={`w-full truncate rounded-lg border px-2.5 py-1.5 text-left text-sm ${path === f && mode === "edit" ? "border-black bg-cyan font-medium" : "border-transparent hover:bg-fg/10"}`}
+                      >
+                        {f}
+                      </button>
+                    </li>
+                  ))}
+                  {!shown.length && <li className="px-2 text-sm text-muted">{files.length ? "No match." : "Loading…"}</li>}
+                </ul>
               </>
             )}
           </Card>
 
-          <Card title={branch === base ? `Changes (you're on ${base})` : `Changes on ${branch} compared with ${base} (${changes.length})`}>
-            {branch === base || !changes.length ? (
-              <p className="text-sm text-muted">{branch === base ? "Switch to another branch to see what its pull request would contain." : "No changes yet: commit something first."}</p>
-            ) : (
-              <>
-                <div className="mb-3 flex flex-wrap gap-1">
-                  {changes.map((c) => (
-                    <button
-                      key={c.path}
-                      onClick={() => setOpen(c.path)}
-                      className={`rounded border px-2 py-1 text-xs ${open === c.path ? "border-accent" : "border-line"}`}
-                    >
-                      <span className={badge[c.status]}>{c.status[0].toUpperCase()}</span> {c.path}
-                    </button>
-                  ))}
-                </div>
-                {diff && (
-                  <pre className="mb-3 max-h-80 overflow-auto rounded-md bg-bg p-2 text-sm leading-6">
-                    {(diff.patch || "(no text changes to show)").split("\n").map((line, i) => (
-                      <div
-                        key={i}
-                        className={
-                          line.startsWith("+") ? "bg-added/10 text-added" : line.startsWith("-") ? "bg-removed/10 text-removed" : line.startsWith("@@") ? "text-muted" : ""
-                        }
-                      >
-                        {line || " "}
-                      </div>
-                    ))}
-                  </pre>
-                )}
-                <div className="flex gap-2">
-                  <input value={prTitle} onChange={(e) => setPrTitle(e.target.value)} placeholder={`Changes from ${branch}`} className={`${field} min-w-0 flex-1 bg-bg`} />
-                  <Button onClick={openPr} disabled={busy !== null}>
-                    {busy === "pr" ? "Opening…" : `Open PR into ${base}`}
-                  </Button>
-                </div>
-              </>
+          <Card tone="pink" title="Commit">
+            <div className="-mt-9 mb-3 text-right text-sm">{edited ? "1 file" : "0 files"}</div>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="What did you change?"
+              aria-label="Commit message"
+              rows={3}
+              className="w-full rounded-xl border border-black bg-bg p-3 text-sm"
+            />
+            <input
+              value={newBranch}
+              onChange={(e) => setNewBranch(e.target.value.replace(/\s+/g, "-"))}
+              placeholder="New branch (optional)"
+              aria-label="New branch"
+              className="mt-2 w-full rounded-full border border-black bg-bg px-4 py-2 text-sm"
+            />
+            {target === base && <p className="mt-2 text-xs">Tip: type a new branch name to keep {base} safe and open a pull request after.</p>}
+            <Button onClick={commit} disabled={!edited || !message.trim() || busy !== null} className="mt-3 w-full py-3">
+              {busy === "commit" ? "Committing…" : `Commit to ${target || "…"}`}
+            </Button>
+            <input
+              value={prTitle}
+              onChange={(e) => setPrTitle(e.target.value)}
+              placeholder={`Pull request title (Changes from ${branch})`}
+              aria-label="Pull request title"
+              className="mt-3 w-full rounded-full border border-black bg-bg px-4 py-2 text-sm"
+            />
+            <Button variant="ghost" onClick={openPr} disabled={busy !== null || branch === base || !changed.length} className="mt-2 w-full bg-paper py-3">
+              {busy === "pr" ? "Opening…" : `Open PR into ${base}`}
+            </Button>
+            {edited && (
+              <Button variant="ghost" onClick={() => setText(original)} className="mt-2 flex w-full items-center justify-center gap-2 py-3">
+                <Icon name="trash" className="size-4" /> Discard edits
+              </Button>
             )}
           </Card>
         </div>
+
+        <section className="min-w-0 overflow-hidden rounded-lg border border-white/15 bg-white/[0.04]" aria-label="File">
+          <header className="flex flex-wrap items-center gap-3 border-b border-white/10 px-5 py-4">
+            <div className="min-w-0 flex-1">
+              <h2 className="truncate text-base font-semibold">{fileOf ? baseName(fileOf) : "No file picked"}</h2>
+              <p className="truncate text-xs text-muted">{fileOf ?? "Pick a changed file to see its diff, or a file to edit."}</p>
+            </div>
+            {mode === "diff" && diff && (
+              <span className="flex gap-1.5 text-xs font-medium text-black">
+                <span className="rounded-full bg-green px-2 py-0.5">+{diff.additions}</span>
+                <span className="rounded-full bg-clay px-2 py-0.5">−{diff.deletions}</span>
+              </span>
+            )}
+            <Tabs
+              label="View"
+              value={mode}
+              onChange={(v) => {
+                if (v === "edit" && path === null) setListTab("files");
+                else setMode(v as "diff" | "edit");
+              }}
+              tabs={[
+                { id: "diff", label: "Diff" },
+                { id: "edit", label: "Edit" },
+              ]}
+            />
+          </header>
+          {mode === "edit" ? (
+            path === null ? (
+              <p className="p-5 text-sm text-muted">{busy === "file" ? "Opening…" : "Pick a file in the Files list to change it."}</p>
+            ) : (
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                rows={18}
+                spellCheck={false}
+                aria-label={`Editing ${path}`}
+                className="block w-full resize-y bg-black/30 p-4 font-mono text-[13px] leading-6 text-white"
+              />
+            )
+          ) : diff ? (
+            <DiffView patch={diff.patch} />
+          ) : (
+            <p className="p-5 text-sm text-muted">{changed.length ? "Pick a changed file on the left." : "Nothing to compare yet. Edit a file and commit it to a new branch to see its diff here."}</p>
+          )}
+        </section>
       </div>
     </div>
+  );
+}
+
+function PillSelect({ label, icon, value, options, onChange }: { label: string; icon: IconName; value: string; options: string[]; onChange: (v: string) => void }) {
+  return (
+    <label className="glass relative flex min-w-[12rem] max-w-full items-center gap-3 rounded-full py-2 pl-4 pr-4">
+      <Icon name={icon} className="size-4 text-white/80" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] font-medium uppercase tracking-wider text-white/70">{label}</span>
+        <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label} className="block w-full max-w-[16rem] appearance-none truncate bg-transparent text-sm font-medium text-white outline-none">
+          {options.map((o) => (
+            <option key={o} className="bg-[#2a2a2a]">
+              {o}
+            </option>
+          ))}
+        </select>
+      </span>
+      <Icon name="chevron" className="size-4 text-white/80" />
+    </label>
   );
 }

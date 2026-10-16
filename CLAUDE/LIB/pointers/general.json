@@ -166,7 +166,7 @@
         "chat",
         "profiles"
       ],
-      "summary": "Email/password helpers (sign up, log in, reset, sign out, friendly errors), what email/Google/GitHub users may do (permissions.ts), the profiles name fallback, and open gaps (form and /login/reset page are Trin's; Supabase settings are Pattadon's).",
+      "summary": "Email/password helpers (sign up, log in, reset, sign out, friendly errors), what email/Google/GitHub users may do (permissions.ts), the profiles name fallback, the screens (EmailLogin on /login, /login/forgot, /login/reset, built 2026-10-16 but not yet run against real Supabase), and open gaps (Supabase settings are Pattadon's).",
       "path": "knowledge/general/email-login.md",
       "sources": [],
       "added": "2026-10-15"
@@ -318,6 +318,35 @@
       "path": "knowledge/general/files.md",
       "sources": [
         "PLAN/2026-10-16-files.md"
+      ],
+      "added": "2026-10-16"
+    },
+    {
+      "id": "figma-ui",
+      "title": "Figma look in the app: theme tokens, glass navigation, Home tabs",
+      "kind": "reference",
+      "tags": [
+        "figma",
+        "design",
+        "theme",
+        "dark",
+        "tokens",
+        "navigation",
+        "sidebar",
+        "home",
+        "customize",
+        "tabs",
+        "ui",
+        "cards"
+      ],
+      "summary": "How the app got the Figma design: colour tokens flip inside cards, glass nav in three sizes, shared ui components (Card tone, Tabs), full-screen auth, the Home tabs (Cards, Overview, Activity, Customize) with real data and honest empty states, and the polish pass (Messages group, floating Assistant, Repository diff layout, Drive, Profile and Context tabs, landing); what was left out because it has no data.",
+      "path": "knowledge/general/figma-ui.md",
+      "sources": [
+        "src/app/globals.css",
+        "src/components/Nav.tsx",
+        "src/components/ui.tsx",
+        "src/components/home/data.ts",
+        "src/lib/home.ts"
       ],
       "added": "2026-10-16"
     }

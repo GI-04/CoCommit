@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { DiffView } from "@/components/DiffView";
 import { Button, Card } from "@/components/ui";
 import {
   chooseRepoFolder,
@@ -174,7 +175,7 @@ export function LocalRepo() {
       <div className="grid gap-4 lg:grid-cols-[20rem_1fr]">
         <div className="space-y-4">
           {s && s.conflicted.length > 0 && (
-            <Card title={`Conflicts (${s.conflicted.length})`}>
+            <Card tone="clay" title={`Conflicts (${s.conflicted.length})`}>
               <p className="mb-2 text-xs text-muted">Fix these in your editor, then stage them.</p>
               <FileList files={s.conflicted.map((p) => ({ path: p, code: "U" as const }))} onPick={(f) => setPick({ file: f, mode: "unstaged" })} pick={pick} />
             </Card>
@@ -219,31 +220,16 @@ export function LocalRepo() {
         </div>
 
         <div className="min-w-0 space-y-4">
-          <Card title={pick ? `${pick.file} (${pick.mode})` : "Diff"}>
+          <Card tone="dark" title={pick ? `${pick.file} (${pick.mode})` : "Diff"}>
             {pick ? (
-              <pre className="max-h-[26rem] overflow-auto rounded-md bg-bg p-2 text-sm leading-6">
-                {diff.split("\n").map((line, i) => (
-                  <div
-                    key={i}
-                    className={
-                      line.startsWith("+") && !line.startsWith("+++")
-                        ? "bg-added/10 text-added"
-                        : line.startsWith("-") && !line.startsWith("---")
-                          ? "bg-removed/10 text-removed"
-                          : line.startsWith("@@")
-                            ? "text-muted"
-                            : ""
-                    }
-                  >
-                    {line || " "}
-                  </div>
-                ))}
-              </pre>
+              <div className="max-h-[26rem] overflow-auto rounded-md bg-black/30">
+                <DiffView patch={diff} empty="(no text changes to show)" />
+              </div>
             ) : (
               <p className="text-sm text-muted">Click a file to see what changed.</p>
             )}
           </Card>
-          <Card title="Commit">
+          <Card tone="pink" title="Commit">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -284,14 +270,14 @@ function FileList(props: {
   return (
     <>
       {onAll && files.length > 1 && (
-        <button onClick={onAll} className="mb-2 text-xs text-accent hover:underline">
+        <button onClick={onAll} className="mb-2 text-xs text-accent-soft hover:underline">
           {allLabel}
         </button>
       )}
       <ul className="max-h-60 space-y-0.5 overflow-y-auto">
         {files.map((f) => (
-          <li key={f.path} className={`group flex items-center gap-2 rounded px-1 ${pick?.file === f.path ? "bg-line/60" : ""}`}>
-            <span className={`w-4 text-xs ${color[f.code] ?? "text-accent"}`} title={label[f.code]}>
+          <li key={f.path} className={`group flex items-center gap-2 rounded px-1 ${pick?.file === f.path ? "bg-fg/10" : ""}`}>
+            <span className={`w-4 text-xs ${color[f.code] ?? "text-accent-soft"}`} title={label[f.code]}>
               {f.code}
             </span>
             <button onClick={() => onPick(f.path)} className="min-w-0 flex-1 truncate py-1 text-left text-sm" title={f.origPath ? `${f.origPath} → ${f.path}` : f.path}>
@@ -303,7 +289,7 @@ function FileList(props: {
               </button>
             )}
             {onAction && action && (
-              <button onClick={() => onAction(f.path)} className="text-xs text-accent opacity-60 hover:opacity-100">
+              <button onClick={() => onAction(f.path)} className="text-xs text-accent-soft opacity-60 hover:opacity-100">
                 {action}
               </button>
             )}

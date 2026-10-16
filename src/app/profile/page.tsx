@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Avatar } from "@/components/Avatar";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { Icon } from "@/components/icons";
+import { ProfileOverview } from "@/components/profile/Overview";
+import { Button, Card, PageHeader, Tabs } from "@/components/ui";
 import { MIN_PASSWORD_LENGTH, signOut } from "@/lib/auth-email";
 import { changeEmail, changePassword, loadAccounts, saveProfile, type AccountProfile, type Accounts } from "@/lib/profile";
 import { getSupabase } from "@/lib/supabase";
@@ -21,6 +23,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [tab, setTab] = useState<"overview" | "account">("overview");
   const accountId = useRef<string | null>(null);
   const loadVersion = useRef(0);
   const load = useCallback(async () => {
@@ -51,9 +54,39 @@ export default function ProfilePage() {
   const github = accounts?.github;
   const name = profile?.name || github?.name || github?.login || "Your profile";
 
+  const signedIn = !loading && !!(profile || github);
+  const signOutNow = async () => {
+    setSigningOut(true);
+    try {
+      const result = await signOut();
+      if (result.error) throw new Error(result.error);
+      location.assign("/login");
+    } catch (e) {
+      setNotice({ kind: "error", text: errorText(e) });
+      setSigningOut(false);
+    }
+  };
+
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
-      <PageHeader title="Your profile" subtitle="Your account, your details, your space on CoCommit." />
+    <div className="max-w-6xl space-y-5">
+      <PageHeader title="Profile" subtitle={signedIn ? undefined : "Your account, your details, your space on CoCommit."}>
+        {signedIn ? (
+          <>
+            <Tabs
+              label="Profile"
+              value={tab}
+              onChange={(id) => setTab(id as "overview" | "account")}
+              tabs={[
+                { id: "overview", label: "Overview" },
+                { id: "account", label: "Account" },
+              ]}
+            />
+            <Button variant="glass" disabled={signingOut} onClick={signOutNow} className="flex items-center gap-2 py-3">
+              <Icon name="logout" className="size-4" /> {signingOut ? "Signing out…" : "Sign out"}
+            </Button>
+          </>
+        ) : null}
+      </PageHeader>
       <Feedback notice={notice} />
       {loading ? (
         <Card><p role="status" className="animate-pulse text-sm text-muted">Loading your account…</p></Card>
@@ -68,66 +101,44 @@ export default function ProfilePage() {
               <p className="mb-4 text-sm text-muted">Log in to view your profile and manage your account details.</p>
               <Link href="/login?returnTo=/profile" className="inline-block rounded-md bg-accent px-4 py-2 text-sm font-medium text-accent-fg">Log in to your account</Link>
             </Card>
+          ) : tab === "overview" ? (
+            <ProfileOverview name={name} profile={profile} github={github} onEdit={() => setTab("account")} />
           ) : (
-            <>
-              <Card>
-                <div className="flex items-center gap-4">
-                  <Avatar name={name} url={profile?.avatarUrl ?? github?.avatarUrl} className="h-16 w-16 text-2xl" />
-                  <div className="min-w-0">
-                    <h2 className="break-words text-xl font-semibold">{name}</h2>
-                    <p className="break-all text-sm text-muted">{profile?.email || `@${github?.login}`}</p>
-                    <p className="mt-1 text-xs text-muted">{profile ? "CoCommit account" : "Signed in with GitHub"}</p>
-                  </div>
-                </div>
-              </Card>
-              <div className="grid items-start gap-5 lg:grid-cols-[1fr_17rem]">
-                <div className="min-w-0 space-y-5">
-                  {profile ? <ProfileForm key={profile.id} profile={profile} onSaved={updateProfile} /> : (
-                    <Card title="Profile details">
-                      <p className="text-sm text-muted">Your name and photo come from GitHub. You can edit them in your GitHub profile settings.</p>
-                      <a href="https://github.com/settings/profile" target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm text-accent underline">Edit profile on GitHub ↗</a>
-                    </Card>
-                  )}
-                  {profile?.emailAccount && <EmailSettings profile={profile} onSaved={updateProfile} />}
-                  {profile?.emailAccount && <PasswordSettings />}
-                </div>
-                <div className="space-y-5">
-                  <Card title="Signed-in accounts">
-                    {profile && <div className="space-y-2 text-sm">
+            <div className="grid items-start gap-5 lg:grid-cols-[1fr_22rem]">
+              <div className="min-w-0 space-y-5">
+                {profile ? <ProfileForm key={profile.id} profile={profile} onSaved={updateProfile} /> : (
+                  <Card title="Profile details">
+                    <p className="text-sm text-muted">Your name and photo come from GitHub. You can edit them in your GitHub profile settings.</p>
+                    <a href="https://github.com/settings/profile" target="_blank" rel="noreferrer" className="mt-4 inline-block text-sm text-accent-soft underline">Edit profile on GitHub ↗</a>
+                  </Card>
+                )}
+                <Card tone="green" title="Connected accounts">
+                  <div className="space-y-3">
+                    {profile && <div className="space-y-1 rounded-xl border border-black bg-paper p-4 text-sm">
                       <p className="font-medium">CoCommit</p>
                       <p className="break-all text-muted">{profile.email}</p>
                       <p className="text-xs text-muted">{profile.emailAccount ? "Email and password" : "Provider sign-in"}</p>
                       <p className="text-xs text-muted">Joined {new Date(profile.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}</p>
                       {!profile.emailAccount && <p className="text-xs text-muted">Manage your email and password with your sign-in provider.</p>}
                     </div>}
-                    {github && <div className={`space-y-2 text-sm ${profile ? "mt-4 border-t border-line pt-4" : ""}`}>
+                    {github && <div className="space-y-2 rounded-xl border border-black bg-paper p-4 text-sm">
                       <p className="font-medium">GitHub</p>
                       <div className="flex items-center gap-2">
                         <Avatar name={github.name || github.login} url={github.avatarUrl} className="h-8 w-8" />
                         <span className="break-all">@{github.login}</span>
                       </div>
-                      <a href={`https://github.com/${encodeURIComponent(github.login)}`} target="_blank" rel="noreferrer" className="block text-accent underline">View GitHub profile ↗</a>
-                      <a href="https://github.com/settings/profile" target="_blank" rel="noreferrer" className="block text-accent underline">GitHub settings ↗</a>
+                      <a href={`https://github.com/${encodeURIComponent(github.login)}`} target="_blank" rel="noreferrer" className="block text-accent-soft underline">View GitHub profile ↗</a>
+                      <a href="https://github.com/settings/profile" target="_blank" rel="noreferrer" className="block text-accent-soft underline">GitHub settings ↗</a>
                     </div>}
-                    {profile && github && <p className="mt-4 text-xs text-muted">These are separate signed-in accounts. Profile edits apply to your CoCommit account.</p>}
-                  </Card>
-                  <Card title="This device">
-                    <p className="mb-3 text-sm text-muted">Sign out of your CoCommit and GitHub sessions on this device.</p>
-                    <Button variant="ghost" disabled={signingOut} onClick={async () => {
-                      setSigningOut(true);
-                      try {
-                        const result = await signOut();
-                        if (result.error) throw new Error(result.error);
-                        location.assign("/login");
-                      } catch (e) {
-                        setNotice({ kind: "error", text: errorText(e) });
-                        setSigningOut(false);
-                      }
-                    }}>{signingOut ? "Signing out…" : "Sign out"}</Button>
-                  </Card>
-                </div>
+                    {profile && github && <p className="text-xs">These are separate signed-in accounts. Profile edits apply to your CoCommit account.</p>}
+                  </div>
+                </Card>
               </div>
-            </>
+              <div className="space-y-5">
+                {profile?.emailAccount && <EmailSettings profile={profile} onSaved={updateProfile} />}
+                {profile?.emailAccount && <PasswordSettings />}
+              </div>
+            </div>
           )}
         </>
       )}
@@ -178,7 +189,7 @@ function EmailSettings({ profile, onSaved }: { profile: AccountProfile; onSaved:
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
-  return <Card title="Email address">
+  return <Card tone="mustard" title="Email address">
     <p className="mb-3 break-all text-sm text-muted">Current email: {profile.email}</p>
     {profile.pendingEmail && <p className="mb-3 break-all text-sm">Awaiting confirmation: {profile.pendingEmail}</p>}
     <form className="space-y-4" onSubmit={async (e) => {
@@ -206,7 +217,7 @@ function PasswordSettings() {
   const [confirmation, setConfirmation] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
-  return <Card title="Password">
+  return <Card tone="mustard" title="Password">
     <form className="space-y-4" onSubmit={async (e) => {
       e.preventDefault(); setNotice(null);
       if (password !== confirmation) return setNotice({ kind: "error", text: "The new passwords don't match." });

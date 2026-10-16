@@ -8,16 +8,18 @@ Git without the terminal, plus team chat and one shared context for everyone's A
 
 | Area | Status | What you can do |
 |---|---|---|
-| **Login** | ✅ live | **Log in** → GitHub (needed for git) or Google. Remembered on the device. Profile page at `/profile`. Email/password: backend done, form not built yet. |
+| **Login** | ✅ live | **Log in** → GitHub (needed for git) or Google. Remembered on the device. Profile page at `/profile`. **Email/password** (log in, sign up, forgot password, reset) is built, not yet tried against real Supabase. |
 | **Repo: GitHub mode** | ✅ live | Pick a repo and branch, edit a file, commit (optionally to a new branch), see the branch's changes, open a pull request. Everything goes through the GitHub API, on web and desktop. |
 | **Repo: Local folder mode** | ✅ desktop only | Open a clone on your computer: Staged / Changes / Untracked, stage, discard, diffs, commit, pull, push. Uses your own `git` and its login; not shown on the website. |
 | **Chat** | ✅ live | One live channel per repo (Supabase Realtime). Commits and PRs post themselves into chat. Pin messages, or save one as a **decision** or **gotcha**. |
 | **@cocommit bot** | 🟡 built, needs `ANTHROPIC_API_KEY` | Type `@cocommit` + a question in chat: it searches and summarizes the repo's `COCOMMIT/` files (team status, what changed, who does what, a file, today's chat) with links. Only you see the answer until **Share to chat**. Read only. Questions and team files are sent to the Claude API. |
-| **Context** | 🟡 logic done, screen on demo data | Each repo gets a `COCOMMIT/` team workspace (handoff, team, decisions, gotchas, log, todo, task board) that every teammate's AI agent reads first. Load/save and the auto-filled log work; the tabbed screen is in progress. |
+| **Context** | 🟡 read-only screen | Each repo gets a `COCOMMIT/` team workspace (handoff, team, decisions, gotchas, log, todo, task board) that every teammate's AI agent reads first. The Agent Context screen shows these files in tabs (read-only, with links to edit them on GitHub); the save helpers exist, a form is not built. |
 | **Desktop app** | ✅ Windows, 🟡 macOS | A Tauri window that loads the live site. Links open in your browser. Windows installer builds; the macOS `.dmg` builds on GitHub Actions. |
 | **Calls** | ✅ live | `/calls` → **Join call**: voice, video and screen sharing inside CoCommit (LiveKit), one room per repo, signed-in people only. Needs the three `LIVEKIT_*` keys locally. |
 | **Tasks** | ✅ live | `/tasks`: a Pending / Taken / Done board over the repo's `COCOMMIT/BOARD/` task files, the same ones AI agents use. **New task**, **Take**, **Done** (also adds a `LOG.md` line) and **Release** each make one commit, which shows in chat. Needs GitHub login and a set-up `COCOMMIT/`. |
-| **Heat map** | 🟡 built, PR open | `/home` shows a grid of commits per day for the picked repo (last 13 weeks), with a per-person filter. Reads the default branch's commit history; needs GitHub login. |
+| **Home** | 🟡 built, demo data only | `/home` has Cards (a card per screen, finished tasks, a small team board; **Customize** hides and reorders cards, saved on the device), Overview (commits, tasks done, open tasks, the **commit heat map**, team) and Activity (recent commits, merged PRs and pinned chat, commits today, day streak). Reads the repo through GitHub; needs GitHub login. |
+| **Look** | 🟡 built | The whole app follows the Figma design: dark theme, glass navigation (sidebar on desktop, icon rail on tablet, top bar and menu on phone), colour-block cards; Messages groups Chat, Team and Call; Repository has a Changes / Files list and a numbered diff; Drive is a card grid; Profile and Agent Context are tabbed. Light mode is gone on purpose. |
+| **Assistant** | 🟡 built, needs `ANTHROPIC_API_KEY` | A floating button on every app page opens a small window: ask about your team's handoff, decisions or gotchas; it answers from the repo's `COCOMMIT/` files and links its sources (the same bot as `@cocommit` in chat). |
 | **Files** | 🟡 built, not yet tried on real GitHub | `/files`: upload (drag-and-drop, 3 MB each), download and delete team files. They are saved in the repo's `COCOMMIT/files/` folder as normal commits. |
 
 ## Stack

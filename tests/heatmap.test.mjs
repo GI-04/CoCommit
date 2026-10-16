@@ -91,3 +91,18 @@ test("empty input gives an empty but valid grid", () => {
   assert.deepEqual([...map.authors], []);
   assert.ok(cells(map).every((c) => c.level === 0));
 });
+
+test("commitsOnDay counts one local day and skips bad dates", () => {
+  const list = [{ author: "a", at: at(10, 14) }, { author: "b", at: at(10, 14, 18) }, { author: "a", at: at(10, 13) }, { author: "a", at: "nope" }];
+  assert.equal(h.commitsOnDay(list, "2026-10-14"), 2);
+  assert.equal(h.commitsOnDay(list, "2026-10-12"), 0);
+});
+
+test("commitStreak counts days in a row back from today, or from yesterday if today is still empty", () => {
+  const day = (d) => ({ author: "a", at: at(10, d) });
+  assert.equal(h.commitStreak([], now), 0);
+  assert.equal(h.commitStreak([day(14), day(13), day(12), day(10)], now), 3); // 10th is after a gap
+  assert.equal(h.commitStreak([day(13), day(12)], now), 2); // nothing yet today: streak is still alive
+  assert.equal(h.commitStreak([day(12)], now), 0); // yesterday had none either: streak ended
+  assert.equal(h.commitStreak([day(14), day(14)], now), 1); // several commits in a day count once
+});

@@ -89,9 +89,9 @@ export function HeroDemo() {
     `${btn} ${tab === t ? "bg-surface text-fg shadow-sm" : "text-muted hover:text-fg"}`;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_40px_100px_-30px_rgb(79_70_229/0.45)]">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_24px_60px_-24px_rgba(0,0,0,0.6)]">
       <div className="flex items-center gap-3 border-b border-line bg-bg px-3 py-2">
-        <div role="tablist" aria-label="Same push, two ways" className="flex rounded-lg bg-line/60 p-1">
+        <div role="tablist" aria-label="Same push, two ways" className="flex rounded-lg bg-fg/10 p-1">
           <button role="tab" aria-selected={tab === "terminal"} aria-controls="demo-panel" onClick={() => pick("terminal")} className={tabClass("terminal")}>
             Terminal
           </button>
@@ -160,7 +160,7 @@ export function HeroDemo() {
                 <button onClick={commit} disabled={committed} className={`${btn} bg-accent text-accent-fg`}>
                   Commit
                 </button>
-                <button onClick={push} disabled={!committed || pushed} className={`${btn} border border-line hover:bg-line/60`}>
+                <button onClick={push} disabled={!committed || pushed} className={`${btn} border border-line hover:bg-fg/10`}>
                   Push
                 </button>
               </div>
@@ -168,7 +168,7 @@ export function HeroDemo() {
               <p aria-live="polite" className="min-h-10 text-sm text-muted">
                 {note}
                 {pushed && (
-                  <button onClick={reset} className="ml-2 font-semibold text-accent underline-offset-2 hover:underline">
+                  <button onClick={reset} className="ml-2 font-semibold text-accent-soft underline-offset-2 hover:underline">
                     Run it again
                   </button>
                 )}
@@ -177,7 +177,7 @@ export function HeroDemo() {
 
             <div className="hidden flex-col gap-2 border-l border-line bg-bg p-4 text-sm md:flex" aria-label="Team chat">
               <p className="font-semibold">Team chat</p>
-              <p className="rounded-md bg-line/50 px-2 py-1 text-xs text-muted">Kin pushed 2 commits to main</p>
+              <p className="rounded-md bg-fg/10 px-2 py-1 text-xs text-muted">Kin pushed 2 commits to main</p>
               <p>
                 <span className="font-semibold">Mina</span> navbar looks broken on my phone
               </p>

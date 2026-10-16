@@ -2,6 +2,8 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { AuthShell } from "@/components/AuthShell";
+import { EmailLogin } from "@/components/EmailLogin";
 import { getSession, signInHref } from "@/lib/github-client";
 import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 
@@ -49,14 +51,11 @@ function LoginCard() {
   }
 
   const loading = !github || !google;
-  const none = !loading && !github.available && !google.available;
+  const none = !loading && !github.available && !google.available && !supabaseConfigured;
 
   return (
-    <div className="mx-auto mt-16 max-w-sm rounded-lg border border-line bg-surface p-6">
-      <h1 className="mb-1 text-2xl font-bold">Log in to CoCommit</h1>
-      <p className="mb-6 text-sm text-muted">Choose how you want to log in. CoCommit remembers you on this device.</p>
-
-      {failed && <p className="mb-4 text-sm text-removed">Login failed. Please try again.</p>}
+    <AuthShell tone="cyan" title="Welcome back." subtitle="Choose how you want to log in. CoCommit remembers you on this device.">
+      {failed && <p className="mb-4 text-center text-sm font-medium text-removed">Login failed. Please try again.</p>}
 
       <div className="space-y-3">
         <Option
@@ -69,18 +68,25 @@ function LoginCard() {
         <Option label="Continue with Google" hint="Chat and context only" method={google} icon={<GoogleIcon />} onClick={signInWithGoogle} />
       </div>
 
+      <div className="my-6 flex items-center gap-3 text-sm font-medium" aria-hidden="true">
+        <span className="h-px flex-1 bg-black/40" />
+        or
+        <span className="h-px flex-1 bg-black/40" />
+      </div>
+      <EmailLogin returnTo={returnTo} available={supabaseConfigured} />
+
       {none && (
-        <p className="mt-6 rounded-md border border-line p-3 text-sm text-muted">
+        <p className="mt-6 rounded-xl border border-black bg-paper p-3 text-sm">
           Demo mode: no login method is set up yet, so every screen is open without logging in.
         </p>
       )}
-    </div>
+    </AuthShell>
   );
 }
 
 function Option(props: { label: string; hint: string; method: Method | null; icon: React.ReactNode; href?: string; onClick?: () => void }) {
   const { label, hint, method, icon, href, onClick } = props;
-  const look = "flex w-full items-center gap-3 rounded-md border border-line px-4 py-3 text-left";
+  const look = "flex w-full items-center gap-3 rounded-2xl border border-black bg-paper px-4 py-3 text-left";
   const body = (
     <>
       <span className="h-5 w-5 shrink-0">{icon}</span>
@@ -99,11 +105,11 @@ function Option(props: { label: string; hint: string; method: Method | null; ico
       </div>
     );
   return href ? (
-    <a href={href} className={`${look} hover:border-accent hover:bg-bg`}>
+    <a href={href} className={`${look} hover:opacity-90`}>
       {body}
     </a>
   ) : (
-    <button onClick={onClick} className={`${look} hover:border-accent hover:bg-bg`}>
+    <button onClick={onClick} className={`${look} hover:opacity-90`}>
       {body}
     </button>
   );

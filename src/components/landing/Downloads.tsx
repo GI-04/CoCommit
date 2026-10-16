@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { detectOs, downloads, type OsId } from "@/lib/downloads";
 
 const base =
-  "inline-flex items-center justify-center rounded-lg px-5 py-3 text-base font-semibold outline-accent focus-visible:outline-2 focus-visible:outline-offset-2";
+  "inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-medium outline-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2";
 
 // Landing-page download links: the visitor's own OS first, every platform listed.
 // A platform without a committed installer shows as "coming soon".
@@ -22,7 +22,7 @@ export function Downloads() {
             key={d.id}
             href={d.href}
             download
-            className={`${base} ${i === 0 ? "bg-fg text-bg hover:opacity-90" : "border border-line bg-surface hover:bg-line/60"}`}
+            className={`${base} ${i === 0 ? "bg-fg text-bg hover:opacity-90" : "border border-line bg-surface hover:bg-fg/10"}`}
           >
             Download for {d.label}
           </a>
@@ -42,7 +42,7 @@ export function HeroDownload() {
   useEffect(() => setOs(detectOs(navigator.userAgent)), []);
 
   const mine = downloads.find((d) => d.id === os && d.href);
-  const cls = `${base} border border-line bg-surface hover:bg-line/60`;
+  const cls = `${base} border border-line bg-surface hover:bg-fg/10`;
   return mine?.href ? (
     <a href={mine.href} download className={cls}>
       Download for {mine.label}

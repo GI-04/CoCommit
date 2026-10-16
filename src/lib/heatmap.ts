@@ -65,3 +65,33 @@ export function buildHeatMap(commits: CommitDate[], weeks = 13, now = new Date()
   const authors = [...perAuthor].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([name]) => name);
   return { weeks: grid, authors, total, start: startKey };
 }
+
+/** Commits made on one local day (`day` is YYYY-MM-DD). Bad dates are ignored. */
+export function commitsOnDay(commits: CommitDate[], day: string): number {
+  let n = 0;
+  for (const c of commits) {
+    const when = new Date(c.at);
+    if (!Number.isNaN(when.getTime()) && dayKey(when) === day) n++;
+  }
+  return n;
+}
+
+/**
+ * Days in a row with at least one commit, counting back from today. A day without commits that is still today does not
+ * break the streak yet, so it counts from yesterday until the first commit of the day.
+ */
+export function commitStreak(commits: CommitDate[], now = new Date()): number {
+  const days = new Set<string>();
+  for (const c of commits) {
+    const when = new Date(c.at);
+    if (!Number.isNaN(when.getTime())) days.add(dayKey(when));
+  }
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (!days.has(dayKey(day))) day.setDate(day.getDate() - 1);
+  let streak = 0;
+  while (days.has(dayKey(day))) {
+    streak++;
+    day.setDate(day.getDate() - 1);
+  }
+  return streak;
+}
