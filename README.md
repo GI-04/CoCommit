@@ -90,7 +90,7 @@ The installed app shows whatever is deployed at https://cocommit.vercel.app, so 
 
 Why not Vercel's own Git connection? On the Hobby plan it can't deploy a private organization repo. The workflow uses Pattadon's token, stored as the secret `VERCEL_TOKEN` in the GitHub environment `Production`.
 
-**One-time Supabase setup** (already done for the team project): run `supabase/profiles.sql`, then `supabase/schema.sql` in the SQL editor, turn on anonymous sign-ins (chat) and the Email and Google providers, and set the Site URL and redirect URLs (`/auth/*`).
+**One-time Supabase setup** (already done for the team project): run `supabase/profiles.sql`, then `supabase/schema.sql` in the SQL editor, then `supabase/chat-privacy.sql` (chat for real accounts only), turn on the Email and Google providers (anonymous sign-ins are no longer needed; turn them off), and set the Site URL and redirect URLs (`/auth/*`).
 
 ## Project layout
 | Path | What |
