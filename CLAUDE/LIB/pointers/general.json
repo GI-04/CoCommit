@@ -49,7 +49,7 @@
         "identity",
         "anonymous"
       ],
-      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Only real accounts post (anonymous visitors read); the database sets author and a verified GitHub @login; the screen uses a fixed repo. Chat actions save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
+      "summary": "How chat works: functions and message shape, live updates and who is online, git events from github-client, table rules in supabase/schema.sql, and the browser-only fake mode. Only real accounts read, post or pin (no anonymous sessions; signed-out visitors see a login card); the database sets author and a verified GitHub @login; the screen uses a fixed repo. Chat actions save messages to workspace decisions/gotchas with GitHub login and workspace checks.",
       "path": "knowledge/general/chat.md",
       "sources": [],
       "added": "2026-10-15"
@@ -186,7 +186,7 @@
         "downloads",
         "fonts"
       ],
-      "summary": "/ is the marketing landing page (no sidebar); the app home is /home. How AppShell hides the sidebar, the landing components (commit-graph rail, hero demo, downloads), the desktop-app redirect, and every place that defaults to /home.",
+      "summary": "/ is the marketing landing page (no sidebar); the app home is /home. How AppShell hides the sidebar, the landing components (commit-graph rail, hero demo, downloads), the desktop-app redirect, Get started (login page for visitors, /home when signed in), and every place that defaults to /home.",
       "path": "knowledge/general/landing-page.md",
       "sources": [
         "PLAN/2026-10-15-landing-page.md",
