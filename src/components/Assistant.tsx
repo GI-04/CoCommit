@@ -68,24 +68,15 @@ function AssistantDock() {
     }
   }
 
-  if (size === "closed")
-    return (
-      <button
-        type="button"
-        onClick={() => setSize("open")}
-        aria-label="Open the Assistant"
-        className="fixed bottom-4 right-4 z-40 grid size-14 place-items-center rounded-full bg-[var(--blue)] text-white shadow-[0_8px_24px_rgba(0,0,0,0.4)] hover:opacity-90 md:bottom-6 md:right-6"
-      >
-        <Icon name="sparkle" className="size-6" />
-      </button>
-    );
+  // Closed: nothing floats on the page. The Assistant item in the navigation (and Context's "Ask assistant") opens it.
+  if (size === "closed") return null;
 
   const box = wide ? "md:w-[34rem] md:h-[min(46rem,85dvh)]" : "md:w-[24rem] md:h-[min(33rem,80dvh)]";
   return (
     <section
       role="dialog"
       aria-label="Assistant"
-      className={`fixed inset-x-3 bottom-3 z-50 flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#333] text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)] md:inset-x-auto md:bottom-6 md:right-6 ${size === "minimised" ? "h-auto md:w-[24rem]" : `h-[75dvh] ${box}`}`}
+      className={`pop fixed inset-x-3 bottom-3 z-50 flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#333] text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)] md:inset-x-auto md:bottom-6 md:right-6 ${size === "minimised" ? "h-auto md:w-[24rem]" : `h-[75dvh] ${box}`}`}
     >
       <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--blue)]">

@@ -19,7 +19,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <AssistantProvider>
           <div className="min-h-dvh">
             <Nav />
-            <main className="min-w-0 p-4 md:py-8 md:pl-[112px] md:pr-6 lg:pl-[316px] lg:pr-8 xl:pl-[340px] xl:pr-[58px]">{children}</main>
+            <main className="min-w-0 p-4 md:pb-8 md:pl-[112px] md:pr-6 md:pt-10 lg:pl-[316px] lg:pr-8 xl:pl-[340px] xl:pr-[58px] xl:pt-[57px]">
+              <div key={path} className="rise">
+                {children}
+              </div>
+            </main>
           </div>
         </AssistantProvider>
       )}

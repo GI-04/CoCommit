@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
-  title: "CoCommit",
+  title: { default: "CoCommit", template: "%s · CoCommit" },
   description: "Git without the terminal, plus chat and shared AI context for small teams.",
   manifest: "/manifest.webmanifest",
 };

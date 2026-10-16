@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "@/components/icons";
-import { Button, Card, PageHeader } from "@/components/ui";
+import { Button, Card, PageHeader, Skeleton } from "@/components/ui";
 import { getCurrentRepo } from "@/lib/current-repo";
+import { friendlyError } from "@/lib/errors";
 import {
   createSharedFolder,
   deleteSharedFile,
@@ -34,7 +35,7 @@ export default function FilesPage() {
 
   const fail = useCallback((e: unknown) => {
     if (e instanceof GitHubRequestError && e.status === 401) setNeedsLogin(true);
-    else setError(e instanceof Error ? e.message : "Something went wrong.");
+    else setError(friendlyError(e));
   }, []);
 
   const refresh = useCallback(
@@ -273,7 +274,7 @@ export default function FilesPage() {
         className={dragging ? "rounded-xl outline-2 outline-dashed outline-green" : ""}
       >
         {here === null ? (
-          <p className="text-sm text-muted">Loading…</p>
+          <Skeleton lines={4} className="max-w-md" />
         ) : view === "list" ? (
           <Card title={folder ? folder.split("/").pop() : "Team files"}>
             {here.folders.length + here.files.length === 0 ? (
@@ -325,7 +326,7 @@ export default function FilesPage() {
             )}
             <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               {here.files.map((file, i) => (
-                <li key={file.path} className={`block-${TONES[i % TONES.length]} flex min-h-[15rem] flex-col justify-between p-5`}>
+                <li key={file.path} style={{ "--d": `${i * 60}ms` } as React.CSSProperties} className={`rise lift block-${TONES[i % TONES.length]} flex min-h-[15rem] flex-col justify-between p-5 lg:min-h-[25rem]`}>
                   <div className="flex items-start justify-between gap-2">
                     <Icon name="file" className="size-7" />
                     <span className="rounded-full border border-black bg-paper px-2.5 py-0.5 text-xs font-medium">{ext(file.name)}</span>
@@ -346,7 +347,7 @@ export default function FilesPage() {
                   type="button"
                   onClick={() => input.current?.click()}
                   disabled={locked}
-                  className="flex min-h-[15rem] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/40 p-5 text-center text-sm hover:bg-white/5 disabled:opacity-50"
+                  className="flex min-h-[15rem] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/40 p-5 text-center lg:min-h-[25rem] text-sm hover:bg-white/5 disabled:opacity-50"
                 >
                   <Icon name="plus" className="size-6" />
                   <span className="font-medium">{folder ? `Upload to ${folder.split("/").pop()}` : "Upload a file"}</span>

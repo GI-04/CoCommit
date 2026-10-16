@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Initials } from "@/components/Avatar";
+import { Icon } from "@/components/icons";
 import { ListPanel, repoItem, type ListItem } from "@/components/ListPanel";
 import { MessagesShell } from "@/components/MessagesShell";
 import { Button, Card } from "@/components/ui";
@@ -212,6 +213,12 @@ export default function ChatPage() {
             <p className="flex shrink-0 items-center gap-1.5 text-xs" title={online.join(", ")}>
               <span className="size-2.5 rounded-full border border-black bg-green" /> {online.length} online
             </p>
+            <Link href="/files" aria-label="Open Drive" className="hidden size-10 place-items-center rounded-full border border-black hover:bg-black/10 sm:grid">
+              <Icon name="folder" className="size-4" />
+            </Link>
+            <Link href="/calls" aria-label="Start a call" className="hidden size-10 place-items-center rounded-full border border-black hover:bg-black/10 sm:grid">
+              <Icon name="phone" className="size-4" />
+            </Link>
           </div>
           {mayPost === false ? (
             <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-10 text-center">
@@ -226,6 +233,9 @@ export default function ChatPage() {
             </div>
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+              {messages.length === 0 && botReplies.length === 0 && (
+                <p className="py-10 text-center text-sm text-muted">No messages yet. Say hello to your team.</p>
+              )}
               {messages.map((m) =>
                 m.kind === "git_event" ? (
                   <p key={m.id} className="break-words rounded-2xl border border-line bg-bg px-4 py-2 text-sm text-muted [overflow-wrap:anywhere]">
@@ -233,7 +243,7 @@ export default function ChatPage() {
                     {m.authorLogin && <Login login={m.authorLogin} />} {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                   </p>
                 ) : (
-                  <div key={m.id} className={`group flex flex-col ${m.author === name ? "items-end" : "items-start"}`}>
+                  <div key={m.id} className={`rise group flex flex-col ${m.author === name ? "items-end" : "items-start"}`}>
                     <p className="text-xs text-muted">
                       <span className="font-semibold text-fg">{m.author}</span>
                       {m.authorLogin && <Login login={m.authorLogin} />} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
@@ -260,17 +270,17 @@ export default function ChatPage() {
                         <p className="font-medium text-fg">
                           {pinForm.kind === "decision" ? "Save as a decision (COCOMMIT/DECISIONS.md)" : "Save as a gotcha (COCOMMIT/GOTCHAS.md)"}
                         </p>
-                        <input value={pinForm.fields.title} onChange={(e) => setField("title", e.target.value)} placeholder="Title" className={input} />
+                        <input value={pinForm.fields.title} onChange={(e) => setField("title", e.target.value)} aria-label="Title" placeholder="Title" className={input} />
                         {pinForm.kind === "decision" ? (
                           <>
-                            <textarea value={pinForm.fields.decision} onChange={(e) => setField("decision", e.target.value)} placeholder="Decision" rows={2} className={input} />
-                            <input value={pinForm.fields.why} onChange={(e) => setField("why", e.target.value)} placeholder="Why?" className={input} />
-                            <input value={pinForm.fields.alternatives} onChange={(e) => setField("alternatives", e.target.value)} placeholder="Alternatives (optional)" className={input} />
+                            <textarea value={pinForm.fields.decision} onChange={(e) => setField("decision", e.target.value)} aria-label="Decision" placeholder="Decision" rows={2} className={input} />
+                            <input value={pinForm.fields.why} onChange={(e) => setField("why", e.target.value)} aria-label="Why?" placeholder="Why?" className={input} />
+                            <input value={pinForm.fields.alternatives} onChange={(e) => setField("alternatives", e.target.value)} aria-label="Alternatives (optional)" placeholder="Alternatives (optional)" className={input} />
                           </>
                         ) : (
                           <>
-                            <textarea value={pinForm.fields.whatFailed} onChange={(e) => setField("whatFailed", e.target.value)} placeholder="What failed" rows={2} className={input} />
-                            <input value={pinForm.fields.workaround} onChange={(e) => setField("workaround", e.target.value)} placeholder="Workaround" className={input} />
+                            <textarea value={pinForm.fields.whatFailed} onChange={(e) => setField("whatFailed", e.target.value)} aria-label="What failed" placeholder="What failed" rows={2} className={input} />
+                            <input value={pinForm.fields.workaround} onChange={(e) => setField("workaround", e.target.value)} aria-label="Workaround" placeholder="Workaround" className={input} />
                           </>
                         )}
                         <div className="flex gap-2">
@@ -357,12 +367,13 @@ export default function ChatPage() {
                 <input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
+                  aria-label="Message"
                   placeholder="Message the team · @cocommit to ask the bot"
                   disabled={!mayPost}
-                  className="min-w-0 flex-1 rounded-full border border-black bg-bg px-5 py-3 text-sm"
+                  className="min-w-0 flex-1 rounded-full border border-black/20 bg-[#f0ece3] px-5 py-3 text-sm"
                 />
-                <Button type="submit" variant="blue" disabled={!text.trim() || !mayPost}>
-                  Send
+                <Button type="submit" variant="blue" aria-label="Send" disabled={!text.trim() || !mayPost} className="grid size-12 place-items-center !p-0">
+                  <Icon name="send" className="size-5" />
                 </Button>
               </form>
             </>
