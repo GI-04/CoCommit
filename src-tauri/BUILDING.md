@@ -104,14 +104,16 @@ npm run tauri dev
 
 ## Icons
 
-`src-tauri/app-icon.png` is a placeholder logo. To replace it, overwrite that file with a square PNG (1024×1024 or larger) and regenerate:
+The app icon is the CoCommit mark (`public/logo-mark.svg`) in white on a black rounded square. Its source is `src-tauri/app-icon.svg`; `src-tauri/app-icon.png` is a 1024×1024 copy of it. To change the icon, edit the SVG (or replace it with a square PNG, 1024×1024 or larger) and regenerate:
 
 ```zsh
-npx tauri icon src-tauri/app-icon.png -o src-tauri/icons
+npx tauri icon src-tauri/app-icon.svg -o src-tauri/icons
 ```
 
 ```powershell
-npx tauri icon src-tauri/app-icon.png -o src-tauri/icons
+npx tauri icon src-tauri/app-icon.svg -o src-tauri/icons
 ```
+
+Then rebuild the installers. Windows may keep showing the old icon for an installed app until it's reinstalled.
 
 That command also creates `android/` and `ios/` folders inside `src-tauri/icons/`. Phone is out of scope, so delete them.

@@ -84,5 +84,5 @@ Plan `PLAN/2026-10-15-file-bot.md` (active, approved by proud). In chat, `@cocom
 - Browser code must not import `src/lib/github.ts`, even for types (dev reload loop; GOTCHAS). Use `src/lib/github-types.ts`.
 - Several chats share this folder on proud's machine: stage only your own files, and don't switch branches without checking the others (GOTCHAS).
 - Give shell commands in both zsh and PowerShell 7.
-- Tauri needs Rust; placeholder icons are generated (see `src-tauri/BUILDING.md`).
+- Tauri needs Rust; the app icons are generated from `src-tauri/app-icon.svg` (see `src-tauri/BUILDING.md`).
 - No static export: the desktop app loads the web URL.
