@@ -23,9 +23,9 @@ export function Nav() {
       aria-label="Main navigation"
       className="glass sticky top-3 z-40 mx-3 mt-3 flex flex-col rounded-[28px] px-3 py-2 md:fixed md:inset-y-4 md:left-4 md:mx-0 md:mt-0 md:w-20 md:items-center md:rounded-[40px] md:px-3 md:py-5 lg:inset-y-7 lg:left-7 lg:w-[254px] lg:items-stretch lg:px-4"
     >
-      <div className="flex items-center justify-between md:justify-center lg:justify-start lg:px-3 lg:pt-1">
-        <Link href="/" aria-label="CoCommit home page" className="flex h-11 items-center px-1 text-white md:h-auto md:pb-3 lg:pb-6">
-          <img src="/logo-mark.svg" alt="" className="h-9 w-auto invert md:h-8 lg:h-12" />
+      <div className="flex items-center justify-between md:justify-center lg:justify-start lg:px-3 lg:pt-[23px]">
+        <Link href="/" aria-label="CoCommit home page" className="flex h-11 items-center px-1 text-white md:h-auto md:pb-3 lg:pb-[30px]">
+          <img src="/logo-mark.svg" alt="" className="h-9 w-auto invert md:h-8 lg:h-10" />
         </Link>
         <button
           type="button"
@@ -48,7 +48,7 @@ export function Nav() {
               href={it.href}
               aria-current={active ? "page" : undefined}
               title={it.title}
-              className={`flex items-center gap-4 rounded-full px-4 py-3 text-[15px] font-medium md:size-12 md:justify-center md:gap-0 md:p-0 lg:size-auto lg:justify-start lg:gap-4 lg:px-4 lg:py-3.5 ${
+              className={`flex items-center gap-4 rounded-full px-4 py-3 text-[15px] font-medium md:size-12 md:justify-center md:gap-0 md:p-0 lg:size-auto lg:justify-start lg:gap-4 lg:px-5 lg:py-[19px] lg:text-base ${
                 active ? "glass-thumb text-white" : "text-white/85 hover:bg-white/10"
               }`}
             >
@@ -65,7 +65,7 @@ export function Nav() {
           }}
           aria-pressed={assistant.size === "open"}
           title="Assistant"
-          className={`flex items-center gap-4 rounded-full px-4 py-3 text-left text-[15px] font-medium md:size-12 md:justify-center md:gap-0 md:p-0 lg:size-auto lg:justify-start lg:gap-4 lg:px-4 lg:py-3.5 ${
+          className={`flex items-center gap-4 rounded-full px-4 py-3 text-left text-[15px] font-medium md:size-12 md:justify-center md:gap-0 md:p-0 lg:size-auto lg:justify-start lg:gap-4 lg:px-5 lg:py-[19px] lg:text-base ${
             assistant.size === "open" ? "glass-thumb text-white" : "text-white/85 hover:bg-white/10"
           }`}
         >

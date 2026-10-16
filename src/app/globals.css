@@ -123,3 +123,28 @@ body {
 .cc-call .lk-control-bar .lk-chat-toggle {
   display: none;
 }
+
+/* Motion: small and quick, switched off by prefers-reduced-motion (PLAN/2026-10-16-figma-fidelity-motion.md). */
+:root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: scale(0.92) translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+/* Fade up on arrival; --d delays it (stagger). */
+.rise { animation: rise 0.45s var(--ease-out) backwards; animation-delay: var(--d, 0ms); }
+.pop { animation: pop 0.28s var(--ease-out) backwards; transform-origin: bottom right; }
+.grow { transform-origin: bottom; animation: grow 0.6s var(--ease-out) backwards; animation-delay: var(--d, 0ms); }
+/* Cards that are links lift a little under the pointer. */
+.lift { transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out); }
+.lift:hover { transform: translateY(-4px); box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.55); }
+/* A loading placeholder on a card. */
+.shimmer { display: inline-block; min-width: 3ch; border-radius: 6px; color: transparent; background: linear-gradient(90deg, rgba(0, 0, 0, 0.08) 25%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.08) 75%); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+a, button { transition: color 0.15s, background-color 0.15s, border-color 0.15s, opacity 0.15s, transform 0.12s; }
+button:not(:disabled):active { transform: scale(0.97); }
+/* On the landing page sections fade up as they scroll into view (browsers without scroll timelines just show them). */
+@supports (animation-timeline: view()) {
+  .reveal { animation: rise linear backwards; animation-timeline: view(); animation-range: entry 0% cover 30%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

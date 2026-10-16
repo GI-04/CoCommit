@@ -359,6 +359,16 @@ export default function TasksPage() {
                   );
                 })}
               </ul>
+              {col.status === "pending" && (
+                <button
+                  type="button"
+                  onClick={() => setForm(form ? null : { ...blankTask })}
+                  disabled={busy}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-black py-2.5 text-sm font-medium hover:bg-black/5 disabled:opacity-50"
+                >
+                  <Icon name="plus" className="size-4" /> Add task
+                </button>
+              )}
             </Card>
           );
         })}

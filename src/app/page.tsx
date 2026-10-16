@@ -84,32 +84,32 @@ export default function Landing() {
 
       <main className="mx-auto max-w-6xl px-4 pb-16 md:px-8">
         <section className="pt-14 text-center md:pt-20" aria-labelledby="intro">
-          <p className="glass mx-auto inline-block rounded-full px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-white/90">Now in early access</p>
-          <h1 id="intro" className="mt-6 text-5xl font-semibold leading-[1.05] tracking-[-0.02em] md:text-7xl">
+          <p className="rise glass mx-auto inline-block rounded-full px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.12em] text-white/90">Now in early access</p>
+          <h1 id="intro" className="rise mt-6 text-5xl font-semibold leading-[1.05] tracking-[-0.02em] md:text-7xl">
             Git, with buttons.
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-muted md:text-xl">
+          <p className="rise mx-auto mt-5 max-w-xl text-lg text-muted [--d:90ms] md:text-xl">
             Commit, branch and share what you know with your team and your AI agents. No terminal needed.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="rise mt-8 flex flex-wrap justify-center gap-3 [--d:160ms]">
             <Link href="/home" className={blueButton}>
               Get started
             </Link>
             <HeroDownload />
           </div>
-          <div className="glass mt-12 rounded-3xl p-3 text-left md:mt-16 md:p-5">
+          <div className="rise glass mt-12 rounded-3xl p-3 text-left [--d:240ms] md:mt-16 md:p-5">
             <HeroDemo />
           </div>
           <p className="mt-3 text-sm text-muted">The same push, both ways. The CoCommit side is clickable.</p>
         </section>
 
-        <section id="features" className="scroll-mt-24 pt-24 md:pt-32" aria-labelledby="features-title">
+        <section id="features" className="reveal scroll-mt-24 pt-24 md:pt-32" aria-labelledby="features-title">
           <h2 id="features-title" className={heading}>
             Everything in one place.
           </h2>
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
-              <li key={f.title} className={`block-${f.tone} flex min-h-[13rem] flex-col gap-3 p-5`}>
+              <li key={f.title} className={`block-${f.tone} reveal lift flex min-h-[13rem] flex-col gap-3 p-5`}>
                 <span className="grid size-11 place-items-center rounded-full border border-black bg-paper">
                   <Icon name={f.icon} />
                 </span>
@@ -120,7 +120,7 @@ export default function Landing() {
           </ul>
         </section>
 
-        <section className="pt-24 md:pt-32" aria-labelledby="why-title">
+        <section className="reveal pt-24 md:pt-32" aria-labelledby="why-title">
           <h2 id="why-title" className={heading}>
             One window instead of three.
           </h2>
@@ -149,7 +149,7 @@ export default function Landing() {
           </h2>
           <ol className="mt-10 grid gap-4 md:grid-cols-3">
             {steps.map(([title, text], i) => (
-              <li key={title} className="bg-surface rounded-2xl border border-line p-6">
+              <li key={title} className="bg-surface reveal lift rounded-2xl border border-line p-6">
                 <span className="grid size-9 place-items-center rounded-full border border-black bg-cyan text-sm font-semibold">{i + 1}</span>
                 <p className="mt-4 text-lg font-semibold">{title}</p>
                 <p className="mt-1 text-sm text-muted">{text}</p>
@@ -158,7 +158,7 @@ export default function Landing() {
           </ol>
         </section>
 
-        <section id="faq" className="scroll-mt-24 pt-24 md:pt-32" aria-labelledby="faq-title">
+        <section id="faq" className="reveal scroll-mt-24 pt-24 md:pt-32" aria-labelledby="faq-title">
           <h2 id="faq-title" className={heading}>
             Questions.
           </h2>
@@ -176,7 +176,7 @@ export default function Landing() {
         </section>
 
         <section id="download" className="scroll-mt-24 pt-24 md:pt-32" aria-labelledby="download-title">
-          <div className="block-cyan px-6 py-12 text-center md:py-16">
+          <div className="block-cyan reveal px-6 py-12 text-center md:py-16">
             <h2 id="download-title" className="text-[40px] font-semibold leading-tight md:text-5xl">
               Get CoCommit.
             </h2>

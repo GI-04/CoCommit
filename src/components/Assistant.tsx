@@ -74,7 +74,7 @@ function AssistantDock() {
         type="button"
         onClick={() => setSize("open")}
         aria-label="Open the Assistant"
-        className="fixed bottom-4 right-4 z-40 grid size-14 place-items-center rounded-full bg-[var(--blue)] text-white shadow-[0_8px_24px_rgba(0,0,0,0.4)] hover:opacity-90 md:bottom-6 md:right-6"
+        className="pop fixed bottom-4 right-4 z-40 grid size-14 place-items-center rounded-full bg-[var(--blue)] text-white shadow-[0_8px_24px_rgba(0,0,0,0.4)] transition-transform hover:scale-110 md:bottom-6 md:right-6"
       >
         <Icon name="sparkle" className="size-6" />
       </button>
@@ -85,7 +85,7 @@ function AssistantDock() {
     <section
       role="dialog"
       aria-label="Assistant"
-      className={`fixed inset-x-3 bottom-3 z-50 flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#333] text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)] md:inset-x-auto md:bottom-6 md:right-6 ${size === "minimised" ? "h-auto md:w-[24rem]" : `h-[75dvh] ${box}`}`}
+      className={`pop fixed inset-x-3 bottom-3 z-50 flex flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#333] text-white shadow-[0_8px_32px_rgba(0,0,0,0.5)] md:inset-x-auto md:bottom-6 md:right-6 ${size === "minimised" ? "h-auto md:w-[24rem]" : `h-[75dvh] ${box}`}`}
     >
       <header className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[var(--blue)]">

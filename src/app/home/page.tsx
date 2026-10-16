@@ -44,7 +44,7 @@ export default function HomePage() {
       <PageHeader title={customizing ? "Customize Home" : "Home"} subtitle={customizing ? "Choose which cards you see and where." : (repo ?? undefined)}>
         <Tabs label="Home views" value={tab} onChange={choose} tabs={TABS} />
         {tab === "cards" ? (
-          <Button variant={customizing ? "blue" : "glass"} onClick={() => setCustomizing((c) => !c)} className="flex items-center gap-2 py-3">
+          <Button variant={customizing ? "blue" : "glass"} onClick={() => setCustomizing((c) => !c)} className="flex items-center gap-2 py-3 lg:px-5 lg:py-[13px] lg:text-base">
             {customizing ? (
               "Done"
             ) : (

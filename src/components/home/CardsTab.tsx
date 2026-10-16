@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Avatar } from "@/components/Avatar";
+import type { CommitDate } from "@/lib/heatmap";
 import { Icon } from "@/components/icons";
 import { Card, Pill } from "@/components/ui";
 import { HOME_LAYOUT_KEY, moveCard, resolveLayout, toggleCard, visibleCards, type HomeLayout } from "@/lib/home";
 import { signInHref } from "@/lib/github-client";
 import { navItems } from "@/lib/sections";
 import type { Board, TaskStatus } from "@/lib/tasks";
-import { problem, useBoard, type Load } from "./data";
+import { commitsOnDay, dayKey } from "@/lib/heatmap";
+import { problem, useBoard, useCommits, type Load } from "./data";
 
 const TONES = ["pink", "cyan", "mustard", "green"] as const;
 const WORK = "work";
@@ -17,7 +19,8 @@ const BOARD = "board";
 // Card ids: the screens' paths, then the two data cards.
 // Cards for the screens, in the Figma order (Repository, Messages, Agent Context, Drive).
 const SCREENS = ["/repo", "/chat", "/context", "/files"].map((href) => navItems.find((n) => n.href === href)!);
-const ALL = [...SCREENS.map((s) => s.href), WORK, BOARD];
+// Figma order: three screen cards, Work done + Team board, then Drive.
+const ALL = [...SCREENS.slice(0, 3).map((s) => s.href), WORK, BOARD, SCREENS[3].href];
 const TITLES: Record<string, string> = { [WORK]: "Work done", [BOARD]: "Team board", ...Object.fromEntries(SCREENS.map((s) => [s.href, s.title])) };
 
 const COLUMNS: { status: TaskStatus; title: string; tone: "pink" | "mustard" | "green" }[] = [
@@ -30,6 +33,7 @@ const COLUMNS: { status: TaskStatus; title: string; tone: "pink" | "mustard" | "
 // person hide or reorder the cards; it is kept in this browser (PLAN/2026-10-16-figma-ui.md).
 export function CardsTab({ repo, customizing }: { repo: string | null; customizing: boolean }) {
   const board = useBoard(repo);
+  const commits = useCommits(repo);
   const [layout, setLayout] = useState<HomeLayout>(() => resolveLayout(ALL, null));
 
   useEffect(() => {
@@ -60,18 +64,19 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
           </button>
         </div>
       )}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {shown.map((id, i) => {
           const hidden = layout.hidden.includes(id);
           const section = SCREENS.find((s) => s.href === id);
           const body = section ? (
             <GoTo section={section} tone={tone(id)} link={!customizing} />
           ) : id === WORK ? (
-            <WorkDone board={board} />
+            <WorkDone board={board} commits={commits} />
           ) : (
             <TeamBoard board={board} link={!customizing} />
           );
-          if (!customizing) return <div key={id} className={id === BOARD ? "sm:col-span-2" : ""}>{body}</div>;
+          const stagger = { "--d": `${i * 70}ms` } as React.CSSProperties;
+          if (!customizing) return <div key={id} style={stagger} className={`rise ${id === BOARD ? "sm:col-span-2" : ""}`}>{body}</div>;
           return (
             <div key={id} className={`relative ${id === BOARD ? "sm:col-span-2" : ""}`}>
               <div className={`rounded-lg outline-2 outline-offset-2 ${hidden ? "opacity-35 outline-dashed outline-white/70" : "outline-dashed outline-white/50"}`}>{body}</div>
@@ -111,7 +116,7 @@ function GoTo({ section, tone, link }: { section: (typeof SCREENS)[number]; tone
       </span>
     </>
   );
-  const look = `block-${tone} flex min-h-[8.5rem] items-center gap-4 p-5`;
+  const look = `block-${tone} lift flex min-h-[8.5rem] items-center gap-4 p-5`;
   return link ? (
     <Link href={section.href} className={`${look} hover:opacity-95`}>
       {body}
@@ -121,13 +126,36 @@ function GoTo({ section, tone, link }: { section: (typeof SCREENS)[number]; tone
   );
 }
 
-function WorkDone({ board }: { board: Load<Board> }) {
+// "Work done": tasks closed on the board, with a bar for each of the last 7 days (commits that day, real data).
+function WorkDone({ board, commits }: { board: Load<Board>; commits: Load<CommitDate[]> }) {
   const tasks = board.status === "ready" ? board.data.tasks : null;
   const done = tasks?.filter((t) => t.status === "done").length ?? null;
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return { key: dayKey(d), label: d.toLocaleDateString("en", { weekday: "short" }) };
+  });
+  const counts = commits.status === "ready" ? days.map((d) => commitsOnDay(commits.data, d.key)) : null;
+  const max = Math.max(1, ...(counts ?? [0]));
   return (
-    <Card tone="cyan" className="min-h-[8.5rem]" title="Work done">
-      <p className="text-[56px] font-semibold leading-none">{done ?? "–"}</p>
+    <Card tone="cyan" className="flex h-full min-h-[8.5rem] flex-col xl:min-h-[21rem]">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-base font-semibold">Work done</h2>
+        <span className="text-xs">Last 7 days</span>
+      </div>
+      <p className="text-[56px] font-semibold leading-none">{done ?? <span className="shimmer">00</span>}</p>
       <p className="mt-2 text-sm">{tasks ? `tasks closed, of ${tasks.length}` : (problem(board) ?? "Loading…")}</p>
+      <div className="mt-auto flex h-28 items-end gap-2 pt-4" role="img" aria-label={counts ? `Commits per day: ${days.map((d, i) => `${d.label} ${counts[i]}`).join(", ")}` : "Commits per day"}>
+        {days.map((d, i) => (
+          <div
+            key={d.key}
+            title={counts ? `${counts[i]} ${counts[i] === 1 ? "commit" : "commits"} on ${d.label}` : d.label}
+            className={`grow flex-1 rounded-t-lg ${i === 6 ? "bg-paper" : "bg-black"}`}
+            style={{ height: `${counts ? Math.max(8, (counts[i] / max) * 100) : 8}%`, "--d": `${i * 60}ms` } as React.CSSProperties}
+          />
+        ))}
+      </div>
+      <p className="mt-2 text-xs">commits per day</p>
     </Card>
   );
 }
@@ -135,7 +163,7 @@ function WorkDone({ board }: { board: Load<Board> }) {
 function TeamBoard({ board, link }: { board: Load<Board>; link: boolean }) {
   const trouble = problem(board);
   return (
-    <Card>
+    <Card className="h-full">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold">Team board</h2>
         {link && (

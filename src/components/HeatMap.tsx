@@ -93,8 +93,8 @@ export function HeatMap({ repo, state }: { repo: string | null; state: Load<Comm
                       title={describe(cell)}
                       aria-label={describe(cell)}
                       onClick={() => setPicked(cell)}
-                      className={`h-5 w-full rounded-md sm:h-7 ${cell.date === today ? "outline outline-2 outline-offset-1 outline-black" : ""}`}
-                      style={{ background: shade(cell.level) }}
+                      className={`rise h-5 w-full rounded-md transition-transform hover:scale-110 sm:h-7 ${cell.date === today ? "outline outline-2 outline-offset-1 outline-black" : ""}`}
+                      style={{ background: shade(cell.level), "--d": `${i * 25}ms` } as React.CSSProperties}
                     />
                   ) : (
                     <span key={i} />

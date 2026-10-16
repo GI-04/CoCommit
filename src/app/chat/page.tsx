@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Initials } from "@/components/Avatar";
+import { Icon } from "@/components/icons";
 import { ListPanel, repoItem, type ListItem } from "@/components/ListPanel";
 import { MessagesShell } from "@/components/MessagesShell";
 import { Button, Card } from "@/components/ui";
@@ -211,6 +212,12 @@ export default function ChatPage() {
             <p className="flex shrink-0 items-center gap-1.5 text-xs" title={online.join(", ")}>
               <span className="size-2.5 rounded-full border border-black bg-green" /> {online.length} online
             </p>
+            <Link href="/files" aria-label="Open Drive" className="hidden size-10 place-items-center rounded-full border border-black hover:bg-black/10 sm:grid">
+              <Icon name="folder" className="size-4" />
+            </Link>
+            <Link href="/calls" aria-label="Start a call" className="hidden size-10 place-items-center rounded-full border border-black hover:bg-black/10 sm:grid">
+              <Icon name="phone" className="size-4" />
+            </Link>
           </div>
           <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
             {messages.map((m) =>
@@ -220,7 +227,7 @@ export default function ChatPage() {
                   {m.authorLogin && <Login login={m.authorLogin} />} {m.text} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
                 </p>
               ) : (
-                <div key={m.id} className={`group flex flex-col ${m.author === name ? "items-end" : "items-start"}`}>
+                <div key={m.id} className={`rise group flex flex-col ${m.author === name ? "items-end" : "items-start"}`}>
                   <p className="text-xs text-muted">
                     <span className="font-semibold text-fg">{m.author}</span>
                     {m.authorLogin && <Login login={m.authorLogin} />} · <time suppressHydrationWarning>{time(m.createdAt)}</time>
@@ -352,10 +359,10 @@ export default function ChatPage() {
               onChange={(e) => setText(e.target.value)}
               placeholder={mayPost === false ? "Log in to chat" : "Message the team · @cocommit to ask the bot"}
               disabled={mayPost === false}
-              className="min-w-0 flex-1 rounded-full border border-black bg-bg px-5 py-3 text-sm"
+              className="min-w-0 flex-1 rounded-full border border-black/20 bg-[#f0ece3] px-5 py-3 text-sm"
             />
-            <Button type="submit" variant="blue" disabled={!text.trim() || mayPost === false}>
-              Send
+            <Button type="submit" variant="blue" aria-label="Send" disabled={!text.trim() || mayPost === false} className="grid size-12 place-items-center !p-0">
+              <Icon name="send" className="size-5" />
             </Button>
           </form>
         </Card>

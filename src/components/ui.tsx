@@ -5,7 +5,7 @@ export type Tone = "pink" | "cyan" | "mustard" | "green" | "paper" | "clay" | "d
 // Page title row from the Figma frames: title on the left, optional tabs in the middle, actions on the right.
 export function PageHeader({ title, subtitle, children }: { title: string; subtitle?: string; children?: ReactNode }) {
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+    <header className="mb-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
       <div className="min-w-0">
         <h1 className="text-[28px] font-semibold leading-[34px] text-white">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
@@ -46,19 +46,31 @@ export function Button({ variant = "primary", className = "", ...props }: Button
 
 type Tab = { id: string; label: string };
 
-// The glass tab pill from the Figma headers (in-page tabs; kept free of next/link so tests can load this file).
+// The glass tab pill from the Figma headers (in-page tabs; kept free of React and next/link imports so tests can load
+// this file). Tabs are equal width and the glass thumb slides to the picked one with plain CSS.
 export function Tabs({ tabs, value, onChange, label, className = "" }: { tabs: Tab[]; value: string; onChange: (id: string) => void; label: string; className?: string }) {
+  const index = tabs.findIndex((t) => t.id === value);
   return (
-    <div role="tablist" aria-label={label} className={`glass inline-flex max-w-full gap-1 overflow-x-auto rounded-full p-1.5 ${className}`}>
-      {tabs.map((t) => {
-        const active = t.id === value;
-        const look = `shrink-0 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium ${active ? "glass-thumb text-white" : "text-white/85 hover:bg-white/10"}`;
-        return (
-          <button key={t.id} type="button" role="tab" aria-selected={active} onClick={() => onChange(t.id)} className={look}>
+    <div className={`glass max-w-full overflow-x-auto rounded-full ${className}`}>
+      <div role="tablist" aria-label={label} className="relative inline-grid w-max min-w-full auto-cols-fr grid-flow-col p-[var(--pad)] [--pad:0.375rem] lg:[--pad:0.5rem]">
+        <span
+          aria-hidden
+          className={`glass-thumb pointer-events-none absolute bottom-[var(--pad)] left-[var(--pad)] top-[var(--pad)] rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${index < 0 ? "opacity-0" : ""}`}
+          style={{ width: `calc((100% - 2 * var(--pad)) / ${tabs.length})`, transform: `translateX(${Math.max(index, 0) * 100}%)` }}
+        />
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={t.id === value}
+            onClick={() => onChange(t.id)}
+            className={`relative z-10 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-medium lg:px-8 lg:py-[17px] lg:text-base ${tabs.length <= 3 ? "lg:min-w-[11rem]" : ""} ${t.id === value ? "text-white" : "text-white/85 hover:text-white"}`}
+          >
             {t.label}
           </button>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }

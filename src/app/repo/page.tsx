@@ -259,7 +259,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
         </p>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[18.75rem_minmax(0,1fr)]">
         <div className="min-w-0 space-y-4">
           <Card>
             <div className="mb-3 inline-flex rounded-full border border-black bg-paper p-1 text-sm" role="tablist" aria-label="Files">
@@ -414,7 +414,7 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
 
 function PillSelect({ label, icon, value, options, onChange }: { label: string; icon: IconName; value: string; options: string[]; onChange: (v: string) => void }) {
   return (
-    <label className="glass relative flex min-w-[12rem] max-w-full items-center gap-3 rounded-full py-2 pl-4 pr-4">
+    <label className="glass relative flex min-w-[14rem] max-w-full items-center gap-3 rounded-full py-2 pl-4 pr-4 xl:min-w-[17.5rem]">
       <Icon name={icon} className="size-4 text-white/80" />
       <span className="min-w-0 flex-1">
         <span className="block text-[10px] font-medium uppercase tracking-wider text-white/70">{label}</span>

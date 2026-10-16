@@ -173,7 +173,7 @@ export default function FilesPage() {
         ) : (
           <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {files.map((file, i) => (
-              <li key={file.path} className={`block-${TONES[i % TONES.length]} flex min-h-[15rem] flex-col justify-between p-5`}>
+              <li key={file.path} style={{ "--d": `${i * 60}ms` } as React.CSSProperties} className={`rise lift block-${TONES[i % TONES.length]} flex min-h-[15rem] flex-col justify-between p-5 lg:min-h-[25rem]`}>
                 <div className="flex items-start justify-between gap-2">
                   <Icon name="file" className="size-7" />
                   <span className="rounded-full border border-black bg-paper px-2.5 py-0.5 text-xs font-medium">{ext(file.name)}</span>
@@ -194,7 +194,7 @@ export default function FilesPage() {
                 type="button"
                 onClick={() => input.current?.click()}
                 disabled={!repo || busy !== null || needsLogin}
-                className="flex min-h-[15rem] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/40 p-5 text-center text-sm hover:bg-white/5 disabled:opacity-50"
+                className="flex min-h-[15rem] w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-white/40 p-5 text-center text-sm hover:bg-white/5 disabled:opacity-50 lg:min-h-[25rem]"
               >
                 <Icon name="plus" className="size-6" />
                 <span className="font-medium">Upload a file</span>

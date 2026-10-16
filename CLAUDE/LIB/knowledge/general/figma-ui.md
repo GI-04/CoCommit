@@ -26,6 +26,11 @@ The app follows the Figma file "CO-Commit" (page "test 4", key `A5ao1epDSl3hnbGX
 - **Landing (`src/app/page.tsx`):** Figma sections (glass header, "Git, with buttons.", colour cards, steps, "Get CoCommit.") with the interactive `HeroDemo`, the "Why" diff and the FAQ kept; the old git-graph rail (`components/landing/Rail.tsx`) is no longer used and the stale "Coming next" section is gone. Logos: `public/logo.svg` (wordmark) and `public/logo-mark.svg`, shown with `invert`.
 - **Dev note:** after adding an icon, restart `npm run dev`; hot reload can keep an old `icons.tsx` on the server (empty icon, hydration error).
 
+## Motion and fidelity (2026-10-16, `PLAN/2026-10-16-figma-fidelity-motion.md`)
+- **Motion is CSS only** (`globals.css`): `.rise` (fade up, `--d` delay for stagger), `.pop`, `.grow` (bars), `.lift` (hover lift on link cards), `.shimmer` (loading), `.reveal` (landing sections, scroll timeline where supported), button press (`:active` scale), sliding glass thumb in `Tabs` (pure CSS: equal-width tabs, `translateX`), page enter in `AppShell` (`key={path}`). `prefers-reduced-motion` turns it all off. Use `fill-mode: backwards`, never `both`, on anything that also has a hover transform.
+- **Sizes taken from the Figma frames (1440 px):** content top 57, header row 75, tab thumb 59 / tab 177, nav item 62 at a 70 pitch, logo 40 high at y=72, auth card 790 wide, Drive cards 410 high, Repository list 298 wide.
+- **Testing animations:** the browser test pane freezes CSS animations; call `document.getAnimations().forEach(a => a.finish())` before measuring or taking a screenshot.
+
 ## Sources
 - `PLAN/2026-10-16-figma-ui.md`, `PLAN/2026-10-16-figma-ui-polish.md`
 - Figma file `A5ao1epDSl3hnbGX599un3`, page "test 4" (frames "Home …", "Auth · …", "Handoff · 4 · Figma → code")
