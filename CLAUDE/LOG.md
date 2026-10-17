@@ -110,3 +110,4 @@
 - 2026-10-15 · Claude — Reset local main to match GitHub (unrelated "first commit" histories); old commit kept on branch backup/local-main-before-reset
 - 2026-10-16 · Claude-Pattadon — Schedule change: code freeze extended to 13:00, submission due 14:00 (PLAN/2026-10-15-demo-scope.md). Drive 50 MB limit is PR #46, waiting for the freeze to end.
 - 2026-10-16 · Claude-Trin — Wrote `docs/LEGAL.md` (PDPA privacy policy, cookies, terms, copyright, contact, international users); facts checked against the code; not committed
+- 2026-10-18 · Claude-Trin — Home UX fixes from a UX investigation (demo team when signed out, Work done empty state, one Log in, focus ring); PLAN/2026-10-18-home-ux-fixes.md; not committed

@@ -5,21 +5,21 @@ import { Card, Pill, Skeleton } from "@/components/ui";
 import { commitsOnDay, commitStreak, dayKey } from "@/lib/heatmap";
 import { timeAgo } from "@/lib/home";
 import { problem, useActivity, useCommits } from "./data";
-import { Trouble } from "./Trouble";
+import { DemoTitle, Trouble } from "./Trouble";
 
 const KIND = { commit: "commit", pr: "pull request", pinned: "pinned" } as const;
 
 // The Activity tab: what happened in the repo lately (commits, merged pull requests, pinned chat) and two numbers
 // worked out from the same commits: today and the streak of days in a row.
 export function ActivityTab({ repo }: { repo: string | null }) {
-  const activity = useActivity(repo);
-  const commits = useCommits(repo);
+  const activity = useActivity(repo, true);
+  const commits = useCommits(repo, true);
   const now = new Date();
   const ready = commits.status === "ready" ? commits.data : null;
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_16rem]">
-      <Card title="Recent activity">
+      <Card title={<DemoTitle text="Recent activity" state={activity} />}>
         <Trouble state={activity} from="/home" />
         {activity.status === "loading" && <Skeleton lines={5} />}
         {activity.status === "ready" && activity.data.length === 0 && <p className="text-sm">Nothing yet. Commit something and it shows up here.</p>}
@@ -43,11 +43,11 @@ export function ActivityTab({ repo }: { repo: string | null }) {
         )}
       </Card>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-        <Card tone="cyan" title="Today">
+        <Card tone="cyan" title={<DemoTitle text="Today" state={commits} />}>
           <p className="text-[56px] font-semibold leading-none">{ready ? commitsOnDay(ready, dayKey(now)) : "–"}</p>
           <p className="mt-2 text-sm">{ready ? "commits today" : (problem(commits) ?? "Loading…")}</p>
         </Card>
-        <Card tone="pink" title="Streak">
+        <Card tone="pink" title={<DemoTitle text="Streak" state={commits} />}>
           <p className="text-[56px] font-semibold leading-none">{ready ? commitStreak(ready, now) : "–"}</p>
           <p className="mt-2 text-sm">{ready ? "days in a row with a commit" : (problem(commits) ?? "Loading…")}</p>
         </Card>
