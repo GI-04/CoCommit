@@ -14,6 +14,8 @@
 - [ ] Tasks board, later: links to branches/PRs, live updates (Realtime or polling), drag and drop, editing a task's text.
 - [ ] Drive: real GitHub already checked with `scripts/drive-live-check.mjs` (test repo `tiramisucake0127/cocommit-drive-test`, proud can delete it later). After `proud/drive-folders` is merged, try on the live site signed in: new folder, upload a >3 MB file (e.g. 10 MB), download it, delete the folder. Watch the join's time on Vercel (route `maxDuration` 60). (proud)
 - [ ] Drive, later: move/rename files and folders, who uploaded and when, previews.
+- [ ] `docs/LEGAL.md`: a Thai lawyer review before commercial use (liability cap, international transfers); before marketing to EU/UK users, check the Article 27 representative and each provider's DPF/SCCs. (Trin)
+- [ ] Legal page in the app: a `/legal` page and footer/login link built from `docs/LEGAL.md` (needs a plan). Keep LEGAL.md current when data, providers, cookies or chat visibility change (e.g. `PLAN/2026-10-16-repo-members-only.md`). (Trin)
 
 ## Open questions
 - Which hackathon and submission format? Deadline: submission 2026-10-16 14:00 (code freeze until 13:00; was 11:30). (Pattadon)
