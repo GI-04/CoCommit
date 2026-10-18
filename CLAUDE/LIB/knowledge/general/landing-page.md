@@ -13,10 +13,12 @@
 - Desktop app: Tauri loads the site root, so `DesktopRedirect` sends any window with `__TAURI_INTERNALS__` to `/home` (client-side, after the first paint).
 - Downloads read `src/lib/downloads.ts`; a platform with `href: null` shows "coming soon". Windows is live since PR #13.
 - `/home` defaults: PWA `start_url`, the sidebar's Home item (the sidebar logo goes to `/home` too since 2026-10-16: one click to Home; only the login screens' logo still goes to `/`, the landing page), `auth/callback` fallback, `/login` `safePath` fallback, `auth-email.ts` `safePath`/`returnTo` defaults, and `proxy.ts` (signed-in `/login` goes to `/home`; `/` stays public when the login wall is on).
+- **Search and link previews** (PLAN/2026-10-18-seo-pass.md): the root layout makes every page `noindex, follow`; only `/` and `/legal` opt back in (`robots: { index: true, follow: true }` + `alternates.canonical`). A new public page must do the same and be added to `PUBLIC_PATHS` in `src/lib/site.ts` (feeds `sitemap.ts`). `robots.ts` blocks only `/api/` and `/auth/`, so crawlers still see the noindex. The share image (`src/app/opengraph-image.tsx`) and icons (`icon.tsx` 32/192/512, `apple-icon.tsx`) are drawn at build time from `public/logo.svg` / `logo-mark.svg` by `src/lib/brand-image.tsx`. A page that sets its own `openGraph` loses the root share image, so set only `url` on `/` and none on `/legal` (og:title/description fill in from title/description). `src/proxy.ts`'s matcher skips these files so the login wall can't hide them. The landing JSON-LD is a `SoftwareApplication` (free; Web, Windows, macOS).
 - Copy rule: no invented customers, logos, numbers or testimonials. Tasks, Files and Calls are listed as "coming next".
 
 ## Sources
 - `PLAN/2026-10-15-landing-page.md` (routes and design choices)
 - `OUTPUT/2026-10-15-2145-landing-page.md` (verification)
+- `PLAN/2026-10-18-seo-pass.md` (robots, sitemap, noindex, share image, icons)
 
-**Last checked against sources:** 2026-10-16
+**Last checked against sources:** 2026-10-18

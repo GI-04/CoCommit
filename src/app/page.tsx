@@ -6,14 +6,30 @@ import { Icon, type IconName } from "@/components/icons";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { DesktopRedirect, Downloads, HeroDownload } from "@/components/landing/Downloads";
 import { GetStarted } from "@/components/landing/GetStarted";
+import { LANDING_DESCRIPTION, SITE_NAME, SITE_URL, openGraphBase } from "@/lib/site";
 
 // HeroDemo's terminal reads --font-mono.
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: { absolute: "CoCommit: git, with buttons" },
-  description:
-    "CoCommit turns commits, pulls, pushes and pull requests into buttons, with team chat, files and shared AI context in the same window. Built for small teams and first-time coders.",
+  description: LANDING_DESCRIPTION,
+  robots: { index: true, follow: true },
+  alternates: { canonical: "/" },
+  // og:title / og:description and the Twitter tags are filled in from the title and description.
+  openGraph: { ...openGraphBase, url: "/" },
+};
+
+// Structured data for search engines (schema.org). Only facts that are true today: free, web + desktop installers.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: SITE_NAME,
+  url: SITE_URL,
+  description: LANDING_DESCRIPTION,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Web, Windows, macOS",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
 const focus = "outline-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2";
@@ -54,6 +70,7 @@ const faq = [
 export default function Landing() {
   return (
     <div className={`${mono.variable} text-fg`}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <DesktopRedirect />
 
       <header className="sticky top-0 z-30 px-3 pt-3 md:px-8 md:pt-5">
