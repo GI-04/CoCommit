@@ -67,8 +67,8 @@ const repoFiles = {
   [`docs/${"very-long-folder-name/".repeat(5)}deep.md`]: "deep file",
 };
 
-function setup({ replies, signedIn = true, key = "sk-ant-team", workspace = "" }) {
-  const calls = { tarball: [], resolve: [] };
+function setup({ replies, signedIn = true, key = "sk-ant-team", workspace = "", failPulls = false }) {
+  const calls = { tarball: [], resolve: [], commits: [], pulls: [] };
   const github = {
     GitHubError: class GitHubError extends Error {
       constructor(status, message) { super(message); this.status = status; }
@@ -88,6 +88,12 @@ function setup({ replies, signedIn = true, key = "sk-ant-team", workspace = "" }
     listIssues: async () => [],
     getIssue: async (_repo, n) => ({ number: n, title: "Login broken", author: "kin", state: "open", labels: ["bug"], commentCount: 1, updatedAt: "2026-10-16T00:00:00Z", url: `https://github.com/o/r/issues/${n}`, body: "Can't log in.", comments: [{ author: "proud", at: "2026-10-16T03:00:00Z", body: "Fixed in #3" }] }),
     getLanguages: async () => [["TypeScript", 900], ["Rust", 100]],
+    commitFiles: async (repo, branch, files, message, from) => (calls.commits.push({ repo, branch, files, message, from }), { sha: "c0ffee", url: "https://github.com/o/r/commit/c0ffee", branch }),
+    openPullRequest: async (repo, head, base, title, body) => {
+      if (failPulls) throw new github.GitHubError(422, "Validation Failed");
+      calls.pulls.push({ repo, head, base, title, body });
+      return { number: 58, url: "https://github.com/o/r/pull/58", title, head, base };
+    },
   };
   const bot = load("lib/bot.ts", {});
   const snapshot = load("lib/repo-snapshot.ts", { "node:zlib": zlib });
@@ -110,8 +116,20 @@ function setup({ replies, signedIn = true, key = "sk-ant-team", workspace = "" }
     },
     { fetch, process: { env } },
   );
-  const post = (body) => route.POST({ headers: { get: () => "application/json" }, json: async () => body });
-  return { post, requests, calls };
+  const apply = load(
+    "app/api/bot/apply/route.ts",
+    {
+      "next/server": { NextResponse: { json: (body, init) => ({ body, status: init?.status ?? 200 }) } },
+      "@/lib/bot": bot,
+      "@/lib/bot-tools": tools,
+      "@/lib/github": github,
+    },
+    { process: { env } },
+  );
+  const request = (body) => ({ headers: { get: () => "application/json" }, json: async () => body });
+  const post = (body) => route.POST(request(body));
+  const applyPost = (body) => apply.POST(request(body));
+  return { post, applyPost, requests, calls };
 }
 
 const toolTurn = (...uses) => ({
@@ -311,4 +329,197 @@ test("team-notes tools still work on COCOMMIT/", async () => {
   assert.equal(entry, "COCOMMIT/DECISIONS.md: ## 2026-10-15 · Use GitHub login");
   assert.match(changes, /- 2026-10-16 · Kin — desktop builds done/);
   assert.match(changes, /kin: Add login/);
+});
+
+test("Edit mode stages changes, reads see them, nothing is written to GitHub", async () => {
+  const { post, requests, calls } = setup({
+    replies: [
+      toolTurn(["edit_file", { path: "README.md", old_text: "# CoCommit", new_text: "# CoCommit 2" }], ["write_file", { path: "docs/new.md", content: "hello" }], ["delete_file", { path: "src/app/page.tsx" }]),
+      toolTurn(["read_file", { path: "README.md" }], ["search_files", { query: "hello" }], ["read_file", { path: "src/app/page.tsx" }], ["show_changes", {}]),
+      endTurn("Renamed the title in README.md, added docs/new.md and removed src/app/page.tsx."),
+    ],
+  });
+  const res = await post({ repo: "o/r", question: "rename the title", mode: "edit" });
+  assert.equal(res.status, 200);
+  const staged = results(requests[1]);
+  assert.match(staged[0], /^Staged: modified README\.md \(\+1 -1\)/);
+  assert.match(staged[1], /^Staged: added docs\/new\.md \(\+1 -0\)/);
+  assert.match(staged[2], /^Staged: deleted src\/app\/page\.tsx/);
+  const [read, search, gone, diff] = results(requests[2]);
+  assert.match(read, /1\| # CoCommit 2/);
+  assert.match(search, /docs\/new\.md:1: hello/);
+  assert.match(gone, /^No such file on main: src\/app\/page\.tsx/);
+  assert.match(diff, /### README\.md \(modified, \+1 -1\)\n- # CoCommit\n\+ # CoCommit 2/);
+  assert.deepEqual(plain(res.body.changes.map((c) => [c.path, c.status, c.additions, c.deletions])), [
+    ["docs/new.md", "added", 1, 0],
+    ["README.md", "modified", 1, 1],
+    ["src/app/page.tsx", "deleted", 0, 1],
+  ]);
+  assert.equal(res.body.changes[1].content, "# CoCommit 2\nGit for beginners, chat and tasks in one app.");
+  assert.equal(res.body.changes[2].content, null);
+  assert.equal(calls.commits.length, 0);
+  assert.equal(calls.pulls.length, 0);
+  assert.ok(requests[0].body.tools.some((t) => t.name === "edit_file"));
+  assert.match(requests[0].body.system[0].text, /Edit mode is on/);
+  assert.match(requests[0].body.messages[0].content, /Mode: edit\./);
+});
+
+test("Ask mode has no edit tools and refuses edit calls", async () => {
+  const { post, requests } = setup({ replies: [toolTurn(["edit_file", { path: "README.md", old_text: "#", new_text: "!" }]), endTurn("Can't edit.")] });
+  const res = await post({ repo: "o/r", question: "edit it" });
+  assert.ok(!requests[0].body.tools.some((t) => t.name === "edit_file"));
+  assert.doesNotMatch(requests[0].body.system[0].text, /Edit mode is on/);
+  assert.equal(requests[1].body.messages[2].content[0].is_error, true);
+  assert.match(results(requests[1])[0], /Editing is off/);
+  assert.equal(res.body.changes, undefined);
+});
+
+test("Edit refusals: excluded, binary, folder, ambiguous text", async () => {
+  const { post, requests } = setup({
+    replies: [
+      toolTurn(
+        ["edit_file", { path: "src/lib/github.ts", old_text: "API", new_text: "X" }],
+        ["write_file", { path: "public/app.dmg", content: "x" }],
+        ["write_file", { path: "src", content: "x" }],
+        ["edit_file", { path: "README.md", old_text: "o", new_text: "0" }],
+        ["edit_file", { path: "../x", old_text: "a", new_text: "b" }],
+      ),
+      endTurn("none"),
+    ],
+  });
+  const res = await post({ repo: "o/r", question: "x", mode: "edit", exclude: ["src/lib/"] });
+  const [excluded, binary, folder, ambiguous, escape] = results(requests[1]);
+  assert.match(excluded, /excluded by the user's "don't read" settings, so it can't be changed/);
+  assert.match(binary, /binary or very large file/);
+  assert.match(folder, /src is a folder/);
+  assert.match(ambiguous, /README\.md: old_text appears \d+ times/);
+  assert.match(escape, /Give a file path inside the repo/);
+  assert.deepEqual(plain(res.body.changes), []);
+});
+
+test("staged changes from the previous answer carry over", async () => {
+  const { post, requests } = setup({ replies: [toolTurn(["read_file", { path: "README.md" }]), endTurn("ok")] });
+  const res = await post({
+    repo: "o/r",
+    question: "also change the second line",
+    mode: "edit",
+    changes: [{ path: "README.md", content: "# Changed" }, { path: "src/lib/github.ts", content: "sneaky" }, { path: "../x", content: "bad" }],
+    exclude: ["src/lib/"],
+  });
+  assert.match(results(requests[1])[0], /1\| # Changed/);
+  assert.match(requests[0].body.messages[0].content, /Already staged from earlier in this conversation \(reads show them\): README\.md\./);
+  assert.deepEqual(plain(res.body.changes.map((c) => c.path)), ["README.md"]);
+});
+
+test("apply makes one commit on a new assistant/ branch and opens a PR into the base", async () => {
+  const { applyPost, calls } = setup({ replies: [] });
+  const res = await applyPost({
+    repo: "o/r",
+    base: "feat/x",
+    title: "Rename the README title",
+    changes: [{ path: "README.md", content: "# New" }, { path: "src/app/page.tsx", content: null }],
+  });
+  assert.equal(res.status, 200);
+  assert.match(res.body.branch, /^assistant\/rename-the-readme-title-[a-z0-9]+$/);
+  assert.equal(calls.commits.length, 1);
+  const c = calls.commits[0];
+  assert.equal(c.branch, res.body.branch);
+  assert.equal(c.from, "feat/x");
+  assert.deepEqual(plain(c.files), [{ path: "README.md", content: "# New" }, { path: "src/app/page.tsx", content: null }]);
+  assert.match(c.message, /^Rename the README title\n\nMade with the CoCommit Assistant \(Edit mode\), reviewed and sent by proud\.$/);
+  const pr = calls.pulls[0];
+  assert.deepEqual([pr.head, pr.base, pr.title], [res.body.branch, "feat/x", "Rename the README title"]);
+  assert.match(pr.body, /- `src\/app\/page\.tsx` \(deleted\)/);
+  assert.equal(res.body.pr.number, 58);
+});
+
+test("apply refuses bad input and signed-out users", async () => {
+  const { applyPost, calls } = setup({ replies: [] });
+  const tries = [
+    [{ repo: "o/r", title: "x", changes: [] }, 400],
+    [{ repo: "o/r", title: "", changes: [{ path: "a", content: "b" }] }, 400],
+    [{ repo: "o/r", title: "x", changes: [{ path: "../a", content: "b" }] }, 400],
+    [{ repo: "o/r", title: "x", changes: [{ path: "a", content: 5 }] }, 400],
+    [{ repo: "o/r", title: "x", changes: [{ path: "a", content: "b" }, { path: "./a", content: "c" }] }, 400],
+    [{ repo: "o/r", title: "x", changes: [{ path: "src/lib/a.ts", content: "b" }], exclude: ["src/lib/"] }, 400],
+    [{ repo: "o/r", title: "x", changes: [{ path: "a", content: "x".repeat(200_001) }] }, 413],
+  ];
+  for (const [body, status] of tries) assert.equal((await applyPost(body)).status, status, JSON.stringify(body).slice(0, 80));
+  assert.equal(calls.commits.length, 0);
+  const out = setup({ replies: [], signedIn: false });
+  assert.equal((await out.applyPost({ repo: "o/r", title: "x", changes: [{ path: "a", content: "b" }] })).status, 401);
+});
+
+test("Edit mode allows 20 rounds", async () => {
+  const replies = [];
+  for (let i = 0; i < 19; i++) replies.push(toolTurn(["show_changes", {}]));
+  replies.push(endTurn("Done."));
+  const { post, requests } = setup({ replies });
+  const res = await post({ repo: "o/r", question: "x", mode: "edit" });
+  assert.equal(res.body.answer, "Done.");
+  assert.equal(requests.length, 20);
+  assert.equal(requests[19].body.tool_choice.type, "none");
+});
+
+test("apply names the branch when the commit worked but the PR didn't", async () => {
+  const { applyPost, calls } = setup({ replies: [], failPulls: true });
+  const res = await applyPost({ repo: "o/r", title: "Fix typo", changes: [{ path: "a.md", content: "x" }] });
+  assert.equal(calls.commits.length, 1);
+  assert.equal(res.status, 422);
+  assert.match(res.body.error, /^Committed to assistant\/fix-typo-[a-z0-9]+, but opening the pull request failed: Validation Failed\. Open it on GitHub from that branch\.$/);
+});
+
+const oaiTool = (name, args) => ({ choices: [{ finish_reason: "tool_calls", message: { content: null, tool_calls: [{ id: "call_1", type: "function", function: { name, arguments: JSON.stringify(args) } }] } }], usage: { prompt_tokens: 40, completion_tokens: 6 } });
+const oaiText = (text) => ({ choices: [{ finish_reason: "stop", message: { content: text } }], usage: { prompt_tokens: 50, completion_tokens: 8 } });
+const GEMINI = "https://generativelanguage.googleapis.com/v1beta/openai";
+
+test("OpenAI-style API (Gemini): Bearer key, function tools, tool messages, answer with links", async () => {
+  const { post, requests } = setup({ key: "", replies: [oaiTool("search_files", { query: "export default" }), oaiText("It's in src/app/page.tsx.")] });
+  const res = await post({ repo: "o/r", question: "where is home?", model: "custom", customModel: "gemini-2.5-flash", apiKey: "AIza-mine", apiUrl: GEMINI, apiFormat: "openai", debug: true });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.answer, "It's in src/app/page.tsx.");
+  assert.deepEqual(plain(res.body.sources), [{ path: "src/app/page.tsx:1", url: "https://github.com/o/r/blob/main/src/app/page.tsx#L1" }]);
+  assert.deepEqual(plain(res.body.debug.rounds.map((r) => [r.stop, r.usage.input])), [["tool_use", 40], ["end_turn", 50]]);
+  assert.doesNotMatch(JSON.stringify(res.body), /AIza-mine/);
+
+  const [first, second] = requests;
+  assert.equal(first.url, `${GEMINI}/chat/completions`);
+  assert.equal(first.headers.authorization, "Bearer AIza-mine");
+  assert.equal(first.headers["x-api-key"], undefined);
+  assert.equal(first.body.model, "gemini-2.5-flash");
+  assert.equal(first.body.tool_choice, "auto");
+  assert.equal(first.body.system, undefined);
+  assert.equal(first.body.cache_control, undefined);
+  assert.equal(first.body.messages[0].role, "system");
+  assert.equal(first.body.tools[1].function.name, "search_files");
+  const [, , assistant, tool] = second.body.messages;
+  assert.equal(assistant.tool_calls[0].function.name, "search_files");
+  assert.equal(tool.role, "tool");
+  assert.equal(tool.tool_call_id, "call_1");
+  assert.match(tool.content, /src\/app\/page\.tsx:1: export default/);
+});
+
+test("OpenAI-style API needs your own key, a URL and a custom model ID", async () => {
+  const { post, requests } = setup({ replies: [{ httpStatus: 401, message: "API key not valid" }] });
+  const base = { repo: "o/r", question: "hi", apiFormat: "openai", model: "custom", customModel: "gemini-2.5-flash" };
+  assert.match((await post({ ...base, apiUrl: GEMINI })).body.error, /own API key/);
+  assert.match((await post({ ...base, apiKey: "k" })).body.error, /needs its API URL/);
+  assert.match((await post({ ...base, apiKey: "k", apiUrl: GEMINI, model: "fast" })).body.error, /pick Custom/);
+  assert.equal(requests.length, 0);
+  const bad = await post({ ...base, apiKey: "k", apiUrl: GEMINI });
+  assert.equal(bad.status, 400);
+  assert.match(bad.body.error, /AI API error \(401\): API key not valid/);
+});
+
+test("Edit mode through an OpenAI-style API gets the edit tools and stages changes", async () => {
+  const { post, requests, calls } = setup({
+    key: "",
+    replies: [oaiTool("edit_file", { path: "README.md", old_text: "# CoCommit", new_text: "# CoCommit!" }), oaiText("Changed README.md.")],
+  });
+  const res = await post({ repo: "o/r", question: "add a !", mode: "edit", model: "custom", customModel: "gemini-2.5-flash", apiKey: "AIza-mine", apiUrl: GEMINI, apiFormat: "openai" });
+  assert.equal(res.status, 200);
+  assert.ok(requests[0].body.tools.some((t) => t.function?.name === "edit_file"));
+  assert.match(JSON.stringify(requests[0].body.messages[0]), /Edit mode is on/);
+  assert.deepEqual(plain(res.body.changes.map((c) => [c.path, c.status])), [["README.md", "modified"]]);
+  assert.equal(calls.commits.length, 0);
 });

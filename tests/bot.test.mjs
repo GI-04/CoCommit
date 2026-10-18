@@ -188,3 +188,84 @@ test("readApiUrl only allows public https hosts", () => {
     assert.equal(typeof bot.readApiUrl(bad).error, "string", bad);
   }
 });
+
+test("applyEdit replaces one exact, unique piece", () => {
+  assert.equal(bot.applyEdit("a b c", "b", "B").text, "a B c");
+  assert.match(bot.applyEdit("a b c", "x", "y").error, /wasn't found/);
+  assert.match(bot.applyEdit("b b b", "b", "y").error, /appears 3 times/);
+  assert.match(bot.applyEdit("abc", "", "y").error, /old_text is empty/);
+  assert.equal(bot.applyEdit("x = $1", "$1", "$&$&").text, "x = $&$&"); // no replace() pattern surprises
+});
+
+test("lineDiff shows changes with context", () => {
+  const before = Array.from({ length: 20 }, (_, i) => `line ${i + 1}`).join("\n");
+  const after = before.replace("line 10", "line ten").replace("line 20", "line 20\nline 21");
+  const d = bot.lineDiff(before, after);
+  assert.equal(d.additions, 2);
+  assert.equal(d.deletions, 1);
+  const text = d.lines.map((l) => `${l.kind}${l.text}`);
+  assert.deepEqual(plain(text.slice(0, 9)), ["…", " line 7", " line 8", " line 9", "-line 10", "+line ten", " line 11", " line 12", " line 13"]);
+  assert.equal(text.at(-1), "+line 21");
+  assert.deepEqual(plain(bot.lineDiff(null, "a\nb").lines.map((l) => l.kind)), ["+", "+"]);
+  assert.deepEqual(plain(bot.lineDiff("a", null).lines.map((l) => l.kind)), ["-"]);
+});
+
+test("assistantBranch makes a safe, unique branch name", () => {
+  assert.equal(bot.assistantBranch("Fix login typo!", "ab12"), "assistant/fix-login-typo-ab12");
+  assert.equal(bot.assistantBranch("แก้หน้า login", "ab12"), "assistant/login-ab12");
+  assert.equal(bot.assistantBranch("แก้ไข", "ab12"), "assistant/changes-ab12");
+  assert.match(bot.assistantBranch("x"), /^assistant\/x-[a-z0-9]{1,4}$/);
+});
+
+test("edit tools are separate from the read tools", () => {
+  assert.deepEqual(plain(bot.EDIT_TOOLS.map((t) => t.name)), ["edit_file", "write_file", "delete_file", "show_changes"]);
+  assert.equal(bot.isToolName("edit_file"), false);
+  assert.equal(bot.isEditToolName("edit_file"), true);
+});
+
+test("readApiUrl for OpenAI-style APIs adds /chat/completions", () => {
+  const gemini = "https://generativelanguage.googleapis.com/v1beta/openai";
+  assert.equal(bot.readApiUrl(gemini, "openai").url, `${gemini}/chat/completions`);
+  assert.equal(bot.readApiUrl(`${gemini}/`, "openai").url, `${gemini}/chat/completions`);
+  assert.equal(bot.readApiUrl("https://api.openai.com/v1/chat/completions", "openai").url, "https://api.openai.com/v1/chat/completions");
+  assert.equal(typeof bot.readApiUrl("http://api.openai.com/v1", "openai").error, "string");
+  assert.equal(bot.readApiFormat("openai"), "openai");
+  assert.equal(bot.readApiFormat("gemini"), "anthropic");
+});
+
+test("Messages API turns become Chat Completions messages and back", () => {
+  const tools = plain(bot.toOpenAITools(bot.TOOLS));
+  assert.equal(tools.length, bot.TOOLS.length);
+  assert.deepEqual(tools[1], { type: "function", function: { name: "search_files", description: bot.TOOLS[1].description, parameters: plain(bot.TOOLS[1].input_schema) } });
+
+  const msgs = plain(
+    bot.toOpenAIMessages("SYS", [
+      { role: "user", content: "where?" },
+      { role: "assistant", content: [{ type: "thinking", thinking: "" }, { type: "text", text: "Looking." }, { type: "tool_use", id: "c1", name: "search_files", input: { query: "x" } }] },
+      { role: "user", content: [{ type: "tool_result", tool_use_id: "c1", content: "a.ts:1: x" }, { type: "tool_result", tool_use_id: "c2", content: "nope", is_error: true }] },
+    ]),
+  );
+  assert.deepEqual(msgs, [
+    { role: "system", content: "SYS" },
+    { role: "user", content: "where?" },
+    { role: "assistant", content: "Looking.", tool_calls: [{ id: "c1", type: "function", function: { name: "search_files", arguments: '{"query":"x"}' } }] },
+    { role: "tool", tool_call_id: "c1", content: "a.ts:1: x" },
+    { role: "tool", tool_call_id: "c2", content: "Error: nope" },
+  ]);
+
+  // Gemini says "stop" even when it calls tools; bad JSON arguments become {}.
+  const calls = plain(
+    bot.fromOpenAIResponse({
+      choices: [{ finish_reason: "stop", message: { content: null, tool_calls: [{ id: "", type: "function", function: { name: "read_file", arguments: '{"path":"a.ts"}' } }, { id: "k", function: { name: "list_folder", arguments: "{bad" } }] } }],
+      usage: { prompt_tokens: 30, completion_tokens: 4, prompt_tokens_details: { cached_tokens: 10 } },
+    }),
+  );
+  assert.deepEqual(calls, {
+    content: [{ type: "tool_use", id: "call_0", name: "read_file", input: { path: "a.ts" } }, { type: "tool_use", id: "k", name: "list_folder", input: {} }],
+    stop_reason: "tool_use",
+    usage: { input_tokens: 30, output_tokens: 4, cache_read_input_tokens: 10 },
+  });
+  assert.equal(bot.fromOpenAIResponse({ choices: [{ finish_reason: "length", message: { content: "cut" } }] }).stop_reason, "max_tokens");
+  assert.equal(bot.fromOpenAIResponse({ choices: [{ finish_reason: "content_filter", message: {} }] }).stop_reason, "refusal");
+  assert.equal(bot.fromOpenAIResponse({ choices: [{ finish_reason: "stop", message: { content: "Done." } }] }).stop_reason, "end_turn");
+});

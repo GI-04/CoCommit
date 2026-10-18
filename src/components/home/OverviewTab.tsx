@@ -1,7 +1,7 @@
 "use client";
 
-import { Avatar } from "@/components/Avatar";
 import { HeatMap } from "@/components/HeatMap";
+import { TeamSpines } from "@/components/TeamSpines";
 import { Card, Skeleton } from "@/components/ui";
 import { buildHeatMap } from "@/lib/heatmap";
 import { problem, useBoard, useCommits, WEEKS, type Load } from "./data";
@@ -24,22 +24,12 @@ export function OverviewTab({ repo }: { repo: string | null }) {
         <Stat tone="mustard" label="Tasks done" state={board} value={tasks ? tasks.filter((t) => t.status === "done").length : null} sub={tasks ? `of ${tasks.length} tasks` : reason(board)} />
         <Stat tone="cyan" label="Open tasks" state={board} value={tasks ? tasks.filter((t) => t.status !== "done").length : null} sub={tasks ? `${tasks.filter((t) => t.status === "taken").length} in progress` : reason(board)} />
       </div>
-      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+      <div className="grid items-start gap-4 lg:grid-cols-[1fr_20rem]">
         <HeatMap repo={repo} state={commits} />
         <Card title={<DemoTitle text="Team" state={board} />}>
           {board.status === "ready" ? (
             board.data.members.length ? (
-              <ul className="space-y-3">
-                {board.data.members.slice(0, 8).map((m) => (
-                  <li key={m.title} className="flex items-center gap-3">
-                    <Avatar name={m.name || m.title} className="size-10" />
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold">{m.name || m.title}</span>
-                      <span className="block truncate text-xs text-muted">{m.role || m.title}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              <TeamSpines members={board.data.members} />
             ) : (
               <p className="text-sm">Nobody is listed in COLLAB.md yet.</p>
             )

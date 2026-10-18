@@ -9,7 +9,7 @@ import { MessagesShell } from "@/components/MessagesShell";
 import { Button, Card } from "@/components/ui";
 import { useRepos } from "@/components/useRepos";
 import { isBotMessage, shareText, stripTrigger, type BotAnswer } from "@/lib/bot";
-import { askBot, BotRequestError } from "@/lib/bot-client";
+import { askBot, BotRequestError, loadBotSettings } from "@/lib/bot-client";
 import {
   canPost,
   chatFake,
@@ -17,6 +17,7 @@ import {
   loadMessages,
   mergeMessage,
   myName,
+  NotMemberError,
   onlineUsers,
   pinMessage,
   sendMessage,
@@ -56,6 +57,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [mayPost, setMayPost] = useState<boolean | null>(null); // null while checking
+  const [closed, setClosed] = useState<string | null>(null); // why this repo's chat is closed to you (not a member)
   const [pinForm, setPinForm] = useState<PinForm | null>(null);
   const [pinNote, setPinNote] = useState<PinNote | null>(null);
   const [saving, setSaving] = useState(false);
@@ -80,9 +82,10 @@ export default function ChatPage() {
     setMessages([]);
     setPinForm(null);
     setPinNote(null);
+    setClosed(null);
     loadMessages(chat)
       .then((list) => current && setMessages((now) => list.reduce(mergeMessage, now)))
-      .catch((e: Error) => current && setError(e.message));
+      .catch((e: Error) => current && (e instanceof NotMemberError ? setClosed(e.message) : setError(e.message)));
     const stop = subscribe(chat, (m) => current && setMessages((now) => mergeMessage(now, m)));
     return () => {
       current = false;
@@ -108,7 +111,7 @@ export default function ChatPage() {
     const recent = messages.filter((m) => m.kind === "text").map(({ author, text, createdAt }) => ({ author, text, createdAt }));
     try {
       // The bot reads a repo's COCOMMIT/ files: the picked repo, also from #general.
-      updateReply(id, { result: await askBot(repo, question, recent) });
+      updateReply(id, { result: await askBot(repo, question, recent, { ...loadBotSettings(), mode: "ask" }) }); // chat stays read-only
     } catch (err) {
       updateReply(id, {
         error: err instanceof Error ? err.message : "The bot couldn't answer.",
@@ -230,6 +233,14 @@ export default function ChatPage() {
               >
                 Log in
               </Link>
+            </div>
+          ) : closed ? (
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-10 text-center">
+              <p className="text-base font-semibold">{closed}</p>
+              <p className="max-w-sm text-sm text-muted">A repo&apos;s chat and call are only for people GitHub lets see that repo. # general is open to everyone on the team.</p>
+              <button type="button" onClick={() => openChat(GENERAL)} className="rounded-full bg-[var(--blue)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90">
+                Open # general
+              </button>
             </div>
           ) : (
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
@@ -355,7 +366,7 @@ export default function ChatPage() {
               </button>
             </p>
           )}
-          {mayPost !== false && (
+          {mayPost !== false && !closed && (
             <>
               <p className="mt-3 text-xs text-muted">
                 You: <span className="font-medium text-fg">{name ?? "…"}</span>

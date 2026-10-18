@@ -26,7 +26,76 @@ export type DebugRound = {
   tools: DebugTool[];
 };
 export type BotDebug = { model: string; branch: string; rounds: DebugRound[]; totalMs: number; snapshot: string; error?: string };
-export type BotAnswer = { answer: string; sources: BotSource[]; debug?: BotDebug };
+export type BotAnswer = { answer: string; sources: BotSource[]; debug?: BotDebug; changes?: ChangeView[] };
+
+// ---------- Edit mode: staged changes
+
+export type BotMode = "ask" | "edit";
+/** One staged change: new full text, or null to delete the file. */
+export type Change = { path: string; content: string | null };
+export type DiffLine = { kind: " " | "+" | "-" | "…"; text: string };
+/** A staged change as the Assistant shows it. `content` goes back to the server with the next question or with Apply. */
+export type ChangeView = Change & { status: "added" | "modified" | "deleted"; additions: number; deletions: number; diff: DiffLine[] };
+
+export const MAX_CHANGED_FILES = 30;
+export const MAX_EDIT_BYTES = 200_000;
+
+/** Replaces one exact, unique piece of text. */
+export function applyEdit(text: string, oldText: string, newText: string): { text: string } | { error: string } {
+  if (!oldText) return { error: "old_text is empty. Use write_file to replace a whole file." };
+  const first = text.indexOf(oldText);
+  if (first === -1) return { error: "old_text wasn't found. Read the file again and copy the exact text, including spaces." };
+  const again = text.indexOf(oldText, first + 1);
+  if (again !== -1) {
+    let n = 2;
+    for (let i = text.indexOf(oldText, again + 1); i !== -1; i = text.indexOf(oldText, i + 1)) n++;
+    return { error: `old_text appears ${n} times. Include more surrounding lines so it matches once.` };
+  }
+  return { text: text.slice(0, first) + newText + text.slice(first + oldText.length) };
+}
+
+/**
+ * Line diff with `context` unchanged lines around each change ("…" marks skipped parts).
+ * Plain LCS, fine for files of a few thousand lines; bigger pairs fall back to "all removed, all added".
+ */
+export function lineDiff(before: string | null, after: string | null, context = 3): { lines: DiffLine[]; additions: number; deletions: number } {
+  const a = before === null ? [] : before.split("\n");
+  const b = after === null ? [] : after.split("\n");
+  let ops: DiffLine[];
+  if (a.length * b.length > 4_000_000) {
+    ops = [...a.map((text) => ({ kind: "-" as const, text })), ...b.map((text) => ({ kind: "+" as const, text }))];
+  } else {
+    // lcs[i][j] = length of the longest common run of a[i..] and b[j..]
+    const lcs = Array.from({ length: a.length + 1 }, () => new Uint32Array(b.length + 1));
+    for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--) lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+    ops = [];
+    let i = 0;
+    let j = 0;
+    while (i < a.length || j < b.length) {
+      if (i < a.length && j < b.length && a[i] === b[j]) {
+        ops.push({ kind: " ", text: a[i] });
+        i++;
+        j++;
+      } else if (i < a.length && (j === b.length || lcs[i + 1][j] >= lcs[i][j + 1])) ops.push({ kind: "-", text: a[i++] });
+      else ops.push({ kind: "+", text: b[j++] });
+    }
+  }
+  const additions = ops.filter((o) => o.kind === "+").length;
+  const deletions = ops.filter((o) => o.kind === "-").length;
+  const keep = ops.map((o, k) => o.kind !== " " || ops.slice(Math.max(0, k - context), k + context + 1).some((n) => n.kind !== " "));
+  const lines: DiffLine[] = [];
+  ops.forEach((o, k) => {
+    if (keep[k]) lines.push(o);
+    else if (lines.at(-1)?.kind !== "…") lines.push({ kind: "…", text: "" });
+  });
+  return { lines, additions, deletions };
+}
+
+/** "Fix login typo!" → "assistant/fix-login-typo-x7k2" (the random end keeps names unique). */
+export function assistantBranch(title: string, random = Math.random().toString(36).slice(2, 6)): string {
+  const slug = title.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+  return `assistant/${slug || "changes"}-${random}`;
+}
 
 // ---------- Chat trigger
 
@@ -274,8 +343,13 @@ export function pickModel(choice: unknown, custom?: unknown): { model: string; e
   return { model: m.model, effort: m.effort, fallbacks: m.id !== "fast" };
 }
 
-/** An Anthropic-compatible URL the user typed: https only, no local or raw-IP hosts. "" → url null (use Anthropic). */
-export function readApiUrl(value: unknown): { url: string | null } | { error: string } {
+/** "anthropic" = Messages API (the default); "openai" = Chat Completions, which Gemini, OpenRouter, Groq etc. also speak. */
+export type ApiFormat = "anthropic" | "openai";
+export const readApiFormat = (value: unknown): ApiFormat => (value === "openai" ? "openai" : "anthropic");
+
+/** A URL the user typed: https only, no local or raw-IP hosts. "" → url null (use Anthropic).
+ *  Adds /v1/messages (Anthropic) or /chat/completions (OpenAI) unless the path already ends with it. */
+export function readApiUrl(value: unknown, format: ApiFormat = "anthropic"): { url: string | null } | { error: string } {
   const raw = typeof value === "string" ? value.trim() : "";
   if (!raw) return { url: null };
   let url: URL;
@@ -290,8 +364,71 @@ export function readApiUrl(value: unknown): { url: string | null } | { error: st
     return { error: "The API URL can't point at a local or IP-address host." };
   }
   const path = url.pathname.replace(/\/+$/, "");
-  url.pathname = path.endsWith("/messages") ? path : `${path}${path.endsWith("/v1") ? "/messages" : "/v1/messages"}`;
+  if (format === "openai") url.pathname = path.endsWith("/chat/completions") ? path : `${path}/chat/completions`;
+  else url.pathname = path.endsWith("/messages") ? path : `${path}${path.endsWith("/v1") ? "/messages" : "/v1/messages"}`;
   return { url: url.toString() };
+}
+
+// ---------- OpenAI-style APIs
+// The bot loop speaks Messages API blocks; these turn them into Chat Completions and back at the one call.
+
+type Block = { type: string; [key: string]: unknown };
+type Turn = { role: "user" | "assistant"; content: string | Block[] };
+type ToolCall = { id: string; type: "function"; function: { name: string; arguments: string } };
+export type OpenAIMessage =
+  | { role: "system" | "user"; content: string }
+  | { role: "assistant"; content: string | null; tool_calls?: ToolCall[] }
+  | { role: "tool"; tool_call_id: string; content: string };
+
+export const toOpenAITools = (tools: readonly { name: string; description: string; input_schema: object }[]) =>
+  tools.map((t) => ({ type: "function" as const, function: { name: t.name, description: t.description, parameters: t.input_schema } }));
+
+export function toOpenAIMessages(system: string, turns: Turn[]): OpenAIMessage[] {
+  const out: OpenAIMessage[] = [{ role: "system", content: system }];
+  for (const turn of turns) {
+    if (typeof turn.content === "string") {
+      out.push({ role: turn.role, content: turn.content });
+    } else if (turn.role === "assistant") {
+      const text = turn.content.filter((b) => b.type === "text").map((b) => String(b.text)).join("\n");
+      const calls: ToolCall[] = turn.content
+        .filter((b) => b.type === "tool_use")
+        .map((b) => ({ id: String(b.id), type: "function", function: { name: String(b.name), arguments: JSON.stringify(b.input ?? {}) } }));
+      out.push({ role: "assistant", content: text || null, ...(calls.length ? { tool_calls: calls } : {}) });
+    } else {
+      for (const b of turn.content) {
+        if (b.type === "tool_result") out.push({ role: "tool", tool_call_id: String(b.tool_use_id), content: `${b.is_error ? "Error: " : ""}${String(b.content)}` });
+        else if (b.type === "text") out.push({ role: "user", content: String(b.text) });
+      }
+    }
+  }
+  return out;
+}
+
+type OpenAIResponse = {
+  choices?: { finish_reason?: string | null; message?: { content?: unknown; tool_calls?: unknown } }[];
+  usage?: { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } };
+};
+
+/** A Chat Completions reply as Messages API content + stop_reason. Some providers (Gemini) say "stop" even with tool calls. */
+export function fromOpenAIResponse(data: OpenAIResponse) {
+  const choice = data.choices?.[0];
+  const content: Block[] = [];
+  const text = choice?.message?.content;
+  if (typeof text === "string" && text.trim()) content.push({ type: "text", text });
+  const calls = Array.isArray(choice?.message?.tool_calls) ? (choice.message.tool_calls as Record<string, unknown>[]) : [];
+  calls.forEach((call, i) => {
+    const fn = (call?.function ?? {}) as { name?: unknown; arguments?: unknown };
+    let input: Record<string, unknown> = {};
+    try {
+      const parsed = JSON.parse(typeof fn.arguments === "string" && fn.arguments ? fn.arguments : "{}");
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) input = parsed;
+    } catch {}
+    content.push({ type: "tool_use", id: typeof call?.id === "string" && call.id ? call.id : `call_${i}`, name: String(fn.name ?? ""), input });
+  });
+  const reason = choice?.finish_reason;
+  const stop_reason = content.some((b) => b.type === "tool_use") ? "tool_use" : reason === "length" ? "max_tokens" : reason === "content_filter" ? "refusal" : "end_turn";
+  const usage = { input_tokens: data.usage?.prompt_tokens ?? 0, output_tokens: data.usage?.completion_tokens ?? 0, cache_read_input_tokens: data.usage?.prompt_tokens_details?.cached_tokens ?? 0 };
+  return { content, stop_reason, usage };
 }
 
 // ---------- Links and prompt
@@ -406,3 +543,45 @@ export const TOOLS = [
 
 export type ToolName = (typeof TOOLS)[number]["name"];
 export const isToolName = (name: string): name is ToolName => TOOLS.some((t) => t.name === name);
+
+/** Added to the system prompt in Edit mode. */
+export const EDIT_PROMPT = `
+
+Edit mode is on: you can also change files with edit_file, write_file and delete_file.
+- Changes are only staged. Nothing is committed until the user reviews the diff and presses "Create pull request", which opens a PR on a new branch.
+- Read the file first. Make the smallest change that does what was asked, and keep the file's style.
+- Prefer edit_file (exact, unique old_text) over write_file for existing files.
+- Don't edit files outside what was asked, and never edit secrets, lockfiles or generated files unless asked.
+- If the request is unclear or risky, ask instead of editing.
+- You can't run code or tests. Say so if it matters.
+- End with a short summary: which files changed and why, and anything the user should check.`;
+
+export const EDIT_TOOLS = [
+  {
+    name: "edit_file",
+    description: "Edit mode only. Replace one exact piece of text in a file. old_text must match exactly once (include enough surrounding lines). Staged, not committed.",
+    input_schema: {
+      type: "object",
+      properties: { path: { type: "string" }, old_text: { type: "string" }, new_text: { type: "string" } },
+      required: ["path", "old_text", "new_text"],
+    },
+  },
+  {
+    name: "write_file",
+    description: "Edit mode only. Create a new file, or replace a whole file with new content. Staged, not committed.",
+    input_schema: { type: "object", properties: { path: { type: "string" }, content: { type: "string" } }, required: ["path", "content"] },
+  },
+  {
+    name: "delete_file",
+    description: "Edit mode only. Delete a file. Staged, not committed.",
+    input_schema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
+  },
+  {
+    name: "show_changes",
+    description: "Edit mode only. The staged changes so far, as a diff.",
+    input_schema: { type: "object", properties: {} },
+  },
+] as const;
+
+export type EditToolName = (typeof EDIT_TOOLS)[number]["name"];
+export const isEditToolName = (name: string): name is EditToolName => EDIT_TOOLS.some((t) => t.name === name);

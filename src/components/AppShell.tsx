@@ -6,12 +6,12 @@ import { AssistantProvider } from "@/components/Assistant";
 import { CallProvider } from "@/components/CallProvider";
 import { Nav } from "@/components/Nav";
 
-// The landing page at "/" and the login screens (/login, /login/forgot, /login/reset) are full-screen and bring their
-// own header; every app page gets the glass navigation.
+// The landing page at "/", the login screens (/login, /login/forgot, /login/reset) and the Legal page (/legal) are
+// full-screen and bring their own header; every app page gets the glass navigation.
 // CallProvider wraps both, so a call keeps going whichever page you open.
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const fullScreen = path === "/" || path.startsWith("/login") || path.startsWith("/auth/");
+  const fullScreen = path === "/" || path.startsWith("/login") || path.startsWith("/auth/") || path === "/legal";
   useGitHubLoginInBrowser();
   return (
     <CallProvider>

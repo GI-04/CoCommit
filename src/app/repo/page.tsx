@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LocalRepo } from "@/components/LocalRepo";
 import { DiffView } from "@/components/DiffView";
 import { FileTree } from "@/components/FileTree";
+import { useAssistant } from "@/components/Assistant";
 import { friendlyError } from "@/lib/errors";
+import { downloadName, fileQuestion, textProblem } from "@/lib/file-tools";
 import { Icon, type IconName } from "@/components/icons";
 import { Button, Card, PageHeader, Skeleton, Tabs, buttonClass } from "@/components/ui";
 import { setCurrentRepo } from "@/lib/current-repo";
@@ -60,19 +62,20 @@ export default function RepoPage() {
     />
   );
 
-  if (mode === "local")
-    return (
-      <div className="max-w-6xl">
-        <PageHeader title="Repository" subtitle="Your clone on this computer: stage, commit, pull and push with buttons.">
-          {tabs}
-        </PageHeader>
-        <LocalRepo />
-      </div>
-    );
-  return <GitHubRepo modeTabs={tabs || null} />;
+  // One header for both modes, so the Web / Local folder switch stays in the same place and its thumb slides instead of
+  // being rebuilt when the mode changes.
+  return (
+    <div className="max-w-6xl">
+      <PageHeader title="Repository" subtitle={mode === "local" ? "Stage, commit, pull and push your clone with buttons." : "Pick a branch, edit a file, commit, then open a pull request."}>
+        {tabs}
+        <span className="hidden w-24 lg:block" aria-hidden />
+      </PageHeader>
+      {mode === "local" ? <LocalRepo /> : <GitHubRepo />}
+    </div>
+  );
 }
 
-function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
+function GitHubRepo() {
   const [fake, setFake] = useState(false);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [repos, setRepos] = useState<Repo[]>([]);
@@ -90,6 +93,8 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const [prTitle, setPrTitle] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<Note | null>(null);
+  const assistant = useAssistant();
+  const [copied, setCopied] = useState(false);
   // Left list (the person's choice; until then Changes if there are any, else Files) and what the right panel shows.
   const [listTab, setListTab] = useState<"changes" | "files" | null>(null);
   const [mode, setMode] = useState<"diff" | "edit">("diff");
@@ -205,7 +210,6 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   if (needsLogin)
     return (
       <div className="max-w-xl">
-        <PageHeader title="Repository" subtitle="Commit and open pull requests with buttons." />
         <Card>
           <p className="mb-4 text-sm">Log in with GitHub to see your repositories.</p>
           <a href={signInHref("/repo")} className={buttonClass("primary", "inline-block")}>
@@ -219,15 +223,36 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
   const changed = branch === base ? [] : changes;
   const tab = listTab ?? (changed.length ? "changes" : "files");
   const fileOf = mode === "edit" ? path : (diff?.path ?? null);
+
+  // The file tools act on what is open: the text in the editor (unsaved edits included), or the diff in the Diff view.
+  const toolFile = mode === "edit" ? (path !== null ? { name: path, text, kind: "file" as const } : null) : diff ? { name: diff.path, text: diff.patch ?? "", kind: "diff" as const } : null;
+  const textIssue = toolFile ? textProblem(toolFile.text) : "Open a file first";
+  async function copyFile() {
+    if (!toolFile || textIssue) return;
+    try {
+      await navigator.clipboard.writeText(toolFile.text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setNote({ kind: "error", text: "Couldn't copy: your browser didn't allow it." });
+    }
+  }
+  function downloadFile() {
+    if (!toolFile || textIssue) return;
+    const url = URL.createObjectURL(new Blob([toolFile.text], { type: "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = downloadName(toolFile.name, toolFile.kind);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000); // Safari reads the blob after the click
+  }
+  const askAbout = () => toolFile && assistant.ask(fileQuestion(toolFile.name, repo, branch, toolFile.kind, toolFile.kind === "diff" ? toolFile.text : ""), { repo, branch });
   const baseName = (p: string) => p.split("/").pop() ?? p;
 
   return (
-    <div className="max-w-6xl">
-      <PageHeader title="Repository" subtitle="Pick a branch, edit a file, commit, then open a pull request.">
-        {modeTabs}
-        <span className="hidden w-24 lg:block" aria-hidden />
-      </PageHeader>
-
+    <div>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <PillSelect
           label="Team"
@@ -372,8 +397,19 @@ function GitHubRepo({ modeTabs }: { modeTabs: React.ReactNode }) {
         <section className="min-w-0 overflow-hidden rounded-lg border border-white/15 bg-white/[0.04]" aria-label="File">
           <header className="flex flex-wrap items-center gap-3 border-b border-white/10 px-5 py-4">
             <div className="min-w-0 flex-1">
-              <h2 className="truncate text-base font-semibold">{fileOf ? baseName(fileOf) : "No file picked"}</h2>
+              <h2 className="truncate text-base font-semibold" title={fileOf ?? undefined}>{fileOf ? baseName(fileOf) : "No file picked"}</h2>
               <p className="truncate text-xs text-muted">{fileOf ?? "Pick a changed file to see its diff, or a file to edit."}</p>
+            </div>
+            <div className="order-last flex basis-full flex-wrap items-center gap-2" role="group" aria-label="File tools">
+              <Button variant="glass" onClick={() => void copyFile()} disabled={!toolFile || !!textIssue} title={textIssue ?? (toolFile?.kind === "diff" ? "Copy the diff" : "Copy the file's text")} className="flex items-center gap-1.5 py-1.5! text-xs">
+                <Icon name={copied ? "check" : "copy"} className="size-3.5" /> {copied ? "Copied" : "Copy"}
+              </Button>
+              <Button variant="glass" onClick={downloadFile} disabled={!toolFile || !!textIssue} title={textIssue ?? "Download it as a file"} className="flex items-center gap-1.5 py-1.5! text-xs">
+                <Icon name="download" className="size-3.5" /> Download
+              </Button>
+              <Button variant="glass" onClick={askAbout} disabled={!toolFile} title={toolFile ? "Ask the Assistant about it" : "Open a file first"} className="flex items-center gap-1.5 py-1.5! text-xs">
+                <Icon name="sparkle" className="size-3.5" /> Assistant
+              </Button>
             </div>
             {mode === "diff" && diff && (
               <span className="flex gap-1.5 text-xs font-medium text-black">
