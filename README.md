@@ -95,7 +95,7 @@ Why not Vercel's own Git connection? On the Hobby plan it can't deploy a private
 ## Project layout
 | Path | What |
 |---|---|
-| `src/app/` | Pages: `repo`, `chat`, `context`, `login`, `profile`, `calls`, `tasks`, `files`. API routes in `api/github/` and `api/bot/`; Supabase auth callbacks in `auth/` |
+| `src/app/` | Pages: `repo`, `chat`, `context`, `login`, `profile`, `calls`, `tasks`, `files`. API routes in `api/github/` and `api/bot/`; Supabase auth callbacks in `auth/`. Search and link previews: `robots.ts`, `sitemap.ts`, `opengraph-image.tsx`, `icon.tsx`, `apple-icon.tsx` (pages are noindex unless they opt in; facts in `src/lib/site.ts`) |
 | `src/components/` | Shared UI: `Nav`, `UserChip`, `LocalRepo`, `Avatar`, `ui` |
 | `src/lib/github*.ts` | GitHub API: `github.ts` (server only), `github-client.ts` (browser), `github-types.ts` |
 | `src/lib/chat*.ts`, `supabase*.ts` | Chat backend, pins, Supabase clients |
