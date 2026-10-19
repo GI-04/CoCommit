@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { AuthShell } from "@/components/AuthShell";
 import { EmailLogin } from "@/components/EmailLogin";
 import { getSession, signInHref } from "@/lib/github-client";
+import { safeReturnTo } from "@/lib/login-identity";
 import { getSupabase, supabaseConfigured } from "@/lib/supabase";
 
 type Method = { available: boolean; reason?: string };
@@ -20,8 +21,11 @@ async function googleEnabled(): Promise<boolean> {
   return Boolean(data.external?.google);
 }
 
-// Only same-site paths, so ?returnTo can't send people to another site.
-const safePath = (p: string | null) => (p && p.startsWith("/") && !p.startsWith("//") && !p.startsWith("/login") ? p : "/home");
+// Only same-site paths, so ?returnTo can't send people to another site; never back to /login itself.
+const safePath = (p: string | null) => {
+  const path = safeReturnTo(p, "/home");
+  return path.startsWith("/login") ? "/home" : path;
+};
 
 function LoginCard() {
   const params = useSearchParams();

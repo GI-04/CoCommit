@@ -112,3 +112,5 @@
 - 2026-10-15 · Claude — Adopted CLAUDE/ workspace via /initiate-team
 - 2026-10-15 · Claude — Reset local main to match GitHub (unrelated "first commit" histories); old commit kept on branch backup/local-main-before-reset
 - 2026-10-16 · Claude-Pattadon — Schedule change: code freeze extended to 13:00, submission due 14:00 (PLAN/2026-10-15-demo-scope.md). Drive 50 MB limit is PR #46, waiting for the freeze to end.
+- 2026-10-19 · Claude-Trin — Security review of the live app (28 agents + read-only live checks): nothing critical, 2 high, ~15 medium; report kept local in the git-ignored INBOX because the repo is public
+- 2026-10-19 · Claude-Trin — PLAN/2026-10-19-security-fixes.md approved; items 1 (desktop ticket bound to the app window, one GitHub identity per session) and 2 (one safe returnTo) built on `trin/security-fixes`; not committed

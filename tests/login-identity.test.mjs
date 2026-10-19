@@ -32,6 +32,17 @@ test("returnTo only allows same-site paths", () => {
   assert.equal(id.safeReturnTo(null, "/home"), "/home");
 });
 
+test("returnTo refuses the tricks browsers turn into another site", () => {
+  // Browsers read "\" as "/" and drop tabs/newlines, so each of these would land on evil.example.
+  for (const bad of ["/\t/evil.example", "/\n/evil.example", "/\r\n/evil.example", "/\\/evil.example", "/x\\..\\..\\evil", "/\u0000/evil.example", "/\u007f/x", 42, {}]) {
+    assert.equal(id.safeReturnTo(bad, "/home"), "/home", JSON.stringify(bad));
+  }
+  // Ordinary paths, queries, hashes and encoded characters stay as they are.
+  for (const good of ["/", "/chat#general", "/repo?x=1&y=/z", "/files/a%20b", "/%2F%2Fevil.example", "/tasks/é"]) {
+    assert.equal(id.safeReturnTo(good, "/home"), good);
+  }
+});
+
 test("the callback URL carries the return page and the GitHub marker", () => {
   const url = new URL(id.githubCallbackUrl("https://cocommit.vercel.app", "/chat"));
   assert.equal(url.origin + url.pathname, "https://cocommit.vercel.app/auth/callback");
@@ -39,6 +50,33 @@ test("the callback URL carries the return page and the GitHub marker", () => {
   assert.equal(url.searchParams.get("provider"), "github");
   assert.equal(new URL(id.githubCallbackUrl("http://localhost:3000", "//evil.example")).searchParams.get("next"), "/repo");
   assert.equal(id.GITHUB_SCOPES, "repo read:user");
+});
+
+test("a desktop sign-in carries the app window's challenge, and only a well-formed one", () => {
+  const challenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
+  const url = new URL(id.githubCallbackUrl("https://cocommit.vercel.app", "/chat", true, challenge));
+  assert.equal(url.searchParams.get("desktop"), "1");
+  assert.equal(url.searchParams.get("challenge"), challenge);
+  for (const bad of [null, undefined, "", "short", `${challenge}&next=//evil`]) {
+    assert.equal(new URL(id.githubCallbackUrl("https://cocommit.vercel.app", "/chat", true, bad)).searchParams.get("challenge"), null);
+  }
+  // A web sign-in never carries one.
+  assert.equal(new URL(id.githubCallbackUrl("https://cocommit.vercel.app", "/chat", false, challenge)).searchParams.get("challenge"), null);
+});
+
+test("the GitHub cookie only counts when it is the signed-in account's own GitHub", () => {
+  const octo = { identities: [{ provider: "github", id: "583231", identity_data: { provider_id: "583231", sub: "583231", user_name: "octocat" } }] };
+  assert.equal(id.githubIdOf(octo), "583231");
+  assert.equal(id.githubIdOf({ identities: [{ provider: "github", id: "77" }] }), "77");
+  assert.equal(id.githubIdOf(googleUser), null);
+  assert.equal(id.githubIdOf(null), null);
+  assert.equal(id.sameGitHubAccount(octo, 583231), true);
+  assert.equal(id.sameGitHubAccount(octo, "583231"), true);
+  assert.equal(id.sameGitHubAccount(octo, 1), false);
+  assert.equal(id.sameGitHubAccount(octo, null), false);
+  // An email or Google account with someone's GitHub cookie: not the same account.
+  assert.equal(id.sameGitHubAccount(googleUser, 583231), false);
+  assert.equal(id.sameGitHubAccount({ identities: [] }, 583231), false);
 });
 
 test("Get started: the app when signed in or in demo mode, else the login page", () => {
