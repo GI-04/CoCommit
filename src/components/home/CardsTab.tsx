@@ -7,13 +7,12 @@ import type { CommitDate } from "@/lib/heatmap";
 import { Icon } from "@/components/icons";
 import { Card, Pill, Skeleton } from "@/components/ui";
 import { HOME_LAYOUT_KEY, moveCard, moveCardTo, resolveLayout, toggleCard, visibleCards, type HomeLayout } from "@/lib/home";
-import { signInHref } from "@/lib/github-client";
 import { chatSummary, commitSummary, contextSummary, driveSummary } from "@/lib/home-summary";
 import { navItems } from "@/lib/sections";
 import type { Board, TaskStatus } from "@/lib/tasks";
 import { commitsOnDay, dayKey } from "@/lib/heatmap";
 import { problem, useBoard, useCommits, useDriveFiles, useLatestCommit, useNextStep, useRecentChat, type Load } from "./data";
-import { Trouble } from "./Trouble";
+import { DemoTag, Trouble } from "./Trouble";
 import { useCardDrag } from "./useCardDrag";
 
 const TONES = ["pink", "cyan", "mustard", "green"] as const;
@@ -37,8 +36,8 @@ const COLUMNS: { status: TaskStatus; title: string; tone: "pink" | "mustard" | "
 // a few lines of real data (PLAN/2026-10-16-glass-buttons-spines.md): they load by themselves, and a card whose data can't
 // load keeps just its blurb.
 export function CardsTab({ repo, customizing }: { repo: string | null; customizing: boolean }) {
-  const board = useBoard(repo);
-  const commits = useCommits(repo);
+  const board = useBoard(repo, true);
+  const commits = useCommits(repo, true);
   const [layout, setLayout] = useState<HomeLayout>(() => resolveLayout(ALL, null));
   // Nothing is read while arranging cards, or for a card that is hidden; what was loaded before stays.
   // The saved layout is read in an effect, so wait for it: a hidden card must not start a read on the first render.
@@ -83,6 +82,8 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
 
   const shown = customizing ? layout.order : visibleCards(layout);
   const tone = (id: string) => TONES[Math.max(0, SCREENS.findIndex((s) => s.href === id)) % TONES.length];
+  // With no tasks to show (no team context, an error) the Team board is one line: don't stretch it to its row.
+  const wide = (id: string) => (id === BOARD ? `sm:col-span-2 ${board.status === "ready" || board.status === "loading" ? "" : "self-start"}` : "");
 
   return (
     <div>
@@ -110,7 +111,7 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
             <TeamBoard board={board} link={!customizing} />
           );
           const stagger = { "--d": `${i * 70}ms` } as React.CSSProperties;
-          if (!customizing) return <div key={id} style={stagger} className={`rise min-w-0 ${id === BOARD ? "sm:col-span-2" : ""}`}>{body}</div>;
+          if (!customizing) return <div key={id} style={stagger} className={`rise min-w-0 ${wide(id)}`}>{body}</div>;
           const dragged = dnd.drag?.id === id;
           const target = !!dnd.drag && dnd.drag.over === id;
           return (
@@ -119,7 +120,7 @@ export function CardsTab({ repo, customizing }: { repo: string | null; customizi
               ref={dnd.ref(id)}
               {...dnd.bind(id)}
               style={dragged ? { transform: `translate3d(${dnd.drag!.dx}px, ${dnd.drag!.dy}px, 0) scale(1.03)`, transition: "none" } : undefined}
-              className={`relative min-w-0 select-none ${id === BOARD ? "sm:col-span-2" : ""} ${dragged ? "z-[45] cursor-grabbing drop-shadow-2xl" : dnd.drag ? "" : "cursor-grab"}`}
+              className={`relative min-w-0 select-none ${wide(id)} ${dragged ? "z-[45] cursor-grabbing drop-shadow-2xl" : dnd.drag ? "" : "cursor-grab"}`}
             >
               <div
                 className={`rounded-lg outline-2 outline-offset-2 ${dragged ? "opacity-90" : hidden ? (target ? "opacity-60" : "opacity-35") : ""} ${
@@ -169,7 +170,7 @@ function GoTo({ section, tone, link, lines }: { section: (typeof SCREENS)[number
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-lg font-semibold">{section.title}</span>
-        <span className="block text-xs leading-4">{section.blurb}</span>
+        <span className="block text-sm leading-5">{section.blurb}</span>
         {lines.length > 0 && (
           <span className="mt-2 block space-y-0.5 border-t border-black/30 pt-2">
             {lines.map((line, i) => (
@@ -206,24 +207,32 @@ function WorkDone({ board, commits }: { board: Load<Board>; commits: Load<Commit
   });
   const counts = commits.status === "ready" ? days.map((d) => commitsOnDay(commits.data, d.key)) : null;
   const max = Math.max(1, ...(counts ?? [0]));
+  // Placeholder bars only while the commits are on their way; with nothing to show there are no bars at all.
+  const bars = counts !== null || commits.status === "loading";
   return (
     <Card tone="cyan" className="flex h-full min-h-[8.5rem] flex-col xl:min-h-[21rem]">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-semibold">Work done</h2>
+        <h2 className="flex items-center gap-2 text-base font-semibold">
+          Work done <DemoTag state={board} />
+        </h2>
       </div>
-      <p className="text-[56px] font-semibold leading-none">{done ?? <span className="shimmer">00</span>}</p>
+      <p className="text-[56px] font-semibold leading-none">{done ?? (board.status === "loading" ? <span className="shimmer">00</span> : "–")}</p>
       <p className="mt-2 text-sm">{tasks ? `tasks closed, of ${tasks.length}` : (problem(board) ?? "Loading…")}</p>
-      <div className="mt-auto flex h-28 items-end gap-2 pt-4" role="img" aria-label={counts ? `Commits per day: ${days.map((d, i) => `${d.label} ${counts[i]}`).join(", ")}` : "Commits per day"}>
-        {days.map((d, i) => (
-          <div
-            key={d.key}
-            title={counts ? `${counts[i]} ${counts[i] === 1 ? "commit" : "commits"} on ${d.label}` : d.label}
-            className={`grow flex-1 rounded-t-lg ${i === 6 ? "bg-paper" : "bg-black"}`}
-            style={{ height: `${counts ? Math.max(8, (counts[i] / max) * 100) : 8}%`, "--d": `${i * 60}ms` } as React.CSSProperties}
-          />
-        ))}
-      </div>
-      <p className="mt-2 text-xs">commits per day, last 7 days</p>
+      {bars && (
+        <>
+          <div className="mt-auto flex h-28 items-end gap-2 pt-4" role="img" aria-label={counts ? `Commits per day: ${days.map((d, i) => `${d.label} ${counts[i]}`).join(", ")}` : "Commits per day"}>
+            {days.map((d, i) => (
+              <div
+                key={d.key}
+                title={counts ? `${counts[i]} ${counts[i] === 1 ? "commit" : "commits"} on ${d.label}` : d.label}
+                className={`grow flex-1 rounded-t-lg ${i === 6 ? "bg-paper" : "bg-black"}`}
+                style={{ height: `${counts ? Math.max(8, (counts[i] / max) * 100) : 8}%`, "--d": `${i * 60}ms` } as React.CSSProperties}
+              />
+            ))}
+          </div>
+          <p className="mt-2 text-xs">commits per day, last 7 days</p>
+        </>
+      )}
     </Card>
   );
 }
@@ -232,7 +241,9 @@ function TeamBoard({ board, link }: { board: Load<Board>; link: boolean }) {
   return (
     <Card className="h-full">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold">Team board</h2>
+        <h2 className="flex items-center gap-2 text-base font-semibold">
+          Team board <DemoTag state={board} />
+        </h2>
         {link && (
           <Link href="/tasks" aria-label="Open the task board" className="grid size-9 place-items-center rounded-full bg-black text-white">
             <Icon name="arrow" className="size-4" />

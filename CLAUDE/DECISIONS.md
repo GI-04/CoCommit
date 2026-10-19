@@ -120,3 +120,10 @@
 - **Why:** Every session starts oriented, work is claimed visibly, and a trail is left.
 - **Alternatives:** Ad-hoc notes in chat; rejected because they get lost between sessions.
 - **Supersedes / superseded by:** none
+
+## 2026-10-18 — Signed-out Home shows a labelled demo team
+- **Status:** active
+- **Decision:** When GitHub says "not logged in", Home's data cards (Work done, Team board, Overview, Activity) show made-up data from `src/lib/home-demo.ts`, with a "Demo" banner and a "Demo" tag on each card. Other pages keep "Log in to see this".
+- **Why:** Trin's pick (UX investigation, PLAN/2026-10-18-home-ux-fixes.md): first-time visitors and judges saw five "Log in with GitHub to see this." lines and a frozen loader instead of what Home does.
+- **Alternatives:** one login banner with dashes in the cards; redirecting /home to /login; per-card login links.
+- **Supersedes / superseded by:** narrows Overview's "no made-up values" rule for the signed-out case only

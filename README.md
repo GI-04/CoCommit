@@ -106,6 +106,7 @@ Why not Vercel's own Git connection? On the Hobby plan it can't deploy a private
 | `src/proxy.ts` | Supabase session refresh (and the optional login wall) |
 | `supabase/` | SQL to run once in Supabase (`profiles.sql`, `schema.sql`, then `chat-author.sql`) |
 | `docs/API.md` | How screens call git, chat, pins and the team context (function list, errors, rules) |
+| `docs/LEGAL.md` | Privacy Policy, cookies, Terms of Service, copyright and contact (draft; not yet shown in the app) |
 | `COCOMMIT/` | This repo's own team context, as CoCommit creates it (read by Pin as decision/gotcha and the activity log) |
 | `src-tauri/` | Desktop shell (Rust) and `BUILDING.md` |
 | `scripts/check-env.mjs` | Shows which keys are set, without printing them |

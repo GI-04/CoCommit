@@ -5,7 +5,7 @@
 // reuse the same load for its numbers.
 import { Fragment, useMemo, useState } from "react";
 import { WEEKS, type Load } from "@/components/home/data";
-import { Trouble } from "@/components/home/Trouble";
+import { DemoTitle, Trouble } from "@/components/home/Trouble";
 import { buildHeatMap, dayKey, type CommitDate, type HeatCell } from "@/lib/heatmap";
 import { Card, Skeleton } from "./ui";
 
@@ -36,7 +36,11 @@ export function HeatMap({ repo, state }: { repo: string | null; state: Load<Comm
   };
 
   return (
-    <Card tone="pink" title={`Commit activity${repo ? ` · ${repo}` : ""}`}>
+    <Card
+      tone="pink"
+      // Demo data isn't from the picked repo, so it isn't named then.
+      title={state.status === "ready" && state.demo ? <DemoTitle text="Commit activity" state={state} /> : `Commit activity${repo ? ` · ${repo}` : ""}`}
+    >
       <Trouble state={state} from="/home" />
       {state.status === "loading" && <Skeleton lines={5} />}
       {map && (
