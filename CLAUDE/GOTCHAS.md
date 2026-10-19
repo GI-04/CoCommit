@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-18: A page's own `openGraph` drops the share image from `opengraph-image.tsx`
+- **What failed:** `/legal` set `openGraph: { ...title, description, url }` in its layout and its `<head>` had no `og:image` / `twitter:image`, while `/home` (no `openGraph`) had both.
+- **Evidence:** rendered `<head>` on `next start` (PLAN/2026-10-18-seo-pass.md); Next replaces a parent's `openGraph` with the child's, and the image file in the root segment is only added where no lower segment sets `openGraph`. `/` keeps it because `page.tsx` sits in the same segment as the image file.
+- **Workaround:** below the root, don't set `openGraph`: og:title and og:description fill in from `title` and `description`. If a page needs one, add the image to it too.
+
 ## 2026-10-16: Tailwind 4 picks the winner by value, not by class order (square "glass" buttons)
 - **What failed:** `Button` had `rounded-md` in its base and `rounded-full` in the glass variant; the buttons rendered square. A `py-1` passed in `className` is ignored for the same reason (the base `py-2.5` wins).
 - **Evidence:** compiled CSS orders same-property utilities by value (`py-1, py-1.5, py-2, py-2.5, py-3`), and the later rule wins whatever the order in the `class` string; computed `border-radius` was 8 px on the live "Ask assistant". Unlayered rules in `globals.css` (like `.btn-glass`) beat every Tailwind utility.

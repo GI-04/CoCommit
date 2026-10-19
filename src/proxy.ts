@@ -43,5 +43,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)"],
+  // robots.txt, sitemap.xml, the icons and the share image must stay public even with the login wall on.
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|manifest.webmanifest|robots.txt|sitemap.xml|icon/|apple-icon|opengraph-image|.*\\.(?:png|jpg|jpeg|svg|ico|webp)$).*)",
+  ],
 };
