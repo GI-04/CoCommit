@@ -104,6 +104,11 @@ body {
   border: 1px solid #000;
   border-radius: var(--radius-lg);
 }
+/* A colour block that is itself a link (Home's cards) draws its focus ring outside, on the dark canvas, so it takes
+   the light ring there (#1f4ae0 on the canvas is only 2.4:1). */
+a:is(.block-pink, .block-cyan, .block-mustard, .block-green, .block-clay, .block-paper):focus-visible {
+  outline-color: var(--blue-soft);
+}
 
 /* Liquid glass: sidebar, rail, top bar, tab tracks and pills. CSS stand-in for Figma's glass effect. */
 .glass {

@@ -21,7 +21,7 @@ export function PageHeader({ title, subtitle, children }: { title: string; subti
 
 // A card. With no `tone` it is a paper-white card; with a tone it is a colour block (pink, cyan, mustard, green);
 // "dark" is the dark panel used for diffs.
-export function Card({ title, children, className = "", tone }: { title?: string; children: ReactNode; className?: string; tone?: Tone }) {
+export function Card({ title, children, className = "", tone }: { title?: ReactNode; children: ReactNode; className?: string; tone?: Tone }) {
   const look = tone === "dark" ? "rounded-lg border border-white/15 bg-white/[0.04] p-5" : tone ? `block-${tone} p-5` : "bg-surface rounded-lg border border-line p-5";
   return (
     <section className={`${look} ${className}`}>
