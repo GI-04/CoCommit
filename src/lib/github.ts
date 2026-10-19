@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import type { Activity } from "./context";
 import type { CommitDate } from "./heatmap";
 import { GitModeError, modesByPath, treeEntries, type TreeListing } from "./git-modes";
-import { hasGitHubIdentity } from "./login-identity";
+import { hasGitHubIdentity, safeReturnTo, sameGitHubAccount } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
 import { isMarkerPath, isSharedPath, MAX_FILE_BYTES, MAX_PARTS, PART_BYTES, partCount, splitShared } from "./files-util";
 import { cleanUsername } from "./invite";
@@ -104,10 +104,6 @@ export async function signOut(): Promise<void> {
  */
 export async function saveGitHubToken(accessToken: string): Promise<void> {
   (await cookies()).set(TOKEN_COOKIE, seal(accessToken), { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 });
-}
-
-function safeReturnTo(path: string | null | undefined): string {
-  return path && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/\\") ? path : "/repo";
 }
 
 function readState(value: string | undefined): { state: string; returnTo: string } | null {
@@ -233,6 +229,27 @@ export async function canSeeRepo(repo: string): Promise<RepoAccess> {
     if (access) return access;
     throw e;
   }
+}
+
+/**
+ * canSeeRepo for routes that act for a Supabase user (chat join, call token): the GitHub cookie must belong to that
+ * user's own linked GitHub account. A cookie someone else left on this browser, or one kept through a desktop ticket,
+ * counts as no GitHub sign-in (PLAN/2026-10-19-security-fixes.md, item 1). Without a Supabase user (a plain GitHub
+ * session) the cookie is the identity, so it is used as is.
+ */
+export async function canSeeRepoAs(user: Parameters<typeof sameGitHubAccount>[0] | null, repo: string): Promise<RepoAccess> {
+  if (fakeMode) return "member";
+  if (user) {
+    let owner: { id: number };
+    try {
+      owner = await gh<{ id: number }>("/user");
+    } catch (e) {
+      if (e instanceof GitHubError && e.status === 401) return "no-github";
+      throw e;
+    }
+    if (!sameGitHubAccount(user, owner.id)) return "no-github";
+  }
+  return canSeeRepo(repo);
 }
 
 /** The signed-in user's repos, most recently updated first (up to 100). */

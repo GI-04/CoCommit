@@ -5,6 +5,7 @@
 import type { AuthError } from "@supabase/supabase-js";
 import { clearCurrentRepo } from "./current-repo";
 import { signOutOfGitHub } from "./github-client";
+import { safeReturnTo } from "./login-identity";
 import { getSupabase } from "./supabase";
 
 export type AuthResult = { error: string | null };
@@ -14,7 +15,7 @@ export const MIN_PASSWORD_LENGTH = 8;
 const NOT_SET_UP = "Email login isn't set up yet.";
 
 // Only same-site paths, so a link can't send people to another site.
-const safePath = (p: string | undefined) => (p && p.startsWith("/") && !p.startsWith("//") ? p : "/home");
+const safePath = (p: string | undefined) => safeReturnTo(p, "/home");
 
 const callbackUrl = (next: string) => `${location.origin}/auth/callback?next=${encodeURIComponent(safePath(next))}`;
 

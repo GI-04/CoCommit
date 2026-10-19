@@ -22,7 +22,7 @@
         "commits",
         "supabase"
       ],
-      "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes (Supabase GitHub provider with legacy fallback) and cookie, fake mode, and how to test against a local fake GitHub. Built-in fake file persistence covers only legacy COCOMMIT.md.",
+      "summary": "How the git buttons talk to GitHub: function names and shapes, client vs server imports, sign-in routes (Supabase GitHub provider with legacy fallback) and cookie, fake mode, and how to test against a local fake GitHub. Built-in fake file persistence covers only legacy COCOMMIT.md. One safeReturnTo for every return path; canSeeRepoAs ties repo access to the Supabase user's own GitHub (2026-10-19).",
       "path": "knowledge/general/github-api.md",
       "sources": [
         "sources/general/mock-github.mjs"
@@ -144,7 +144,7 @@
         "cookies",
         "testing"
       ],
-      "summary": "The Tauri window that loads the live site: window setup and new-window links (system browser), sign-in and cookies in WebView2, local/GitHub Actions builds for .msi/.exe/.dmg, unsigned-install steps, and testing the window through the WebView2 debug port.",
+      "summary": "The Tauri window that loads the live site: window setup and new-window links (system browser), sign-in and cookies in WebView2, local/GitHub Actions builds for .msi/.exe/.dmg, unsigned-install steps, and testing the window through the WebView2 debug port. GitHub sign-in hands over through a ticket bound to the app window (verifier/challenge, /auth/desktop/confirm; 2026-10-19).",
       "path": "knowledge/general/desktop-app.md",
       "sources": [],
       "added": "2026-10-15"
