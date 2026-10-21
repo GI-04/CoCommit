@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-21 — First search page is a "Git for beginner teams" guide at /guide/, with Article data and its text in TypeScript
+- **Status:** active
+- **Decision:** the third indexed page is `/guide/git-for-beginner-teams`, a ~860-word plain-words guide with 8 question headings and 40-60 word answers; text in `src/lib/guide.ts`, `Article` JSON-LD, no own `openGraph`. Plan: `PLAN/2026-10-21-seo-guide-page.md` (Trin picked A a, B a, C a, D a and approved the text).
+- **Why:** real searches beyond the name, useful without signing up, and nothing to keep correct about another company's product; `/guide/` leaves room for more guides; HowTo and FAQ rich results are no longer shown by Google for sites like ours (2023); a typed list lets the tests check the text rules.
+- **Alternatives:** "CoCommit vs GitHub Desktop" (little search volume for the name, overlaps the landing FAQ in `trin/seo-geo`); a top-level address; `HowTo` or `FAQPage` data; a Markdown file rendered like `/legal`.
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-16 — @cocommit bot reads the repo from a tarball, not GitHub code search
 - **Status:** active
 - **Decision:** `/api/bot` downloads the chosen branch once as GitHub's `.tar.gz` (`/repos/{repo}/tarball/{branch}`), unpacks it in memory with `node:zlib` (`src/lib/repo-snapshot.ts`), keeps it 5 minutes per person + repo + branch, and searches/reads that copy. Plan: `PLAN/2026-10-16-bot-code-and-models.md` (approved by proud; the plan named code search, this replaced it while building).

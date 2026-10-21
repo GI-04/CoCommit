@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-21: JetBrains Mono turns `->` into an arrow in code
+- **What failed:** on the guide page, `! [rejected] main -> main (fetch first)` showed `main → main`, which isn't what git prints (seen at 375 px on `next start`).
+- **Evidence:** `font-mono` is JetBrains Mono (`globals.css` `--font-mono`), whose ligatures are on by default; `getComputedStyle(code).fontVariantLigatures` was `normal`.
+- **Workaround:** add `[font-variant-ligatures:none]` to `<code>` that shows commands or git output (done in `src/app/guide/git-for-beginner-teams/page.tsx`). `src/components/Markdown.tsx` (Legal) still has ligatures on.
+
 ## 2026-10-18: A page's own `openGraph` drops the share image from `opengraph-image.tsx`
 - **What failed:** `/legal` set `openGraph: { ...title, description, url }` in its layout and its `<head>` had no `og:image` / `twitter:image`, while `/home` (no `openGraph`) had both.
 - **Evidence:** rendered `<head>` on `next start` (PLAN/2026-10-18-seo-pass.md); Next replaces a parent's `openGraph` with the child's, and the image file in the root segment is only added where no lower segment sets `openGraph`. `/` keeps it because `page.tsx` sits in the same segment as the image file.
