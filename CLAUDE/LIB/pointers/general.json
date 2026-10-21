@@ -173,7 +173,7 @@
     },
     {
       "id": "landing-page",
-      "title": "Landing page, app routes (/ vs /home) and SEO (robots, sitemap, noindex, share image, icons)",
+      "title": "Landing page, app routes (/ vs /home), SEO (robots, sitemap, noindex, share image, icons) and the public guide page",
       "kind": "reference",
       "tags": [
         "landing",
@@ -189,14 +189,18 @@
         "robots",
         "sitemap",
         "open-graph",
-        "icons"
+        "icons",
+        "guide",
+        "article",
+        "json-ld"
       ],
-      "summary": "/ is the marketing landing page (no sidebar); the app home is /home. How AppShell hides the sidebar, the landing components (commit-graph rail, hero demo, downloads), the desktop-app redirect, Get started (login page for visitors, /home when signed in), and every place that defaults to /home.",
+      "summary": "/ is the marketing landing page (no sidebar); the app home is /home. How AppShell hides the sidebar, the landing components (commit-graph rail, hero demo, downloads), the desktop-app redirect, Get started (login page for visitors, /home when signed in), and every place that defaults to /home. Also how a page opts in to search (robots, canonical, PUBLIC_PATHS, no openGraph) and the indexed guide /guide/git-for-beginner-teams (text in src/lib/guide.ts, Article JSON-LD, text rules tested).",
       "path": "knowledge/general/landing-page.md",
       "sources": [
         "PLAN/2026-10-15-landing-page.md",
         "OUTPUT/2026-10-15-2145-landing-page.md",
-        "PLAN/2026-10-18-seo-pass.md"
+        "PLAN/2026-10-18-seo-pass.md",
+        "PLAN/2026-10-21-seo-guide-page.md"
       ],
       "added": "2026-10-15"
     },

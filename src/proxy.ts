@@ -25,8 +25,10 @@ export async function proxy(request: NextRequest) {
   // Chat signs people in anonymously; that doesn't count as a Google login.
   const user = data.user && !data.user.is_anonymous ? data.user : null;
   const path = request.nextUrl.pathname;
-  // "/" is the public landing page; /login/forgot is for people who can't log in; /legal must be readable before signing up.
-  const isPublic = path === "/" || path === "/login" || path === "/login/forgot" || path === "/legal" || path.startsWith("/auth/");
+  // "/" is the public landing page; /login/forgot is for people who can't log in; /legal must be readable before signing up;
+  // the guides (/guide/…) are for search engines and visitors.
+  const isPublic =
+    path === "/" || path === "/login" || path === "/login/forgot" || path === "/legal" || path.startsWith("/guide/") || path.startsWith("/auth/");
 
   if (!user && !isPublic) {
     const to = request.nextUrl.clone();
