@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-22 — Liquid glass bends light only in Chromium, with a per-size SVG lens
+- **Status:** active
+- **Decision:** real refraction uses an SVG filter (`feDisplacementMap` from a lens map drawn per element size, plus the frost) as `backdrop-filter: url(#…)`, switched on only when the browser reports the Chromium brand (`GlassEffects.tsx`); other engines keep the CSS glass. The canvas stays flat (Trin's pick), and bars/pills get a canvas-coloured tint for legibility over light content. Plan: `PLAN/2026-10-22-liquid-glass.md`.
+- **Why:** Chromium is the only engine that applies SVG filters to the backdrop; Safari ignores them or drops the blur. A displacement map sized to each element is what makes the bend follow the rounded rim. The tint costs nothing on the canvas and fixes unreadable white text on glass over white cards.
+- **Alternatives:** WebGL/canvas copies of the page (heavy, can't read the real backdrop), `feTurbulence` noise (looks frosted, not like a lens), colour glows behind the app (Trin kept the flat Figma canvas).
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-16 — @cocommit bot reads the repo from a tarball, not GitHub code search
 - **Status:** active
 - **Decision:** `/api/bot` downloads the chosen branch once as GitHub's `.tar.gz` (`/repos/{repo}/tarball/{branch}`), unpacks it in memory with `node:zlib` (`src/lib/repo-snapshot.ts`), keeps it 5 minutes per person + repo + branch, and searches/reads that copy. Plan: `PLAN/2026-10-16-bot-code-and-models.md` (approved by proud; the plan named code search, this replaced it while building).

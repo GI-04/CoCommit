@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-22 · Claude-Trin — Liquid glass 2 on `trin/liquid-glass` (PLAN/2026-10-22-liquid-glass.md, Trin's picks: flat canvas, springy, refraction incl. buttons): pointer light, Chromium SVG light bending at the rim, readable tint over white, spring + droplet thumbs, sliding sidebar thumb; 242 tests, build, typecheck, browser pane at 3 widths. Pointer light softened after Trin tried it; committed `23ec862`, PR #69.
 - 2026-10-18 · Claude-Trin — SEO pass on `trin/seo` (worktree `../Uhackaton-wt-seo`, plan PLAN/2026-10-18-seo-pass.md, Trin picked all recommended): robots.txt, sitemap.xml, noindex app pages, canonical, share image, app icons, JSON-LD, shorter landing description; typecheck, 230 tests, build, rendered <head> checked locally. Not committed.
 - 2026-10-16 · Claude-proud — Assistant Edit mode (PLAN/2026-10-16-bot-edit.md): staged edits with diffs, Create pull request → new assistant/ branch + one commit + PR (/api/bot/apply); 184 tests + build pass; staging checked on real GitHub, full PR flow on a fake GitHub. Branch proud/bot-edit, not committed.
 - 2026-10-16 · Claude-Pattadon — Assistant can use OpenAI-compatible APIs (Gemini, OpenRouter…) with your own key: new API format setting, translation in the bot route (PLAN/2026-10-16-bot-openai-format.md); 176 tests + build pass; fake server only. PR #61.
