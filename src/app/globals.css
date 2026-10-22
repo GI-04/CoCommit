@@ -110,40 +110,117 @@ a:is(.block-pink, .block-cyan, .block-mustard, .block-green, .block-clay, .block
   outline-color: var(--blue-soft);
 }
 
-/* Liquid glass: sidebar, rail, top bar, tab tracks and pills. CSS stand-in for Figma's glass effect. */
+/* Liquid glass (PLAN/2026-10-22-liquid-glass.md): sidebar, rail, top bar, tab tracks and pills (.glass), the active item
+   (.glass-thumb) and glass buttons (.btn-glass). Every browser gets the material: a frosted fill, a lip of light along
+   the top inside edge, a faint rim, light pooling at the bottom edge, and a highlight that follows the pointer
+   (GlassEffects.tsx writes --lx / --ly; it shows while --lit is 1: hovered, pressed, or the thumb of a hovered bar).
+   Bars and pills also carry a dark tint the colour of the canvas: invisible over the canvas, but over a white card it
+   keeps their white text readable. Chromium also bends the backdrop at the rim with an SVG lens (--lens, under
+   :root[data-refract] below). */
+@property --lx { syntax: "<percentage>"; inherits: false; initial-value: 50%; }
+@property --ly { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+@property --lit { syntax: "<number>"; inherits: false; initial-value: 0; }
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring: var(--ease-out);
+  --spring-bouncy: var(--ease-out);
+}
+/* Damped springs sampled into linear() (8 % and 12 % overshoot); older browsers keep the ease-out. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --spring: linear(0, 0.007 1.2%, 0.039 3.1%, 0.107 5.4%, 0.207 8%, 0.333 10.8%, 0.473 13.8%, 0.615 17%, 0.748 20.4%, 0.863 23.9%, 0.955 27.5%, 1.02 31.3%, 1.061 35.2%, 1.08 39.2%, 1.083 43.4%, 1.074 47.6%, 1.059 51.9%, 1.042 56.3%, 1.026 60.9%, 1.012 65.5%, 1.003 70.2%, 0.997 75%, 0.994 79.8%, 0.995 89.8%, 1);
+    --spring-bouncy: linear(0, 0.007 1.2%, 0.04 3.1%, 0.109 5.4%, 0.213 8%, 0.345 10.8%, 0.494 13.8%, 0.647 17%, 0.79 20.4%, 0.913 23.9%, 1.01 27.5%, 1.076 31.3%, 1.114 35.2%, 1.126 39.2%, 1.119 43.4%, 1.099 47.6%, 1.073 51.9%, 1.046 56.3%, 1.022 60.9%, 1.004 65.5%, 0.992 70.2%, 0.985 75%, 0.984 79.8%, 0.989 89.8%, 1);
+  }
+}
+.glass,
+.glass-thumb,
+.btn-glass {
+  background:
+    radial-gradient(circle 12rem at var(--lx) var(--ly), rgb(255 255 255 / calc(var(--lit) * var(--glow))), rgb(255 255 255 / calc(var(--lit) * var(--glow) * 0.35)) 45%, transparent),
+    radial-gradient(120% 70% at 50% 135%, rgb(255 255 255 / var(--pool)), transparent 70%),
+    linear-gradient(180deg, rgb(255 255 255 / var(--top)), rgb(255 255 255 / var(--bottom))) rgb(30 30 30 / var(--tint));
+  border: 1px solid rgb(255 255 255 / var(--edge));
+  /* Lists everything `a, button` below transition too, since this replaces it. */
+  transition: --lit 0.6s var(--ease-out), color 0.15s, background-color 0.15s, border-color 0.15s, opacity 0.2s, transform 0.7s var(--spring-bouncy);
+}
 .glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.09));
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 4px 40px rgba(0, 0, 0, 0.25), 0 4px 4px rgba(0, 0, 0, 0.1);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  --top: 0.17; --bottom: 0.08; --pool: 0.07; --edge: 0.15; --glow: 0.07; --tint: 0.75;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22), inset 1px 0 0 rgb(255 255 255 / 0.06), inset -1px 0 0 rgb(255 255 255 / 0.04),
+    inset 0 4px 40px rgb(0 0 0 / 0.25), 0 10px 30px -12px rgb(0 0 0 / 0.5);
 }
 .glass-thumb {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.16));
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.22), 0 4px 4px rgba(0, 0, 0, 0.1);
+  --top: 0.3; --bottom: 0.14; --pool: 0.12; --edge: 0.24; --glow: 0.1; --tint: 0;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.42), inset 0 -1px 0 rgb(255 255 255 / 0.08), inset 0 2px 12px rgb(0 0 0 / 0.2), 0 6px 14px -6px rgb(0 0 0 / 0.45);
 }
 /* Buttons (ui.tsx buttonClass): pills in the same glass as the tabs; the blue main action is solid with a soft
-   highlight along its top edge. */
+   highlight along its top edge. Both press in with a squish and spring back. */
 .btn-glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.09));
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -6px 14px rgba(0, 0, 0, 0.22), 0 2px 6px rgba(0, 0, 0, 0.15);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
+  --top: 0.2; --bottom: 0.09; --pool: 0.1; --edge: 0.18; --glow: 0.09; --tint: 0;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.32), inset 0 -6px 14px rgb(0 0 0 / 0.2), 0 6px 14px -8px rgb(0 0 0 / 0.5);
+}
+.glass,
+.btn-glass {
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+}
+/* Chromium: the SVG lens frosts the middle and bends a sharp rim itself (GlassEffects.tsx); plain blur until it's fitted. */
+:root[data-refract] :is(.glass, .btn-glass) {
+  -webkit-backdrop-filter: var(--lens, blur(20px)) saturate(160%);
+  backdrop-filter: var(--lens, blur(20px)) saturate(160%);
 }
 .btn-blue {
   background: linear-gradient(180deg, color-mix(in srgb, var(--blue) 76%, white), var(--blue) 72%);
   border: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 12px rgba(31, 74, 224, 0.35);
+  transition: color 0.15s, opacity 0.2s, filter 0.15s, transform 0.7s var(--spring-bouncy);
+}
+/* Pressing: quick in (the :active transition), springy out (the normal one). */
+:is(.btn-glass, .btn-blue):not(:disabled):active,
+:is(a, button):is(.glass, .glass-thumb):active {
+  --lit: 1;
+  transform: scale(0.95);
+  transition: --lit 0.1s, color 0.15s, background-color 0.15s, opacity 0.2s, filter 0.15s, transform 0.14s var(--ease-out);
 }
 /* Hover only where there is a pointer, so it doesn't stick after a tap on a phone. */
 @media (hover: hover) {
+  :is(.glass, .glass-thumb, .btn-glass):hover,
+  .glass:hover .glass-thumb {
+    --lit: 1;
+  }
   .btn-glass:hover:not(:disabled) {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.15));
+    --top: 0.28; --bottom: 0.13;
   }
   .btn-blue:hover:not(:disabled) {
     filter: brightness(1.08);
+  }
+  :is(.btn-glass, .btn-blue):hover:not(:disabled):not(:active) {
+    transform: translateY(-1px);
+  }
+}
+/* A glass thumb that slides (Tabs, LinkTabs, Drive's view switch, the sidebar): the outer .slide-thumb moves on a spring,
+   the inner glass stretches toward where it's going and settles like a droplet. The inner one is re-mounted on every
+   move (React key) so the stretch replays; it only plays after a user move, which sets data-slide="next" | "back" on the
+   group (the leading edge is the transform origin, so the tail lags behind). */
+.slide-thumb { transition: transform 0.75s var(--spring), width 0.75s var(--spring), height 0.75s var(--spring), opacity 0.2s; }
+/* In a tab track the overshoot past the first or last tab is clipped at the track's end (it squishes against it) and,
+   being clipped, never makes the scrollable track show a scrollbar. */
+.slide-clip { position: absolute; inset: 0; overflow: clip; border-radius: 9999px; pointer-events: none; }
+@keyframes stretch-x { 28% { transform: scale(1.26, 0.86); } 52% { transform: scale(0.95, 1.05); } 74% { transform: scale(1.02, 0.98); } }
+@keyframes stretch-y { 28% { transform: scale(0.9, 1.22); } 52% { transform: scale(1.04, 0.96); } 74% { transform: scale(0.99, 1.02); } }
+[data-slide] .stretch-x { animation: stretch-x 0.65s ease-out; }
+[data-slide] .stretch-y { animation: stretch-y 0.65s ease-out; }
+[data-slide="next"] .stretch-x { transform-origin: right; }
+[data-slide="back"] .stretch-x { transform-origin: left; }
+[data-slide="next"] .stretch-y { transform-origin: bottom; }
+[data-slide="back"] .stretch-y { transform-origin: top; }
+/* Solid glass for people who ask for less transparency. */
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .btn-glass {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background-color: #2c2c2c;
   }
 }
 
@@ -152,8 +229,8 @@ a:is(.block-pink, .block-cyan, .block-mustard, .block-green, .block-clay, .block
   display: none;
 }
 
-/* Motion: small and quick, switched off by prefers-reduced-motion (PLAN/2026-10-16-figma-fidelity-motion.md). */
-:root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); }
+/* Motion: small and quick, switched off by prefers-reduced-motion (PLAN/2026-10-16-figma-fidelity-motion.md).
+   --ease-out and the springs are defined with the glass above. */
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes pop { from { opacity: 0; transform: scale(0.92) translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
