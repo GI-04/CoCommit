@@ -241,14 +241,16 @@
         "diff",
         "edit",
         "issues",
+        "markdown",
         "model",
         "pull-request",
         "pull-requests",
+        "rendering",
         "search",
         "summary",
         "tarball"
       ],
-      "summary": "How the bot works: files, the 15 read-only tools, the tarball snapshot per branch (5-min cache), the don't-read list, the Claude loop (12 rounds, 40 s guard, fallbacks on Sonnet/Opus), model choice, own key/URL rules, OpenAI-compatible format (Gemini etc.), debug trace, keys, and its tests. Edit mode: staged edits with diffs, Create pull request → /api/bot/apply (new assistant/ branch, one commit, PR).",
+      "summary": "How the bot works: files, the 15 read-only tools, the tarball snapshot per branch (5-min cache), the don't-read list, the Claude loop (12 rounds, 40 s guard, fallbacks on Sonnet/Opus), model choice, own key/URL rules, OpenAI-compatible format (Gemini etc.), debug trace, keys, and its tests. Edit mode: staged edits with diffs, Create pull request → /api/bot/apply (new assistant/ branch, one commit, PR). Answers render as safe Markdown (markdown-lite + Markdown variant=\"reply\") in the Assistant and chat.",
       "path": "knowledge/general/file-bot.md",
       "sources": [],
       "added": "2026-10-16"
