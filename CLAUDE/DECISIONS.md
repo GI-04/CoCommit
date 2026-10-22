@@ -120,3 +120,10 @@
 - **Why:** Trin's pick (UX investigation, PLAN/2026-10-18-home-ux-fixes.md): first-time visitors and judges saw five "Log in with GitHub to see this." lines and a frozen loader instead of what Home does.
 - **Alternatives:** one login banner with dashes in the cards; redirecting /home to /login; per-card login links.
 - **Supersedes / superseded by:** narrows Overview's "no made-up values" rule for the signed-out case only
+
+## 2026-10-22 — Bot answers render as Markdown with the Legal page's reader
+- **Status:** active
+- **Decision:** The Assistant and chat's private `@cocommit` replies are shown through `src/components/Markdown.tsx` (`variant="reply"`) on `src/lib/markdown-lite.ts`, which got code fences. No npm package.
+- **Why:** answers showed literal `**` and backticks (Trin's screenshot, PLAN/2026-10-22-assistant-markdown.md). The reader already existed, builds React elements only (bot text is untrusted) and keeps links to http/https/mailto.
+- **Alternatives:** a Markdown package (react-markdown etc.; needs an install and a sanitising setup), a second hand-written renderer, asking the bot for plain text.
+- **Supersedes / superseded by:** —

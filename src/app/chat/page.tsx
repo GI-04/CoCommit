@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Initials } from "@/components/Avatar";
 import { Icon } from "@/components/icons";
 import { ListPanel, repoItem, type ListItem } from "@/components/ListPanel";
+import { Markdown } from "@/components/Markdown";
 import { MessagesShell } from "@/components/MessagesShell";
 import { Button, Card } from "@/components/ui";
 import { useRepos } from "@/components/useRepos";
@@ -328,7 +329,9 @@ export default function ChatPage() {
                   )}
                   {r.result && (
                     <>
-                      <p className="mt-1 whitespace-pre-wrap break-words">{r.result.answer}</p>
+                      <div className="mt-1">
+                        <Markdown source={r.result.answer} variant="reply" />
+                      </div>
                       {r.result.sources.length > 0 && (
                         <ul className="mt-2 space-y-0.5 text-xs">
                           {r.result.sources.map((s) => (

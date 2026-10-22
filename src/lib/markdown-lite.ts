@@ -1,8 +1,10 @@
-// A tiny Markdown reader for the Legal page (PLAN/2026-10-16-legal-page.md). Pure: no imports, no React, no HTML output.
+// A tiny Markdown reader for the Legal page (PLAN/2026-10-16-legal-page.md) and the Assistant's and @cocommit's answers
+// (PLAN/2026-10-22-assistant-markdown.md). Pure: no imports, no React, no HTML output.
 // Supported: headings 1-4 (with GitHub-style ids), paragraphs, bullet and numbered lists (nested by indentation),
-// blockquotes, horizontal rules, tables, **bold**, *italic*, `code`, [links](url) and bare http(s) URLs / emails.
+// blockquotes, horizontal rules, tables, ``` / ~~~ code fences (also inside list items), **bold**, *italic*, `code`,
+// [links](url) and bare http(s) URLs / emails.
 // A newline inside a paragraph is kept as a line break, which is how docs/LEGAL.md writes its bold sub-labels.
-// Not supported on purpose: raw HTML (HTML comments are dropped, other tags show as plain text), images, code fences.
+// Not supported on purpose: raw HTML (HTML comments are dropped, other tags show as plain text), images.
 // Links: only http, https, mailto and #anchor targets stay links; anything else (javascript:, data:, relative paths) is
 // shown as its plain label.
 
@@ -22,7 +24,8 @@ export type Block =
   | { type: "list"; ordered: boolean; start: number; items: ListItem[] }
   | { type: "quote"; children: Block[] }
   | { type: "rule" }
-  | { type: "table"; header: Inline[][]; rows: Inline[][][] };
+  | { type: "table"; header: Inline[][]; rows: Inline[][][] }
+  | { type: "codeblock"; lang: string; text: string };
 
 type Ctx = { slugs: Map<string, number> };
 
@@ -32,6 +35,19 @@ const MARKER = /^([ \t]*)([-*+]|\d{1,9}[.)])[ \t]+(.*)$/;
 const QUOTE = /^ {0,3}>[ \t]?(.*)$/;
 const TABLE_RULE = /^[ \t]*\|?[ \t]*:?-+:?[ \t]*(?:\|[ \t]*:?-+:?[ \t]*)*\|?[ \t]*$/;
 const COMMENT = /^\s*<!--/;
+const FENCE = /^( {0,3})(`{3,}|~{3,})[ \t]*(.*)$/;
+
+type Fence = { indent: number; mark: string; info: string };
+
+/** The fence a line opens (``` or ~~~, then an optional language word), or null. A ``` line with another ` is inline code. */
+function openFence(line: string): Fence | null {
+  const m = FENCE.exec(line);
+  if (!m || (m[2][0] === "`" && m[3].includes("`"))) return null;
+  return { indent: m[1].length, mark: m[2], info: m[3].trim() };
+}
+
+/** True if the line closes the fence: the same character, at least as many, and nothing after. */
+const closesFence = (line: string, fence: Fence) => new RegExp(`^ {0,3}${fence.mark[0]}{${fence.mark.length},}[ \\t]*$`).test(line);
 
 /** Turns Markdown text into blocks. Never throws; unknown syntax stays plain text. */
 export function parseMarkdown(source: string): Block[] {
@@ -73,7 +89,7 @@ function uniqueSlug(text: string, ctx: Ctx): string {
 
 function startsBlock(lines: string[], i: number): boolean {
   const line = lines[i];
-  if (HEADING.test(line) || RULE.test(line) || QUOTE.test(line) || MARKER.test(line) || COMMENT.test(line)) return true;
+  if (HEADING.test(line) || RULE.test(line) || QUOTE.test(line) || MARKER.test(line) || COMMENT.test(line) || openFence(line)) return true;
   return line.includes("|") && i + 1 < lines.length && TABLE_RULE.test(lines[i + 1]) && isTable(line, lines[i + 1]);
 }
 
@@ -95,6 +111,19 @@ function parseBlocks(lines: string[], ctx: Ctx): Block[] {
     if (COMMENT.test(line)) {
       while (i < lines.length && !lines[i].includes("-->")) i++;
       i++;
+      continue;
+    }
+    // A code fence: every line up to the closing fence (or the end) is code, kept as it is.
+    const fence = openFence(line);
+    if (fence) {
+      const code: string[] = [];
+      i++;
+      while (i < lines.length && !closesFence(lines[i], fence)) {
+        code.push(lines[i].replace(new RegExp(`^ {0,${fence.indent}}`), ""));
+        i++;
+      }
+      i++;
+      out.push({ type: "codeblock", lang: /^[\w+#.-]{1,20}/.exec(fence.info)?.[0] ?? "", text: code.join("\n") });
       continue;
     }
     let m: RegExpExecArray | null;
@@ -160,9 +189,18 @@ function parseList(lines: string[], start: number, ctx: Ctx): [Block, number] {
     if (!m || RULE.test(lines[i]) || indentWidth(m[1]) < base || /^\d/.test(m[2]) !== ordered) break;
     const text = [m[3].trim()];
     const nestedLines: string[] = [];
+    let fence: Fence | null = null; // a code fence open inside this item
     i++;
     while (i < lines.length) {
       const l = lines[i];
+      // Inside a fence, blank lines and markers are code; a line back at the item's own indent ends the item.
+      if (fence) {
+        if (l.trim() && indentWidth(leadingSpace(l)) <= base) break;
+        nestedLines.push(l);
+        if (closesFence(l.trimStart(), fence)) fence = null;
+        i++;
+        continue;
+      }
       if (!l.trim()) {
         // A blank line stays inside the list only if the list carries on after it.
         let k = i;
@@ -172,6 +210,7 @@ function parseList(lines: string[], start: number, ctx: Ctx): [Block, number] {
         const nm = MARKER.exec(next);
         const carriesOn = nm ? indentWidth(nm[1]) >= base && !RULE.test(next) : indentWidth(leadingSpace(next)) > base;
         if (!carriesOn) break;
+        if (nestedLines.length) nestedLines.push(...lines.slice(i, k)); // keeps nested blocks apart
         i = k;
         continue;
       }
@@ -179,14 +218,22 @@ function parseList(lines: string[], start: number, ctx: Ctx): [Block, number] {
       const lm = MARKER.exec(l);
       const indent = indentWidth(leadingSpace(l));
       if (lm ? indentWidth(lm[1]) <= base : indent <= base) break;
-      // More indented than the item: a nested list, or (before any nested list) a continuation of the item's text.
-      if (lm || nestedLines.length) nestedLines.push(l);
+      // More indented than the item: a nested list or code fence, or (before any nested block) a continuation of the item's text.
+      fence = openFence(l.trimStart());
+      if (lm || fence || nestedLines.length) nestedLines.push(l);
       else text.push(l.trim());
       i++;
     }
-    items.push({ children: parseInline(text.join("\n")), nested: nestedLines.length ? parseBlocks(nestedLines, ctx) : [] });
+    items.push({ children: parseInline(text.join("\n")), nested: nestedLines.length ? parseBlocks(dedent(nestedLines), ctx) : [] });
   }
   return [{ type: "list", ordered, start: ordered ? parseInt(first[2], 10) : 1, items }, i];
+}
+
+/** Removes the indent all non-blank lines share, so nested blocks parse like top-level ones. */
+function dedent(lines: string[]): string[] {
+  const expanded = lines.map((l) => l.replace(/^[ \t]+/, (ws) => ws.replace(/\t/g, "    ")));
+  const cut = Math.min(...expanded.filter((l) => l.trim()).map((l) => leadingSpace(l).length));
+  return expanded.map((l) => l.slice(Math.min(cut, leadingSpace(l).length)));
 }
 
 /** Splits a table row into cell texts; `\|` stays a literal pipe. */

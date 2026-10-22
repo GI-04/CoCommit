@@ -14,6 +14,7 @@
 - **Own key:** used for that request only; never stored, logged or included in `debug`. `apiUrl` must be https and not localhost/`.local`/`.internal`/an IP literal; a bare host gets `/v1/messages` added. A custom URL needs the user's own key. The server's workspace ID only goes with the server key.
 - **OpenAI-compatible format** (`apiFormat: "openai"`, plan `PLAN/2026-10-16-bot-openai-format.md`): needs own key + URL + Custom model ID (else 400 before any call). `callOpenAI` in the route sends `Authorization: Bearer`, `/chat/completions` (added unless the path ends with it), function tools, `tool_choice` auto/none, `max_tokens` 8000; no cache_control/effort/fallbacks/workspace. Messages API turns are translated in `bot.ts` and the reply comes back as Messages-style blocks, so the loop is unchanged. Gemini says `finish_reason: "stop"` even with tool calls, so any tool call means `tool_use`; Gemini errors come as an array. Only tested against a fake server.
 - **Debug:** `debug: true` adds `{ model, branch, snapshot, rounds[{ ms, stop, usage{input,output,cacheRead,cacheWrite}, tools[{ name, input, ms, result (400 chars), error }] }], totalMs, error }`, also on error replies.
+- **Answers on screen (2026-10-22, `PLAN/2026-10-22-assistant-markdown.md`):** the Assistant and chat's private `@cocommit` replies render the answer as Markdown with `<Markdown source={…} variant="reply" />` (`src/components/Markdown.tsx` on the Legal page's reader `src/lib/markdown-lite.ts`: lists, bold/italic, inline code, ``` fences, headings, tables, quotes, links). React elements only, no HTML strings: tags show as text; links only http/https/mailto (new tab, `noopener noreferrer`); in a reply `#anchor` links are plain text and headings have no ids. Error messages, questions and posted chat messages (incl. "Share to chat") stay plain text.
 - **Errors:** Claude API errors come back as `Claude API error (<status>): <message>` (401/403 → HTTP 400, others 502).
 - **Tests:** `tests/bot.test.mjs` (helpers), `tests/bot-route.test.mjs` (builds a real `.tar.gz` in memory, scripted fake Claude + fake GitHub; covers models, fallbacks, own key/URL, OpenAI-style API (fake Gemini), don't-read, branch, PR/issue, debug, cache, 12-round limit).
 - **Gotchas:** in tests, objects made inside `vm` contexts fail `instanceof` against the outer realm, so `readApiUrl` returns `{ url } | { error }` rather than an `Error`. Next.js route files may only export route fields (`POST`, `maxDuration` …), so helpers live in `bot.ts`.
@@ -27,7 +28,7 @@
 - Checked 2026-10-16: on real GitHub, staging and a follow-up edit to `COCOMMIT/TODO.md` (Sonnet), with nothing written. On a fake GitHub, the full UI: diff card → Create pull request → branch + one commit + PR link.
 
 ## Sources
-- `PLAN/2026-10-15-file-bot.md` (first version), `PLAN/2026-10-16-bot-code-and-models.md` (this version)
+- `PLAN/2026-10-15-file-bot.md` (first version), `PLAN/2026-10-16-bot-code-and-models.md` (this version), `PLAN/2026-10-22-assistant-markdown.md` (answers as formatted text)
 - Code paths above; Anthropic docs via the `claude-api` skill (Messages API, prompt caching, refusal fallbacks)
 
 **Last checked against sources:** 2026-10-16
