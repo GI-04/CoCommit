@@ -2,7 +2,7 @@
 
 <!-- Filename: YYYY-MM-DD-HHMM-<slug>.md. Reusable: someone with no context should be able to rely on this and re-run the verification. -->
 
-**Date:** 2026-10-22 12:35 · **By:** Claude-Trin · **Result:** ✅ done (not committed)
+**Date:** 2026-10-22 12:35 · **By:** Claude-Trin · **Result:** ✅ done (PR #70, not merged)
 **Plan:** `PLAN/2026-10-22-assistant-markdown.md` · **Task:** none (asked for in Trin's session)
 
 ## Goal
@@ -30,4 +30,4 @@ Show the bot's Markdown answers as real lists, bold, code and links instead of l
 - Not supported on purpose: strikethrough, images, raw HTML, syntax colouring, headings 5-6.
 
 ## Uncommitted work
-Yes, on branch `trin/assistant-markdown` in `.claude/worktrees/trin-assistant-markdown`.
+No. Committed as `9f5f69f` on `trin/assistant-markdown`; PR #70 (https://github.com/GI-04/CoCommit/pull/70).
