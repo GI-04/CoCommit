@@ -31,6 +31,9 @@
   --accent-soft: var(--blue-soft);
   --added: var(--green);
   --removed: var(--clay);
+
+  /* the desktop sidebar's width; a saved one is set on <html> before the first paint (src/lib/nav-width.ts) */
+  --nav-w: 254px;
 }
 
 @theme inline {
@@ -60,6 +63,16 @@
   --radius-md: 0.625rem;
   --radius-lg: 0.875rem;
   --radius-xl: 1.25rem;
+}
+
+/* The resizable sidebar (PLAN/2026-10-22-resizable-nav.md): `full:` is the full sidebar, desktop width unless it was dragged
+   into the icon rail (data-nav="rail" on <html>, src/lib/nav-width.ts); the rail keeps the tablet (md:) look. */
+@custom-variant full {
+  @media (width >= 64rem) {
+    &:where(:root:not([data-nav="rail"]) *) {
+      @slot;
+    }
+  }
 }
 
 body {
@@ -222,6 +235,37 @@ a:is(.block-pink, .block-cyan, .block-mustard, .block-green, .block-clay, .block
     backdrop-filter: none !important;
     background-color: #2c2c2c;
   }
+}
+
+/* The sidebar's resize handle (Nav.tsx, PLAN/2026-10-22-resizable-nav.md): a line of light along the right edge that shows
+   under the pointer, while dragging and on keyboard focus (blue, like other focus rings). While dragging (data-nav-drag on
+   <html>) nothing in the sidebar animates, the cursor stays a resize arrow, text isn't selected, and the sidebar keeps
+   plain blur: its light-bending lens is fitted to one size and refits once the drag settles (GlassEffects.tsx). */
+.nav-resize { cursor: col-resize; touch-action: none; }
+.nav-resize::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  width: 3px;
+  translate: -50% 0;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.55);
+  box-shadow: 0 0 10px rgb(255 255 255 / 0.35);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.nav-resize:hover::after,
+:root[data-nav-drag] .nav-resize::after { opacity: 1; }
+.nav-resize:focus-visible { outline: none; }
+.nav-resize:focus-visible::after { opacity: 1; background: var(--blue-soft); box-shadow: 0 0 10px rgb(143 169 250 / 0.5); }
+:root[data-nav-drag],
+:root[data-nav-drag] * { cursor: col-resize !important; user-select: none; }
+:root[data-nav-drag] #main-nav,
+:root[data-nav-drag] #main-nav * { transition: none !important; }
+:root[data-nav-drag] #main-nav {
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
 }
 
 /* Calls: hide LiveKit's built-in chat button; the CoCommit chat panel sits beside the call (src/components/CallRoom.tsx). */
