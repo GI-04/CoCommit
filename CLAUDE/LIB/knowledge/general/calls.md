@@ -6,6 +6,7 @@
 `/calls` → **Join call** puts a LiveKit call (voice, video, screen share) inside CoCommit. There's one room per repo, and only signed-in people can join. Without the three `LIVEKIT_*` keys, the page says "Calls aren't set up yet" and nothing breaks.
 
 ## Details
+- **Who gets into a call, and which room (2026-10-23, Claude-Trin, `PLAN/2026-10-19-security-fixes.md` item 3, branch `trin/security-repo-access`):** `/api/livekit-token` calls `repoAccess` (`src/lib/github.ts`): a private repo GitHub shows you = member; on a **public** repo only people with triage, write, maintain or admin are members, readers get "not a member" (`accessFromRepo` in `src/lib/repo-access.ts`). The room is `cocommit-repo-<GitHub repo id>` (`roomForRepo(id)` in `src/lib/livekit-token.ts`), taken from GitHub's answer, not from the name the browser sends, so look-alike names (`acme/my-app`, `acme-my/app`) never share a room and a renamed repo keeps its room. Fake mode uses a stable stand-in id per name.
 - **Why not Discord:** Discord has no API to embed its calls in another app, and its web client refuses to load inside a frame. A bot can join voice but can't do video. So we use LiveKit (already in the stack).
 - **Token:** `POST /api/livekit-token {"repo":"owner/name"}` → `{token, url, room}`. `src/lib/livekit-token.ts` signs the token as an HS256 JWT (`iss` = API key, `sub` = identity, `video` grant with roomJoin/canPublish/canSubscribe/canPublishData, 6 h) using `node:crypto`, so there's no `livekit-server-sdk`. Server only: never import it from browser code.
 - **Who may join:**

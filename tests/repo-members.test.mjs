@@ -32,6 +32,19 @@ const plain = (x) => JSON.parse(JSON.stringify(x));
 const next = { NextResponse: { json: (body, init) => ({ status: init?.status ?? 200, body: plain(body) }) } };
 const request = (body) => ({ json: async () => body });
 
+test("a private repo GitHub shows you counts; on a public repo only people who work on it do", () => {
+  assert.equal(access.accessFromRepo({ private: true, permissions: { pull: true } }), "member");
+  assert.equal(access.accessFromRepo({ private: true }), "member");
+  for (const role of ["push", "triage", "maintain", "admin"]) {
+    assert.equal(access.accessFromRepo({ private: false, permissions: { pull: true, [role]: true } }), "member", role);
+  }
+  // A reader of a public repo, or an answer without permissions, is not a member.
+  assert.equal(access.accessFromRepo({ private: false, permissions: { pull: true, push: false, triage: false, maintain: false, admin: false } }), "not-member");
+  assert.equal(access.accessFromRepo({ private: false }), "not-member");
+  assert.equal(access.accessFromRepo({ private: false, permissions: null }), "not-member");
+  assert.equal(access.accessFromRepo({}), "not-member");
+});
+
 test("GitHub's answer decides access: 2xx member, 401 no GitHub, 403/404 not a member, others unknown", () => {
   assert.equal(access.accessFromStatus(200), "member");
   assert.equal(access.accessFromStatus(401), "no-github");
@@ -45,19 +58,23 @@ test("GitHub's answer decides access: 2xx member, 401 no GitHub, 403/404 not a m
 
 // ---------- Calls: /api/livekit-token
 
+// GitHub's repo ids for the fake answers; a member gets the id, everyone else null (as repoAccess does).
+const IDS = { "GI-04/CoCommit": 869245913, "acme/my-app": 1001, "acme-my/app": 2002 };
+
 function callRoute(answer, seen = []) {
   const github = {
     fakeMode: false,
     getSession: async () => ({ user: { login: "octo", name: "Octo" }, fake: false }),
-    canSeeRepo: async (repo) => {
+    repoAccess: async (repo) => {
       seen.push(repo);
       if (answer instanceof Error) throw answer;
-      return answer;
+      return { access: answer, id: answer === "member" ? (IDS[repo] ?? 42) : null };
     },
   };
   const liveKit = { ...lk, liveKitKeys: () => ({ url: "wss://lk.example", apiKey: "k", apiSecret: "s" }) };
   return load("app/api/livekit-token/route.ts", {
     "next/server": next,
+    "@/lib/current-repo": currentRepo,
     "@/lib/github": github,
     "@/lib/livekit-token": liveKit,
     "@/lib/repo-access": access,
@@ -69,7 +86,7 @@ test("a member of the repo gets a call token", async () => {
   const seen = [];
   const res = await callRoute("member", seen).POST(request({ repo: "GI-04/CoCommit" }));
   assert.equal(res.status, 200);
-  assert.equal(res.body.room, "cocommit-gi-04-cocommit");
+  assert.equal(res.body.room, "cocommit-repo-869245913");
   assert.ok(res.body.token);
   assert.deepEqual(seen, ["GI-04/CoCommit"]);
 });
@@ -81,6 +98,36 @@ test("someone GitHub doesn't show the repo to, or without GitHub sign-in, gets n
     assert.equal(res.body.error, error);
     assert.equal(res.body.token, undefined);
   }
+});
+
+test("repos whose names look alike get their own rooms, named by GitHub's id", async () => {
+  const a = await callRoute("member").POST(request({ repo: "acme/my-app" }));
+  const b = await callRoute("member").POST(request({ repo: "acme-my/app" }));
+  assert.equal(a.body.room, "cocommit-repo-1001");
+  assert.equal(b.body.room, "cocommit-repo-2002");
+});
+
+test("a bad repo name gets no token and GitHub isn't asked", async () => {
+  for (const bad of [undefined, "", "norepo", "a/b/c", "../x", 42]) {
+    const seen = [];
+    const res = await callRoute("member", seen).POST(request({ repo: bad }));
+    assert.equal(res.status, 400, String(bad));
+    assert.deepEqual(seen, []);
+  }
+});
+
+test("a member answer without a usable repo id gets no token", async () => {
+  const route = load("app/api/livekit-token/route.ts", {
+    "next/server": next,
+    "@/lib/current-repo": currentRepo,
+    "@/lib/github": { fakeMode: false, getSession: async () => ({ user: { login: "octo", name: "Octo" }, fake: false }), repoAccess: async () => ({ access: "member", id: null }) },
+    "@/lib/livekit-token": { ...lk, liveKitKeys: () => ({ url: "wss://lk.example", apiKey: "k", apiSecret: "s" }) },
+    "@/lib/repo-access": access,
+    "@/lib/supabase-server": { getSupabaseServer: async () => null },
+  });
+  const res = await route.POST(request({ repo: "GI-04/CoCommit" }));
+  assert.equal(res.status, 502);
+  assert.equal(res.body.token, undefined);
 });
 
 test("if GitHub can't be reached, the call says so instead of letting anyone in", async () => {

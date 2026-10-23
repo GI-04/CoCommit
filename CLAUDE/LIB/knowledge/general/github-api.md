@@ -15,6 +15,7 @@ Server code imports `@/lib/github`; `"use client"` screens import `@/lib/github-
 - **Env:** `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`; optional `GITHUB_API_URL`, `GITHUB_WEB_URL` (GitHub Enterprise or the mock).
 - **No packages:** plain `fetch`, no Octokit.
 - **Mock test:** start `node <path>/mock-github.mjs` (port 4010), then run the dev server with the env pointed at it. zsh: `GITHUB_CLIENT_ID=test-id GITHUB_CLIENT_SECRET=test-secret GITHUB_API_URL=http://127.0.0.1:4010 GITHUB_WEB_URL=http://127.0.0.1:4010 npx next dev -p 3100`. PowerShell 7: set each with `$env:NAME="value"` first, then `npx next dev -p 3100`. Sign in by following `/api/github/login`'s redirect `state` into `/api/github/callback?code=good-code&state=<state>`. The mock serves repo `acme/app` (branches `main`, `feature/x`); `GET /__log` shows every request it got.
+- **Repo membership (`repoAccess(repo)`, server only, not in `actions`; 2026-10-23, `PLAN/2026-10-19-security-fixes.md` item 3):** one `GET /repos/{repo}` with the user's token → `{ access, id }`. Private repo shown to you = member; public repo = member only with triage/write/maintain/admin in GitHub's `permissions` (`accessFromRepo`); 401 = no GitHub, 403/404 = not a member; `id` (GitHub's numeric repo id) only for members. `canSeeRepo(repo)` is `repoAccess` without the id. Used by `/api/chat/join` and `/api/livekit-token` (room name from the id).
 
 ## Sources
 - `sources/general/mock-github.mjs`: the fake GitHub used to verify the full flow on 2026-10-15
