@@ -127,3 +127,10 @@
 - **Why:** Trin's pick (UX investigation, PLAN/2026-10-18-home-ux-fixes.md): first-time visitors and judges saw five "Log in with GitHub to see this." lines and a frozen loader instead of what Home does.
 - **Alternatives:** one login banner with dashes in the cards; redirecting /home to /login; per-card login links.
 - **Supersedes / superseded by:** narrows Overview's "no made-up values" rule for the signed-out case only
+
+## 2026-10-23 · Repository page: magic redesign, layout by content width
+- **Status:** active
+- **Decision:** The web Repository page is rebuilt from the "repo page idea" Figma frames: index drawer + step rail + editor with change marks + desk (sticky notes, one Save commits every edited file) + "Recent saves" commit spines. Buttons say "Save" (the envelope explains it makes a commit). The layout follows the page's own content width (container queries + a ResizeObserver), not the window: three columns from 1000 px of content, drawer + editor from 672 px with the desk docked at the bottom of the content (sticky), one column below that.
+- **Why:** Trin's picks (`q1:d q2:a q3:c q4:a q5:a q6:a q7:a`, PLAN/2026-10-22-repo-page-magic.md). In the browser at a 1024 px window the three columns left the editor 108 px wide; the sidebar width (and PR #71's resizable sidebar) changes the space, so window breakpoints can't know it.
+- **Alternatives:** window breakpoints (lg/xl); desk under the drawer; a fixed bottom dock over the whole window (covers the sidebar).
+- **Supersedes / superseded by:** the Changes / Files card and pink Commit card layout (PLAN/2026-10-16-figma-ui-polish.md)

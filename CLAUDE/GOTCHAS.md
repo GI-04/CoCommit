@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-10-22: Figma drops the opacity of a paint bound to a colour variable
+- **What failed:** through the Figma MCP (`use_figma`), `{ ...setBoundVariableForPaint(paint, "color", whiteVar), opacity: 0.2 }` was stored with `opacity: 1`, so glass pills and the editor panel came out solid white; a bound paint built with the default `color {0,0,0}` also rendered black on one instance ("CoCommit app" tab).
+- **Evidence:** reading back the editor's fills on "Repo · Magic · Edit" (page "repo page idea") showed `opacity: 1` with `boundVariables.color`; the existing file's glass uses unbound `#FFFFFF` at 20 % (`80:423`).
+- **Workaround:** bind only solid colours, and set the paint's `color` to the variable's real value before binding; for see-through colours use a plain unbound paint with `opacity` (as the existing frames do).
+
 ## 2026-10-22: A spring overshoot inside a scrollable tab track flashes a scrollbar
 - **What failed:** the glass tab thumb overshot past the last tab by ~14-28 px (8 % of the move), beyond the track's 6-8 px padding; the track has `overflow-x: auto`, so the transformed thumb added scrollable overflow for a moment (a visible scrollbar on Windows).
 - **Evidence:** pausing the transition at 300 ms put the thumb's right edge at 1142 px vs the track's inner edge at 1122 px (`PLAN/2026-10-22-liquid-glass.md`).

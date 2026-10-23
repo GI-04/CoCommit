@@ -53,6 +53,7 @@
   --color-clay: var(--clay);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, "Times New Roman", serif;
 }
 
 /* Rounder corners than Tailwind's defaults, as in Figma. */
@@ -253,3 +254,45 @@ button:not(:disabled):active { transform: scale(0.97); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
 }
+
+/* Repository page (PLAN/2026-10-22-repo-page-magic.md, Figma page "repo page idea"): the index drawer (folders as stacked
+   colour tabs), the desk (edits as sticky notes, an envelope to save) and the "Recent saves" shelf of commit spines.
+   Colours come from the tone classes; text on every tone is black. */
+.tone-pink { --tone: var(--pink); }
+.tone-cyan { --tone: var(--cyan); }
+.tone-mustard { --tone: var(--mustard); }
+.tone-green { --tone: var(--green); }
+.tone-paper { --tone: var(--paper); }
+.tone-clay { --tone: var(--clay); }
+.drawer-tab { background: var(--tone); color: #000; border-radius: 12px 12px 0 0; transition: transform 0.3s var(--spring-bouncy), filter 0.15s; }
+/* One strip per folder level, in the parent's colour; its folders' tabs stand on it (scrolls sideways when they don't fit). */
+.drawer-row { background: var(--tone); display: flex; align-items: flex-end; gap: 4px; padding: 6px 8px 0; overflow-x: auto; scrollbar-width: none; }
+.drawer-row::-webkit-scrollbar { display: none; }
+.drawer-layer { background: var(--tone); color: #000; border-radius: 0 0 10px 10px; }
+@media (hover: hover) {
+  button.drawer-tab:hover { transform: translateY(-3px); }
+}
+/* A folder opening: its layer slides up over the stack with a spring, the rows fade in one after another (.rise, --d). */
+@keyframes drawer-up { from { transform: translateY(22px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+.drawer-open { animation: drawer-up 0.38s var(--spring) backwards; }
+
+/* Sticky notes: tilted a little (--tilt); when you save they fly into the envelope (--fx/--fy from the page, 40 ms apart). */
+.note { background: var(--tone); color: #000; transform: rotate(var(--tilt, 0deg)); transition: transform 0.3s var(--spring-bouncy); box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.7); }
+@media (hover: hover) {
+  .note:hover { transform: rotate(0deg) translateY(-3px); }
+}
+@keyframes note-fly {
+  to { transform: translate(var(--fx, 0px), var(--fy, 120px)) rotate(calc(var(--tilt, 0deg) * 5)) scale(0.25); opacity: 0; }
+}
+.note-fly { animation: note-fly 0.42s cubic-bezier(0.55, 0, 0.75, 0.2) forwards; animation-delay: var(--d, 0ms); pointer-events: none; }
+@keyframes seal { 40% { transform: scale(0.97); } }
+.envelope-seal { animation: seal 0.5s var(--spring-bouncy); }
+
+/* "Recent saves": one spine per commit; the newest one drops onto the shelf after a save. */
+.spine { background: var(--tone); border: 1px solid #000; border-radius: 2px; transition: transform 0.25s var(--spring-bouncy); }
+.spine:hover, .spine:focus-visible { transform: translateY(-5px); }
+@keyframes spine-drop { from { transform: translateY(-48px) rotate(-10deg); opacity: 0; } 60% { opacity: 1; } to { transform: none; opacity: 1; } }
+.spine-drop { animation: spine-drop 0.55s var(--spring-bouncy) backwards; }
+
+/* The editor: a textarea over a layer that marks your changed lines; the gutter and marks follow its scroll (--sy). */
+.code-marks, .code-gutter { transform: translateY(calc(var(--sy, 0px) * -1)); }

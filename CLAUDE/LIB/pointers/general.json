@@ -372,14 +372,19 @@
         "refraction",
         "animation",
         "spring",
-        "motion"
+        "motion",
+        "repository",
+        "redesign"
       ],
-      "summary": "How the app got the Figma design: colour tokens flip inside cards, glass nav in three sizes, shared ui components (Card tone, Tabs), full-screen auth, the Home tabs (Cards, Overview, Activity, Customize) with real data and honest empty states, and the polish pass (Messages group, floating Assistant, Repository diff layout, Drive, Profile and Context tabs, landing); what was left out because it has no data. Liquid glass 2 (2026-10-22): pointer light, Chromium-only SVG light bending at the rim (glass-map.ts, GlassEffects.tsx), canvas-coloured tint for legibility, spring + droplet-stretch thumbs and a sliding sidebar thumb.",
+      "summary": "How the app got the Figma design: colour tokens flip inside cards, glass nav in three sizes, shared ui components (Card tone, Tabs), full-screen auth, the Home tabs (Cards, Overview, Activity, Customize) with real data and honest empty states, and the polish pass (Messages group, floating Assistant, Repository diff layout, Drive, Profile and Context tabs, landing); what was left out because it has no data. Liquid glass 2 (2026-10-22): pointer light, Chromium-only SVG light bending at the rim (glass-map.ts, GlassEffects.tsx), canvas-coloured tint for legibility, spring + droplet-stretch thumbs and a sliding sidebar thumb. Repository redesign (Figma page \"repo page idea\", built on trin/repo-magic): index drawer, step rail, editor with change marks, desk of sticky notes (one Save commits all), commit-spine shelf, layout by content width (src/components/repo/, drawer.ts, desk.ts).",
       "path": "knowledge/general/figma-ui.md",
       "sources": [
         "src/app/globals.css",
         "src/components/Nav.tsx",
         "src/components/ui.tsx",
+        "src/app/repo/page.tsx",
+        "src/lib/drawer.ts",
+        "src/lib/desk.ts",
         "src/components/home/data.ts",
         "src/lib/home.ts",
         "src/components/GlassEffects.tsx",
