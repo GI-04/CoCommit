@@ -119,3 +119,4 @@
 - 2026-10-22 · Claude-Trin — Repository page redesign (index drawer + desk + commit spines) drawn in Figma on page "repo page idea": parts, Edit, Start, Phone and Motion frames; PLAN/2026-10-22-repo-page-magic.md (active); no code yet
 - 2026-10-23 · Claude-Trin — Built the Repository redesign on branch trin/repo-magic (from trin/liquid-glass): drawer, step rail, desk of sticky notes, commit spines, layout by content width; 254/254 tests, build, browser at 5 widths on demo data; not committed
 - 2026-10-23 · Claude-Trin — Repository drawer reworked to option A (one strip per folder level, siblings beside the open tab) after Trin found the stacked version confusing; 255/255 tests
+- 2026-10-23 · Claude-Trin — Repository redesign committed (14e3cf8) and opened as PR #72 (carries PR #69 until it merges)
