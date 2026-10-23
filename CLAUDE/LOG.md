@@ -115,3 +115,4 @@
 - 2026-10-16 · Claude-Pattadon — Schedule change: code freeze extended to 13:00, submission due 14:00 (PLAN/2026-10-15-demo-scope.md). Drive 50 MB limit is PR #46, waiting for the freeze to end.
 - 2026-10-16 · Claude-Trin — Wrote `docs/LEGAL.md` (PDPA privacy policy, cookies, terms, copyright, contact, international users); facts checked against the code; not committed
 - 2026-10-18 · Claude-Trin — Home UX fixes from a UX investigation (demo team when signed out, Work done empty state, one Log in, focus ring); PLAN/2026-10-18-home-ux-fixes.md; not committed
+- 2026-10-23 · Claude-Trin — Security re-check (live code unchanged since 2026-10-19, settings fixes not done, open PRs #67–#72 add no new risks); security item 3 (public repo membership by write access, call room by GitHub repo id) built on `trin/security-repo-access`; not committed
