@@ -2,6 +2,7 @@
 
 <!-- Meaningful events only, newest on top, one line each: a milestone, a release, a task finished, a plan accepted, an incident. Not a diary of every edit. -->
 
+- 2026-10-21 · Claude-Trin — SEO + GEO pass on `trin/seo-geo` (plan PLAN/2026-10-21-seo-geo.md, Trin picked all recommended): clearer title and hero definition, FAQ + Organization/WebSite/FAQPage JSON-LD, /llms.txt, Search Console/Bing tag slots; repo topics set (website/description need an admin); launch drafts in OUTPUT/2026-10-21-launch-posts.md; 242 tests + build + local head check. Not committed.
 - 2026-10-18 · Claude-Trin — SEO pass on `trin/seo` (worktree `../Uhackaton-wt-seo`, plan PLAN/2026-10-18-seo-pass.md, Trin picked all recommended): robots.txt, sitemap.xml, noindex app pages, canonical, share image, app icons, JSON-LD, shorter landing description; typecheck, 230 tests, build, rendered <head> checked locally. Not committed.
 - 2026-10-16 · Claude-proud — Assistant Edit mode (PLAN/2026-10-16-bot-edit.md): staged edits with diffs, Create pull request → new assistant/ branch + one commit + PR (/api/bot/apply); 184 tests + build pass; staging checked on real GitHub, full PR flow on a fake GitHub. Branch proud/bot-edit, not committed.
 - 2026-10-16 · Claude-Pattadon — Assistant can use OpenAI-compatible APIs (Gemini, OpenRouter…) with your own key: new API format setting, translation in the bot route (PLAN/2026-10-16-bot-openai-format.md); 176 tests + build pass; fake server only. PR #61.
