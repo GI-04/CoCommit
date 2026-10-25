@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-23 — On a public repo, chat and call members are the people who work on it, not everyone who can read it
+- **Status:** active
+- **Decision:** `accessFromRepo` (`src/lib/repo-access.ts`): a private repo GitHub shows you = member; a public repo = member only with triage, write, maintain or admin in GitHub's `permissions`. Call rooms are named by GitHub's numeric repo id. Plan: `PLAN/2026-10-19-security-fixes.md` item 3 (approved by Trin).
+- **Why:** GitHub shows a public repo to everyone, so "can see it" let any GitHub user into a public team's chat and call (this team's own repo is public). Names made from "owner/name" could also collide between repos.
+- **Alternatives:** keep "can see" (open to the world on public repos); ask GitHub's collaborators endpoint per user (an extra request; `permissions` already comes with `GET /repos/{repo}`); count organisation members with read access (left out: on a public repo they can't be told apart from strangers by this one request).
+- **Supersedes / superseded by:** narrows `PLAN/2026-10-16-repo-members-only.md` ("only people GitHub lets see the repo").
+
 ## 2026-10-16 — @cocommit bot reads the repo from a tarball, not GitHub code search
 - **Status:** active
 - **Decision:** `/api/bot` downloads the chosen branch once as GitHub's `.tar.gz` (`/repos/{repo}/tarball/{branch}`), unpacks it in memory with `node:zlib` (`src/lib/repo-snapshot.ts`), keeps it 5 minutes per person + repo + branch, and searches/reads that copy. Plan: `PLAN/2026-10-16-bot-code-and-models.md` (approved by proud; the plan named code search, this replaced it while building).
