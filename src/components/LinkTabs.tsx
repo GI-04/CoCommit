@@ -23,6 +23,8 @@ export function LinkTabs({ tabs, value, label }: { tabs: { id: string; label: st
     last.set(label, { index, left: Infinity });
     if (shown === index) return;
     thumb.current?.getBoundingClientRect(); // settle the starting place first, so the move below animates
+    // Which way it goes, so the glass stretches toward the new tab (.slide-thumb in globals.css).
+    if (thumb.current?.parentElement) thumb.current.parentElement.dataset.slide = index > shown ? "next" : "back";
     setShown(index);
   }, [index, label, shown]);
 
@@ -32,12 +34,15 @@ export function LinkTabs({ tabs, value, label }: { tabs: { id: string; label: st
   return (
     <nav aria-label={label} className="glass max-w-full overflow-x-auto rounded-full">
       <div className="relative inline-grid w-max min-w-full auto-cols-fr grid-flow-col p-[var(--pad)] [--pad:0.375rem] lg:[--pad:0.5rem]">
-        <span
-          ref={thumb}
-          aria-hidden
-          className={`glass-thumb pointer-events-none absolute bottom-[var(--pad)] left-[var(--pad)] top-[var(--pad)] rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${index < 0 ? "opacity-0" : ""}`}
-          style={{ width: `calc((100% - 2 * var(--pad)) / ${tabs.length})`, transform: `translateX(${Math.max(shown, 0) * 100}%)` }}
-        />
+        <span aria-hidden className="slide-clip">
+          <span
+            ref={thumb}
+            className={`slide-thumb absolute bottom-[var(--pad)] left-[var(--pad)] top-[var(--pad)] ${index < 0 ? "opacity-0" : ""}`}
+            style={{ width: `calc((100% - 2 * var(--pad)) / ${tabs.length})`, transform: `translateX(${Math.max(shown, 0) * 100}%)` }}
+          >
+            <span key={shown} className="glass-thumb stretch-x block size-full rounded-full" />
+          </span>
+        </span>
         {tabs.map((t) => (
           <Link
             key={t.id}
