@@ -7,7 +7,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
-// Pages are noindex unless they opt in with `robots: { index: true, follow: true }` (only "/" and "/legal" do):
+// Pages are noindex unless they opt in with `robots: { index: true, follow: true }` (only the PUBLIC_PATHS in site.ts do):
 // app pages need a login or show the demo team (PLAN/2026-10-18-seo-pass.md).
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
