@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-22 — Liquid glass bends light only in Chromium, with a per-size SVG lens
+- **Status:** active
+- **Decision:** real refraction uses an SVG filter (`feDisplacementMap` from a lens map drawn per element size, plus the frost) as `backdrop-filter: url(#…)`, switched on only when the browser reports the Chromium brand (`GlassEffects.tsx`); other engines keep the CSS glass. The canvas stays flat (Trin's pick), and bars/pills get a canvas-coloured tint for legibility over light content. Plan: `PLAN/2026-10-22-liquid-glass.md`.
+- **Why:** Chromium is the only engine that applies SVG filters to the backdrop; Safari ignores them or drops the blur. A displacement map sized to each element is what makes the bend follow the rounded rim. The tint costs nothing on the canvas and fixes unreadable white text on glass over white cards.
+- **Alternatives:** WebGL/canvas copies of the page (heavy, can't read the real backdrop), `feTurbulence` noise (looks frosted, not like a lens), colour glows behind the app (Trin kept the flat Figma canvas).
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-16 — @cocommit bot reads the repo from a tarball, not GitHub code search
 - **Status:** active
 - **Decision:** `/api/bot` downloads the chosen branch once as GitHub's `.tar.gz` (`/repos/{repo}/tarball/{branch}`), unpacks it in memory with `node:zlib` (`src/lib/repo-snapshot.ts`), keeps it 5 minutes per person + repo + branch, and searches/reads that copy. Plan: `PLAN/2026-10-16-bot-code-and-models.md` (approved by proud; the plan named code search, this replaced it while building).
@@ -120,3 +127,10 @@
 - **Why:** Trin's pick (UX investigation, PLAN/2026-10-18-home-ux-fixes.md): first-time visitors and judges saw five "Log in with GitHub to see this." lines and a frozen loader instead of what Home does.
 - **Alternatives:** one login banner with dashes in the cards; redirecting /home to /login; per-card login links.
 - **Supersedes / superseded by:** narrows Overview's "no made-up values" rule for the signed-out case only
+
+## 2026-10-23 · Repository page: magic redesign, layout by content width
+- **Status:** active
+- **Decision:** The web Repository page is rebuilt from the "repo page idea" Figma frames: index drawer + step rail + editor with change marks + desk (sticky notes, one Save commits every edited file) + "Recent saves" commit spines. Buttons say "Save" (the envelope explains it makes a commit). The layout follows the page's own content width (container queries + a ResizeObserver), not the window: three columns from 1000 px of content, drawer + editor from 672 px with the desk docked at the bottom of the content (sticky), one column below that.
+- **Why:** Trin's picks (`q1:d q2:a q3:c q4:a q5:a q6:a q7:a`, PLAN/2026-10-22-repo-page-magic.md). In the browser at a 1024 px window the three columns left the editor 108 px wide; the sidebar width (and PR #71's resizable sidebar) changes the space, so window breakpoints can't know it.
+- **Alternatives:** window breakpoints (lg/xl); desk under the drawer; a fixed bottom dock over the whole window (covers the sidebar).
+- **Supersedes / superseded by:** the Changes / Files card and pink Commit card layout (PLAN/2026-10-16-figma-ui-polish.md)
