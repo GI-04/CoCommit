@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-10-19 — Desktop sign-in ticket bound to the app window by a web-side verifier, not a Rust change
+- **Status:** active
+- **Decision:** the app window's page (`AppShell.tsx`, `src/lib/desktop-login.ts`) keeps a random verifier in its own `localStorage` and sends only its SHA-256 challenge with the sign-in; `/auth/callback` seals the challenge into the ticket; `/auth/desktop/finish` only redirects (GET) and redeems on a same-origin POST that brings the verifier (`/auth/desktop/confirm`). Plan: `PLAN/2026-10-19-security-fixes.md` item 1 (approved by Trin).
+- **Why:** the web page already starts desktop sign-in, so this ships with a normal deploy: no new installers, and installed apps keep working (Rust still opens `/auth/desktop/finish?ticket=…`). Only the window that started the sign-in can redeem its ticket.
+- **Alternatives:** a Rust command that holds the verifier and appends it in `finish_url` (equally strong, but needs new installers on both systems); server-side single-use tickets (needs a table; the verifier being deleted on use already makes a ticket single-use for its window).
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-16 — @cocommit bot reads the repo from a tarball, not GitHub code search
 - **Status:** active
 - **Decision:** `/api/bot` downloads the chosen branch once as GitHub's `.tar.gz` (`/repos/{repo}/tarball/{branch}`), unpacks it in memory with `node:zlib` (`src/lib/repo-snapshot.ts`), keeps it 5 minutes per person + repo + branch, and searches/reads that copy. Plan: `PLAN/2026-10-16-bot-code-and-models.md` (approved by proud; the plan named code search, this replaced it while building).

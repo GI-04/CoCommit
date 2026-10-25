@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { GENERAL, isRepoName } from "@/lib/current-repo";
-import { canSeeRepo } from "@/lib/github";
+import { canSeeRepoAs } from "@/lib/github";
 import { accessError } from "@/lib/repo-access";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { getSupabaseServer } from "@/lib/supabase-server";
@@ -22,7 +22,8 @@ export async function POST(req: Request) {
 
   let access;
   try {
-    access = await canSeeRepo(repo);
+    // With this user's own GitHub account only: a GitHub cookie someone else left here doesn't make them a member.
+    access = await canSeeRepoAs(user, repo);
   } catch {
     return NextResponse.json({ error: "Couldn't check this repo on GitHub. Try again in a moment." }, { status: 502 });
   }
