@@ -2,19 +2,22 @@
 
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { GlassEffects } from "@/components/GlassEffects";
 import { AssistantProvider } from "@/components/Assistant";
 import { CallProvider } from "@/components/CallProvider";
 import { Nav } from "@/components/Nav";
 
 // The landing page at "/", the login screens (/login, /login/forgot, /login/reset) and the Legal page (/legal) are
 // full-screen and bring their own header; every app page gets the glass navigation.
-// CallProvider wraps both, so a call keeps going whichever page you open.
+// CallProvider wraps both, so a call keeps going whichever page you open. GlassEffects (pointer light, light bending) runs
+// on every page.
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const fullScreen = path === "/" || path.startsWith("/login") || path.startsWith("/auth/") || path === "/legal";
   useGitHubLoginInBrowser();
   return (
     <CallProvider>
+      <GlassEffects />
       {fullScreen ? (
         children
       ) : (

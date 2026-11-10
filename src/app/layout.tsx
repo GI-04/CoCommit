@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
 import { SITE_URL, openGraphBase } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
+// The editorial serif of the Repository page (repo name, drawer tabs), from the "repo page idea" Figma frames.
+const instrument = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-instrument" });
 
 // Pages are noindex unless they opt in with `robots: { index: true, follow: true }` (only "/" and "/legal" do):
 // app pages need a login or show the demo team (PLAN/2026-10-18-seo-pass.md).
@@ -27,7 +29,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${instrument.variable}`}>
       <body>
         <AppShell>{children}</AppShell>
       </body>

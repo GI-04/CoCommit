@@ -17,6 +17,9 @@
 - [ ] `docs/LEGAL.md`: a Thai lawyer review before commercial use (liability cap, international transfers); before marketing to EU/UK users, check the Article 27 representative and each provider's DPF/SCCs. (Trin)
 - [ ] Legal page in the app: a `/legal` page and footer/login link built from `docs/LEGAL.md` (needs a plan). Keep LEGAL.md current when data, providers, cookies or chat visibility change (e.g. `PLAN/2026-10-16-repo-members-only.md`). (Trin)
 
+- [ ] Liquid glass 2 (`trin/liquid-glass`): check in a real Safari and Firefox (CSS glass only), the installed macOS/Windows apps (Windows gets the light bending), a real phone, and scrolling on a slow laptop with the lenses on. (Trin)
+- [ ] The landing page's white wordmark (`/logo.svg`, not glass) also disappears over the white hero demo when scrolled under the sticky header. (Trin)
+
 ## Open questions
 - Which hackathon and submission format? Deadline: submission 2026-10-16 14:00 (code freeze until 13:00; was 11:30). (Pattadon)
 - What are the non-goals for v1? (Pattadon)

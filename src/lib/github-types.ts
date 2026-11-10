@@ -49,14 +49,16 @@ export type GitHubActions = {
   downloadFile(repo: string, path: string, part?: number): Promise<{ content: string; size: number; parts: number } | null>;
   /** Stores one piece of a big file (base64, at most PART_BYTES) as a git blob, not yet in any commit. Pass the ids to commitFiles as `parts`. */
   uploadPart(repo: string, content: string): Promise<{ sha: string }>;
-  /** Latest commits on the default branch, newest first, as COCOMMIT/LOG.md activity items. */
-  listCommits(repo: string, limit?: number): Promise<Activity[]>;
+  /** Latest commits on `branch` (default branch when left out), newest first, as COCOMMIT/LOG.md activity items. */
+  listCommits(repo: string, limit?: number, branch?: string | null): Promise<Activity[]>;
   /** Recently merged pull requests, newest first, as COCOMMIT/LOG.md activity items. */
   listMergedPulls(repo: string, limit?: number): Promise<Activity[]>;
   /** Who committed and when on the default branch since an ISO date (up to 500), for the home heat map. */
   listCommitDates(repo: string, since: string): Promise<CommitDate[]>;
   /** Invites a GitHub user to the repo as a collaborator. */
   inviteMember(repo: string, username: string): Promise<InviteResult>;
+  /** Who last changed each file on `branch` and when (at most 30 files a call; files with no commit are left out). */
+  lastChanges(repo: string, branch: string, paths: string[]): Promise<Record<string, { author: string; at: string }>>;
 };
 
 /** `invited`: GitHub emailed an invitation; `already`: the person already has access. */

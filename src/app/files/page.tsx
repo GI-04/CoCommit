@@ -265,14 +265,20 @@ export default function FilesPage() {
           <div className="glass relative inline-flex gap-1 rounded-full p-1" role="group" aria-label="View">
             <span
               aria-hidden
-              className="glass-thumb pointer-events-none absolute left-1 top-1 size-10 rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              className="slide-thumb pointer-events-none absolute left-1 top-1 size-10"
               style={{ transform: `translateX(${view === "grid" ? 0 : "calc(100% + 0.25rem)"})` }}
-            />
+            >
+              <span key={view} className="glass-thumb stretch-x block size-full rounded-full" />
+            </span>
             {(["grid", "list"] as const).map((v) => (
               <button
                 key={v}
                 type="button"
-                onClick={() => setView(v)}
+                onClick={(e) => {
+                  // The glass stretches toward the picked view (.slide-thumb in globals.css).
+                  if (v !== view && e.currentTarget.parentElement) e.currentTarget.parentElement.dataset.slide = v === "list" ? "next" : "back";
+                  setView(v);
+                }}
                 aria-pressed={view === v}
                 aria-label={v === "grid" ? "Grid view" : "List view"}
                 className={`relative z-10 grid size-10 place-items-center rounded-full ${view === v ? "text-white" : "text-white/80 hover:text-white"}`}

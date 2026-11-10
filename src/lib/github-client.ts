@@ -50,6 +50,8 @@ export const listMergedPulls = action("listMergedPulls");
 /** Author and date of each default-branch commit since an ISO date, for the home heat map. */
 export const listCommitDates = action("listCommitDates");
 export const inviteMember = action("inviteMember");
+/** Who last changed each file (up to 30) and when, for the Repository page's drawer rows. */
+export const lastChanges = action("lastChanges");
 
 // These three also post a git event (with the GitHub link) into the repo's chat. If posting fails, the commit still counts.
 const announce = (repo: string, summary: string) => void postGitEvent(repo, summary).catch(() => {});
