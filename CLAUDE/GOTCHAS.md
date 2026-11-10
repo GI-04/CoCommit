@@ -2,6 +2,11 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-11-10: `feComposite operator="in"` didn't mask the bent backdrop in a Chromium `backdrop-filter`
+- **What failed:** the lens filter showed the bent backdrop only along the rim by `feComposite in=bent in2=rim operator="in"` (rim = the map's blue channel as alpha), over the frosted backdrop. In Chromium the whole bent backdrop came through, so the middle of every glass surface was sharp, not frosted: text on a card under the phone top bar read straight through. It had been like that since liquid glass 2. A second try, a white mask with only its alpha from blue (`0 0 0 0 1` rows) multiplied in, was added on top of the frost instead (washed-out grey, text still sharp).
+- **Evidence:** browser pane, phone width, `/home` scrolled so a card's text sits under the top bar: sharp text in the middle on old and new code; replacing the last composite's `in` with `soft` blurred it; showing `rim` in red drew the right ring, so the mask itself was fine.
+- **Workaround:** copy blue into all four channels (`0 0 1 0 0` × 4) and multiply: `feComposite operator="arithmetic" k1="1"` (`GlassEffects.tsx`). To check the frost, put text, not flat colour, under the glass.
+
 ## 2026-10-22: Figma drops the opacity of a paint bound to a colour variable
 - **What failed:** through the Figma MCP (`use_figma`), `{ ...setBoundVariableForPaint(paint, "color", whiteVar), opacity: 0.2 }` was stored with `opacity: 1`, so glass pills and the editor panel came out solid white; a bound paint built with the default `color {0,0,0}` also rendered black on one instance ("CoCommit app" tab).
 - **Evidence:** reading back the editor's fills on "Repo · Magic · Edit" (page "repo page idea") showed `opacity: 1` with `boundVariables.color`; the existing file's glass uses unbound `#FFFFFF` at 20 % (`80:423`).

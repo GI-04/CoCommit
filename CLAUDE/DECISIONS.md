@@ -2,6 +2,13 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-11-10 — Glass gets its own stiff springs; the Repository page keeps the bouncy ones
+- **Status:** active
+- **Decision:** `--glass-spring` (4 % overshoot) and `--glass-press` (7 %) drive every glass thumb and button with durations about half of before; `--spring` / `--spring-bouncy` (8 % / 12 %) stay as they were and are now used only by the Repository page (drawer tabs, notes, spines). Glass is clearer (blur 10 px, lens frost 8) with a hairline rim, and the rim's lip turns toward the pointer (Trin's picks q1:a q2:a q3:a, `PLAN/2026-11-10-glass-crisp.md`).
+- **Why:** Trin asked for crisper, sharper, snappier glass; the Repository page's motion was approved as it is ("it's working well"), so retuning the shared variables would have changed it without being asked.
+- **Alternatives:** retune the two shared springs (fewer variables, but changes the Repository page); no bounce at all (Trin picked a small bounce).
+- **Supersedes / superseded by:** none.
+
 ## 2026-10-22 — Liquid glass bends light only in Chromium, with a per-size SVG lens
 - **Status:** active
 - **Decision:** real refraction uses an SVG filter (`feDisplacementMap` from a lens map drawn per element size, plus the frost) as `backdrop-filter: url(#…)`, switched on only when the browser reports the Chromium brand (`GlassEffects.tsx`); other engines keep the CSS glass. The canvas stays flat (Trin's pick), and bars/pills get a canvas-coloured tint for legibility over light content. Plan: `PLAN/2026-10-22-liquid-glass.md`.
