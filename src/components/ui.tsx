@@ -55,7 +55,8 @@ export function Button({ variant = "primary", className = "", ...props }: Button
 type Tab = { id: string; label: string };
 
 // The glass tab pill from the Figma headers (in-page tabs; kept free of React and next/link imports so tests can load
-// this file). Tabs are equal width and the glass thumb slides to the picked one with plain CSS.
+// this file). Tabs are equal width and the glass thumb slides to the picked one with plain CSS: a spring on the outer
+// span, a droplet stretch on the inner one (re-keyed per tab; a user's pick sets data-slide, see .slide-thumb).
 // `variant="paper"` is the white track with a black thumb (inside cards and on the login screen); `size="sm"` is the
 // small one for those places.
 export function Tabs({
@@ -78,28 +79,36 @@ export function Tabs({
   const index = tabs.findIndex((t) => t.id === value);
   const paper = variant === "paper";
   const small = size === "sm";
+  // Notes the direction on the tab list before the change, so the thumb stretches the right way.
+  const pick = (list: HTMLElement | null, to: number) => {
+    if (list && to !== index) list.dataset.slide = to > index ? "next" : "back";
+    onChange(tabs[to].id);
+  };
   return (
     <div className={`${paper ? "border border-black bg-paper" : "glass"} max-w-full overflow-x-auto rounded-full ${className}`}>
       <div role="tablist" aria-label={label} className={`relative inline-grid w-max min-w-full auto-cols-fr grid-flow-col p-[var(--pad)] ${small ? "[--pad:0.25rem]" : "[--pad:0.375rem] lg:[--pad:0.5rem]"}`}>
-        <span
-          aria-hidden
-          className={`${paper ? "bg-black" : "glass-thumb"} pointer-events-none absolute bottom-[var(--pad)] left-[var(--pad)] top-[var(--pad)] rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${index < 0 ? "opacity-0" : ""}`}
-          style={{ width: `calc((100% - 2 * var(--pad)) / ${tabs.length})`, transform: `translateX(${Math.max(index, 0) * 100}%)` }}
-        />
-        {tabs.map((t) => (
+        <span aria-hidden className="slide-clip">
+          <span
+            className={`slide-thumb absolute bottom-[var(--pad)] left-[var(--pad)] top-[var(--pad)] ${index < 0 ? "opacity-0" : ""}`}
+            style={{ width: `calc((100% - 2 * var(--pad)) / ${tabs.length})`, transform: `translateX(${Math.max(index, 0) * 100}%)` }}
+          >
+            <span key={index} className={`${paper ? "bg-black" : "glass-thumb"} stretch-x block size-full rounded-full`} />
+          </span>
+        </span>
+        {tabs.map((t, i) => (
           <button
             key={t.id}
             type="button"
             role="tab"
             aria-selected={t.id === value}
             tabIndex={t.id === value || (index < 0 && t.id === tabs[0]?.id) ? 0 : -1}
-            onClick={() => onChange(t.id)}
+            onClick={(e) => pick(e.currentTarget.parentElement, i)}
             onKeyDown={(e) => {
               if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) return;
               e.preventDefault();
               const at = Math.max(index, 0);
               const to = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (at + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-              onChange(tabs[to].id);
+              pick(e.currentTarget.parentElement, to);
               e.currentTarget.parentElement?.querySelectorAll<HTMLElement>("[role=tab]")[to]?.focus();
             }}
             className={`relative z-10 whitespace-nowrap rounded-full font-medium ${small ? "px-4 py-1.5 text-sm" : `px-5 py-2.5 text-sm lg:px-8 lg:py-[17px] lg:text-base ${tabs.length <= 3 ? "lg:min-w-[11rem]" : ""}`} ${

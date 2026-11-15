@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 3000
+    },
+    {
+      "name": "web-demo-prod",
+      "runtimeExecutable": "env",
+      "runtimeArgs": ["GITHUB_CLIENT_ID=", "npx", "next", "start", "-p", "3010"],
+      "port": 3010
     }
   ]
 }
