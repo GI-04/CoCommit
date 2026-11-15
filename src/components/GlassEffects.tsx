@@ -4,8 +4,9 @@ import { useEffect, useRef } from "react";
 import { lensFit, lensMap } from "@/lib/glass-map";
 
 // The live parts of the liquid glass (PLAN/2026-10-22-liquid-glass.md), mounted once in AppShell:
-// - pointer light: the glass under the pointer gets --lx / --ly (where the light is, in % of its box); globals.css draws
-//   the highlight there while it's hovered or pressed;
+// - pointer light: the glass under the pointer gets --lx / --ly (where the light is, in % of its box) and --px / --py
+//   (the same from the middle of the box, -1 to 1); globals.css draws the soft highlight there and turns the bright lip
+//   of the rim toward it while the glass is hovered or pressed (PLAN/2026-11-10-glass-crisp.md);
 // - light bending: in Chromium every glass surface and glass button gets an SVG lens filter as its backdrop-filter
 //   (--lens), rebuilt when its size changes. Safari and Firefox can't use SVG filters on the backdrop and keep the CSS
 //   glass.
@@ -30,8 +31,13 @@ function usePointerLight() {
     const place = (el: HTMLElement, e: PointerEvent) => {
       const box = el.getBoundingClientRect();
       if (!box.width || !box.height) return;
-      el.style.setProperty("--lx", `${(((e.clientX - box.left) / box.width) * 100).toFixed(1)}%`);
-      el.style.setProperty("--ly", `${(((e.clientY - box.top) / box.height) * 100).toFixed(1)}%`);
+      const x = (e.clientX - box.left) / box.width;
+      const y = (e.clientY - box.top) / box.height;
+      el.style.setProperty("--lx", `${(x * 100).toFixed(1)}%`);
+      el.style.setProperty("--ly", `${(y * 100).toFixed(1)}%`);
+      // A thumb is lit with its bar, so the pointer can be far outside it: the lip stops at the nearest side.
+      el.style.setProperty("--px", Math.max(-1, Math.min(1, x * 2 - 1)).toFixed(2));
+      el.style.setProperty("--py", Math.max(-1, Math.min(1, y * 2 - 1)).toFixed(2));
     };
     const paint = () => {
       frame = 0;
@@ -84,7 +90,11 @@ function useLightBending(defs: React.RefObject<SVGSVGElement | null>) {
     let count = 0;
 
     // The filter: the frosted backdrop (blurred, edges extended so the blur doesn't fade out at the border), and on top
-    // of it the bent backdrop, shown only along the rim (the map's blue channel as its alpha).
+    // of it the bent backdrop, shown only along the rim: the map's blue channel is copied into all four channels of a
+    // mask (0 in the middle, 1 at the edge) and the bent backdrop is multiplied by it. Two things that look right and
+    // aren't, in Chromium (GOTCHAS 2026-11-10): masking with feComposite operator="in" lets the whole bent backdrop
+    // through, so the middle is never frosted; and a mask that is white with only its alpha from blue gets added on
+    // top of the frost instead of covering it.
     const makeFilter = (w: number, h: number, radius: number) => {
       const { bezel, scale, frost } = lensFit(w, h, radius);
       const canvas = document.createElement("canvas");
@@ -102,9 +112,9 @@ function useLightBending(defs: React.RefObject<SVGSVGElement | null>) {
       const bend = document.createElementNS(SVG, "feDisplacementMap");
       attrs(bend, { in: "SourceGraphic", in2: "map", scale, xChannelSelector: "R", yChannelSelector: "G", result: "bent" });
       const rim = document.createElementNS(SVG, "feColorMatrix");
-      attrs(rim, { in: "map", type: "matrix", values: "0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 1 0 0", result: "rim" });
+      attrs(rim, { in: "map", type: "matrix", values: "0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 1 0 0", result: "rim" });
       const sharp = document.createElementNS(SVG, "feComposite");
-      attrs(sharp, { in: "bent", in2: "rim", operator: "in", result: "sharp" });
+      attrs(sharp, { in: "bent", in2: "rim", operator: "arithmetic", k1: 1, k2: 0, k3: 0, k4: 0, result: "sharp" });
       const glass = document.createElementNS(SVG, "feComposite");
       attrs(glass, { in: "sharp", in2: "soft", operator: "over" });
       filter.append(image, soft, bend, rim, sharp, glass);
@@ -138,7 +148,7 @@ function useLightBending(defs: React.RefObject<SVGSVGElement | null>) {
       el.style.setProperty("--lens", `url(#${entry.id})`);
     };
 
-    // Sizes change while a window is dragged wider: refit once things settle.
+    // Sizes change while a window is dragged wider: refit as soon as things settle.
     const waiting = new Set<HTMLElement>();
     let settle = 0;
     const sizes = new ResizeObserver((entries) => {
@@ -147,7 +157,7 @@ function useLightBending(defs: React.RefObject<SVGSVGElement | null>) {
       settle = window.setTimeout(() => {
         waiting.forEach((el) => el.isConnected && fit(el));
         waiting.clear();
-      }, 120);
+      }, 60);
     });
 
     const watched = new Set<HTMLElement>();

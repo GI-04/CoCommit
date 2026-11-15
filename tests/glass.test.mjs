@@ -17,11 +17,13 @@ const at = (map, w, x, y) => {
   return { r: map[i], g: map[i + 1], b: map[i + 2], a: map[i + 3] };
 };
 
-test("lensFit keeps the rim inside the element and bends at most about the rim's width", () => {
+test("lensFit keeps the rim thin and inside the element, and bends at most the rim's width", () => {
   const nav = g.lensFit(254, 900, 40);
   assert.equal(nav.radius, 40);
-  assert.ok(nav.frost > 0);
-  assert.ok(nav.bezel >= 8 && nav.bezel <= 24);
+  // Crisp glass (PLAN/2026-11-10-glass-crisp.md): a light frost and a thin rim that bends hard.
+  assert.ok(nav.frost > 0 && nav.frost <= 8);
+  assert.ok(nav.bezel >= 6 && nav.bezel <= 16);
+  assert.ok(nav.scale / 2 >= nav.bezel * 0.9, "the edge samples from about one rim's width further in");
   assert.ok(nav.scale / 2 <= nav.bezel, "the farthest move stays within the rim");
   const pill = g.lensFit(120, 40, 99999); // rounded-full
   assert.equal(pill.radius, 20);
@@ -56,6 +58,9 @@ test("near each edge the sample comes from further in, along that edge's normal"
   assert.ok(rim[0] > 240, `rim at the edge: ${rim}`);
   for (let i = 1; i < rim.length; i++) assert.ok(rim[i] <= rim[i - 1], `rim fades: ${rim}`);
   assert.equal(rim[5], 0);
+  // Sharp over the outer half of the rim, so the bent backdrop reads as a line and not a smear.
+  assert.equal(rim[1], 255, `still fully sharp a quarter of the way in: ${rim}`);
+  assert.ok(rim[3] > 0 && rim[3] < 255, `fading in the inner half: ${rim}`);
 });
 
 test("rounded corners bend diagonally and leave the cut-off corner alone", () => {

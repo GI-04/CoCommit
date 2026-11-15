@@ -1,17 +1,18 @@
-// Light bending for the liquid glass (PLAN/2026-10-22-liquid-glass.md). A glass surface acts like a lens with a rounded
-// rim: the middle is flat and frosted, and near the edge the backdrop is bent, sharp. The bend is drawn as a displacement
-// map (an RGBA image the size of the element) that an SVG feDisplacementMap reads: red moves the sample along x, green
-// along y, 128 means "stay put". Blue says how much of the sharp rim shows over the frosted middle (255 at the edge, 0 from
-// the inner end of the rim on). Only Chromium can use an SVG filter as a backdrop-filter, so GlassEffects.tsx applies it
-// there.
+// Light bending for the liquid glass (PLAN/2026-10-22-liquid-glass.md; narrower and steeper since
+// PLAN/2026-11-10-glass-crisp.md). A glass surface acts like a lens with a rounded rim: the middle is flat and lightly
+// frosted, and near the edge the backdrop is bent, sharp. The bend is drawn as a displacement map (an RGBA image the size
+// of the element) that an SVG feDisplacementMap reads: red moves the sample along x, green along y, 128 means "stay put".
+// Blue says how much of the sharp rim shows over the frosted middle (255 over the outer half of the rim, fading to 0 at
+// its inner end). Only Chromium can use an SVG filter as a backdrop-filter, so GlassEffects.tsx applies it there.
 
 // How wide the bent rim is, how far it bends and how much the middle is frosted (blur deviation), in CSS pixels, for an
 // element of this size and corner radius.
 export function lensFit(width: number, height: number, radius: number) {
   const r = Math.max(0, Math.min(radius, width / 2, height / 2));
-  const bezel = Math.min(24, Math.max(8, r * 0.8), width / 2, height / 2);
-  // feDisplacementMap moves by scale × (channel/255 − 0.5), so the farthest move is scale / 2.
-  return { radius: r, bezel, scale: Math.round(bezel * 1.4), frost: 12 };
+  // A thin rim that bends hard reads as a crisp line of bent backdrop; a wide gentle one reads as a smear.
+  const bezel = Math.min(16, Math.max(6, r * 0.5), width / 2, height / 2);
+  // feDisplacementMap moves by scale × (channel/255 − 0.5), so the farthest move is scale / 2: one rim's width.
+  return { radius: r, bezel, scale: Math.floor(bezel * 2), frost: 8 };
 }
 
 // The map itself, row by row. Inside the rim each pixel samples from further in along the edge's normal, strongest right
@@ -59,7 +60,8 @@ export function lensMap(width: number, height: number, radius: number, bezel = l
       const bend = 1 - Math.sqrt(1 - t * t);
       data[i] = Math.round(128 - 127 * bend * nx);
       data[i + 1] = Math.round(128 - 127 * bend * ny);
-      data[i + 2] = Math.round(255 * t * t * (3 - 2 * t)); // smoothstep: sharp at the edge, frosted inward
+      const s = Math.min(1, t * 2); // sharp over the outer half of the rim, then a short smoothstep into the frost
+      data[i + 2] = Math.round(255 * s * s * (3 - 2 * s));
     }
   }
   return data;

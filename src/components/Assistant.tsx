@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Icon } from "@/components/icons";
+import { Markdown } from "@/components/Markdown";
 import { MODELS, type BotAnswer, type BotDebug, type ChangeView } from "@/lib/bot";
 import { applyChanges, askBot, BotRequestError, DEFAULT_SETTINGS, loadBotSettings, saveBotSettings, type BotSettings } from "@/lib/bot-client";
 import { getCurrentRepo } from "@/lib/current-repo";
@@ -199,8 +200,9 @@ function AssistantDock() {
                   <span className="mt-1 grid size-7 shrink-0 place-items-center rounded-full bg-[var(--blue)]">
                     <Icon name="sparkle" className="size-3.5" />
                   </span>
-                  <div className={`max-w-[88%] rounded-2xl border border-black px-4 py-3 text-sm text-black ${m.error ? "bg-clay" : "bg-paper"}`}>
-                    <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                  <div className={`min-w-0 max-w-[88%] rounded-2xl border border-black px-4 py-3 text-sm text-black ${m.error ? "bg-clay" : "bg-paper"}`}>
+                    {/* Answers are Markdown (lists, bold, code); error messages are our own plain text. */}
+                    {m.error ? <p className="whitespace-pre-wrap break-words">{m.text}</p> : <Markdown source={m.text} variant="reply" />}
                     {m.needsLogin && (
                       <p className="mt-2">
                         <Link href={signInHref("/home")} className="font-medium underline">

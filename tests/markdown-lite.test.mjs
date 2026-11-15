@@ -198,3 +198,98 @@ test("docs/LEGAL.md parses and every in-page link points at an existing heading"
   assert.equal(mails.length, 4);
   for (const href of mails) assert.match(href, /^mailto:.+@.+\..+$/);
 });
+
+// ---------- Assistant and @cocommit answers (PLAN/2026-10-22-assistant-markdown.md)
+
+test("the live Assistant answer about open pull requests: a bullet with bold text and code branch names", () => {
+  const answer =
+    'There is one open pull request:\n\n- **#1: "Add PassportSignup folder (standalone copy of passport sign-up flow)"**, by @owlwee-sudo, from `passport-signup-folder` into `main`. Last updated 2026-10-04.';
+  const [intro, list] = parse(answer);
+  assert.deepEqual(intro, { type: "paragraph", children: [text("There is one open pull request:")] });
+  assert.equal(list.type, "list");
+  assert.equal(list.ordered, false);
+  assert.deepEqual(list.items[0].children, [
+    { type: "strong", children: [text('#1: "Add PassportSignup folder (standalone copy of passport sign-up flow)"')] },
+    text(", by @owlwee-sudo, from "),
+    { type: "code", text: "passport-signup-folder" },
+    text(" into "),
+    { type: "code", text: "main" },
+    text(". Last updated 2026-10-04."),
+  ]);
+});
+
+test("code fences keep their text exactly, with the language word", () => {
+  const [code, after] = parse("```ts\nconst a = **b**; // <script>alert(1)</script>\n\n- not a list\n  indented\n```\nafter");
+  assert.deepEqual(code, { type: "codeblock", lang: "ts", text: "const a = **b**; // <script>alert(1)</script>\n\n- not a list\n  indented" });
+  assert.deepEqual(after, { type: "paragraph", children: [text("after")] });
+  // Tildes, a longer fence holding a shorter one, an info string with more words, an empty block.
+  assert.deepEqual(parse("~~~\nx\n~~~")[0], { type: "codeblock", lang: "", text: "x" });
+  assert.deepEqual(parse("````md\n```\ninner\n```\n````")[0], { type: "codeblock", lang: "md", text: "```\ninner\n```" });
+  assert.deepEqual(parse("``` bash title=x\nnpm ci\n```")[0], { type: "codeblock", lang: "bash", text: "npm ci" });
+  assert.deepEqual(parse("```\n```")[0], { type: "codeblock", lang: "", text: "" });
+  // A fence of the other character, or a shorter one, doesn't close it; an unclosed fence runs to the end.
+  assert.deepEqual(parse("```\na\n~~~\n``\nb")[0], { type: "codeblock", lang: "", text: "a\n~~~\n``\nb" });
+  // An indented fence takes its indent off the lines inside.
+  assert.deepEqual(parse("  ```\n  a\n    b\n  ```")[0], { type: "codeblock", lang: "", text: "a\n  b" });
+});
+
+test("a fence right after a paragraph line starts a code block; ``` with more backticks on the line is inline code", () => {
+  assert.deepEqual(parse("Run this:\n```bash\nnpm test\n```").map((b) => b.type), ["paragraph", "codeblock"]);
+  assert.deepEqual(parse("say ```a``` here")[0].children, [text("say "), { type: "code", text: "a" }, text(" here")]);
+  assert.equal(parse("```a``` b")[0].type, "paragraph");
+});
+
+test("a fence inside a numbered list stays in its item, blank lines and all, and the list carries on", () => {
+  const [list, after] = parse("1. Install:\n   ```bash\n   npm ci\n\n   npm run dev\n   ```\n2. Open http://localhost:3000\n\nDone.");
+  assert.equal(list.type, "list");
+  assert.equal(list.ordered, true);
+  assert.equal(list.items.length, 2);
+  assert.deepEqual(list.items[0].children, [text("Install:")]);
+  assert.deepEqual(list.items[0].nested, [{ type: "codeblock", lang: "bash", text: "npm ci\n\nnpm run dev" }]);
+  assert.equal(links(list.items[1].children)[0].href, "http://localhost:3000");
+  assert.equal(after.type, "paragraph");
+  // In a bullet, a marker-looking line inside the fence is code, not a nested list.
+  const [bullets] = parse("- a\n  ```\n  - b\n  ```\n- c");
+  assert.equal(bullets.items.length, 2);
+  assert.deepEqual(bullets.items[0].nested, [{ type: "codeblock", lang: "", text: "- b" }]);
+  // A fence back at the list's own indent ends the list.
+  assert.deepEqual(parse("- a\n```\ncode\n```").map((b) => b.type), ["list", "codeblock"]);
+});
+
+test("a bot-style answer: headings, nested lists, safe links only, tags as text", () => {
+  const blocks = parse(
+    [
+      "## Where login is handled",
+      "",
+      "1. **GitHub**: `src/app/api/github/[action]/route.ts`",
+      "   - signs in with [GitHub](https://github.com/login/oauth)",
+      "   - see [the helper](src/lib/github.ts) and [this](javascript:alert(1))",
+      "2. *Email*: <img src=x onerror=alert(1)>",
+      "",
+      "| File | Lines |",
+      "|---|---|",
+      "| `proxy.ts` | 1-40 |",
+    ].join("\n"),
+  );
+  assert.deepEqual(blocks.map((b) => b.type), ["heading", "list", "table"]);
+  const nodes = everything(blocks);
+  assert.deepEqual(nodes.filter((n) => n.type === "link").map((n) => n.href), ["https://github.com/login/oauth"]);
+  const nested = blocks[1].items[0].nested[0];
+  assert.equal(nested.type, "list");
+  assert.deepEqual(nested.items[1].children, [text("see "), text("the helper"), text(" and "), text("this")]);
+  assert.deepEqual(blocks[1].items[1].children, [{ type: "em", children: [text("Email")] }, text(": <img src=x onerror=alert(1)>")]);
+});
+
+test("odd fences do not throw", () => {
+  for (const src of ["```", "~~~", "```\n", "- ```", "1. a\n   ```", "1. a\n   ```\n\n", "> ```\n> x", "````", "```\n\n\n", "- a\n\n  ```\n  b"]) {
+    assert.doesNotThrow(() => m.parseMarkdown(src), JSON.stringify(src));
+  }
+  assert.deepEqual(parse("> ```\n> **x**\n> ```")[0].children, [{ type: "codeblock", lang: "", text: "**x**" }]);
+});
+
+test("the Assistant and chat show answers through the Markdown renderer, never as HTML strings", () => {
+  const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+  for (const p of ["src/components/Markdown.tsx", "src/components/Assistant.tsx", "src/app/chat/page.tsx"]) assert.ok(!read(p).includes("dangerouslySetInnerHTML"), p);
+  assert.match(read("src/components/Assistant.tsx"), /<Markdown source=\{m\.text\} variant="reply" \/>/);
+  assert.match(read("src/app/chat/page.tsx"), /<Markdown source=\{r\.result\.answer\} variant="reply" \/>/);
+});
