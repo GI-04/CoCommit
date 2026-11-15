@@ -162,3 +162,10 @@
 - **Why:** Trin's picks (`q1:d q2:a q3:c q4:a q5:a q6:a q7:a`, PLAN/2026-10-22-repo-page-magic.md). In the browser at a 1024 px window the three columns left the editor 108 px wide; the sidebar width (and PR #71's resizable sidebar) changes the space, so window breakpoints can't know it.
 - **Alternatives:** window breakpoints (lg/xl); desk under the drawer; a fixed bottom dock over the whole window (covers the sidebar).
 - **Supersedes / superseded by:** the Changes / Files card and pink Commit card layout (PLAN/2026-10-16-figma-ui-polish.md)
+
+## 2026-10-22 — Bot answers render as Markdown with the Legal page's reader
+- **Status:** active
+- **Decision:** The Assistant and chat's private `@cocommit` replies are shown through `src/components/Markdown.tsx` (`variant="reply"`) on `src/lib/markdown-lite.ts`, which got code fences. No npm package.
+- **Why:** answers showed literal `**` and backticks (Trin's screenshot, PLAN/2026-10-22-assistant-markdown.md). The reader already existed, builds React elements only (bot text is untrusted) and keeps links to http/https/mailto.
+- **Alternatives:** a Markdown package (react-markdown etc.; needs an install and a sanitising setup), a second hand-written renderer, asking the bot for plain text.
+- **Supersedes / superseded by:** —
