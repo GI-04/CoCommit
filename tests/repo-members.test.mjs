@@ -45,23 +45,25 @@ test("GitHub's answer decides access: 2xx member, 401 no GitHub, 403/404 not a m
 
 // ---------- Calls: /api/livekit-token
 
-function callRoute(answer, seen = []) {
+function callRoute(answer, seen = [], { supabaseUser = null, users = [] } = {}) {
   const github = {
     fakeMode: false,
     getSession: async () => ({ user: { login: "octo", name: "Octo" }, fake: false }),
-    canSeeRepo: async (repo) => {
+    canSeeRepoAs: async (user, repo) => {
       seen.push(repo);
+      users.push(user);
       if (answer instanceof Error) throw answer;
       return answer;
     },
   };
+  const supabase = supabaseUser ? { auth: { getUser: async () => ({ data: { user: supabaseUser } }) } } : null;
   const liveKit = { ...lk, liveKitKeys: () => ({ url: "wss://lk.example", apiKey: "k", apiSecret: "s" }) };
   return load("app/api/livekit-token/route.ts", {
     "next/server": next,
     "@/lib/github": github,
     "@/lib/livekit-token": liveKit,
     "@/lib/repo-access": access,
-    "@/lib/supabase-server": { getSupabaseServer: async () => null },
+    "@/lib/supabase-server": { getSupabaseServer: async () => supabase },
   });
 }
 
@@ -83,6 +85,15 @@ test("someone GitHub doesn't show the repo to, or without GitHub sign-in, gets n
   }
 });
 
+test("the call checks the repo with the Supabase user's own GitHub account, or the GitHub session alone", async () => {
+  const users = [];
+  const alice = { id: "u1", is_anonymous: false, user_metadata: { full_name: "Alice" } };
+  assert.equal((await callRoute("member", [], { supabaseUser: alice, users }).POST(request({ repo: "GI-04/CoCommit" }))).status, 200);
+  assert.equal(users[0], alice);
+  assert.equal((await callRoute("member", [], { users }).POST(request({ repo: "GI-04/CoCommit" }))).status, 200);
+  assert.equal(users[1], null);
+});
+
 test("if GitHub can't be reached, the call says so instead of letting anyone in", async () => {
   const res = await callRoute(new Error("network down")).POST(request({ repo: "GI-04/CoCommit" }));
   assert.equal(res.status, 502);
@@ -93,6 +104,7 @@ test("if GitHub can't be reached, the call says so instead of letting anyone in"
 
 function joinRoute({ user = { id: "u1", is_anonymous: false }, answer = "member", admin = true, supabase = true } = {}) {
   const writes = [];
+  const checkedAs = [];
   const adminClient = {
     from: (table) => ({
       upsert: async (row, opts) => (writes.push({ table, row, opts }), { error: null }),
@@ -101,12 +113,12 @@ function joinRoute({ user = { id: "u1", is_anonymous: false }, answer = "member"
   const route = load("app/api/chat/join/route.ts", {
     "next/server": next,
     "@/lib/current-repo": currentRepo,
-    "@/lib/github": { canSeeRepo: async () => answer },
+    "@/lib/github": { canSeeRepoAs: async (asUser) => (checkedAs.push(asUser), answer) },
     "@/lib/repo-access": access,
     "@/lib/supabase-admin": { getSupabaseAdmin: () => (admin ? adminClient : null) },
     "@/lib/supabase-server": { getSupabaseServer: async () => (supabase ? { auth: { getUser: async () => ({ data: { user } }) } } : null) },
   });
-  return { route, writes };
+  return { route, writes, checkedAs };
 }
 
 test("a member is recorded in repo_members for that repo", async () => {
@@ -119,6 +131,12 @@ test("a member is recorded in repo_members for that repo", async () => {
   assert.equal(writes[0].row.repo, "GI-04/CoCommit");
   assert.ok(!Number.isNaN(Date.parse(writes[0].row.checked_at)));
   assert.equal(writes[0].opts.onConflict, "user_id,repo");
+});
+
+test("join checks GitHub as the signed-in user, so a GitHub cookie left by someone else can't make them a member", async () => {
+  const { route, checkedAs } = joinRoute();
+  await route.POST(request({ repo: "GI-04/CoCommit" }));
+  assert.deepEqual(plain(checkedAs), [{ id: "u1", is_anonymous: false }]);
 });
 
 test("not a member, or no GitHub sign-in: 403 and nothing recorded", async () => {
