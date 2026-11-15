@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/AppShell";
+import { NAV_WIDTH_SCRIPT } from "@/lib/nav-width";
 import { BING_SITE_VERIFICATION, GOOGLE_SITE_VERIFICATION, SITE_URL, openGraphBase } from "@/lib/site";
 import "./globals.css";
 
@@ -32,9 +33,14 @@ export const viewport: Viewport = {
   themeColor: "#1f1f1f",
 };
 
+// The head script puts a saved sidebar width on <html> before the first paint (src/lib/nav-width.ts), so React is told
+// not to mind that <html> has a style and data-nav it didn't render.
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${instrument.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${instrument.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: NAV_WIDTH_SCRIPT }} />
+      </head>
       <body>
         <AppShell>{children}</AppShell>
       </body>

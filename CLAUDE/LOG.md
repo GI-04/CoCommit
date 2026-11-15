@@ -127,3 +127,4 @@
 - 2026-10-23 · Claude-Trin — Repository redesign committed (14e3cf8) and opened as PR #72 (carries PR #69 until it merges)
 - 2026-10-23 · Claude-Trin — Security re-check (live code unchanged since 2026-10-19, settings fixes not done, open PRs #67–#72 add no new risks); security item 3 (public repo membership by write access, call room by GitHub repo id) built on `trin/security-repo-access`; not committed
 - 2026-10-22 · Claude-Trin — Assistant and @cocommit answers render as Markdown (code fences added to markdown-lite, `Markdown variant="reply"`); PLAN/2026-10-22-assistant-markdown.md; PR #70 (`trin/assistant-markdown`), not merged
+- 2026-10-22 · Claude-Trin — Resizable sidebar on desktop (drag 224-360 px, snap to icon rail, keys, double-click reset, saved per device); PLAN/2026-10-22-resizable-nav.md; branch trin/resizable-nav, PR #71

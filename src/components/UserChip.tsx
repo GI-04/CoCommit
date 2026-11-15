@@ -38,7 +38,7 @@ export function UserChip() {
     };
   }, []);
 
-  if (!accounts) return <div className="h-12 animate-pulse rounded-full bg-white/10 md:size-12 lg:size-auto lg:h-14 lg:w-full" aria-label="Loading account" />;
+  if (!accounts) return <div className="h-12 animate-pulse rounded-full bg-white/10 md:size-12 full:size-auto full:h-14 full:w-full" aria-label="Loading account" />;
   const who = accounts.profile ?? (accounts.github && {
     name: accounts.github.name || accounts.github.login,
     avatarUrl: accounts.github.avatarUrl,
@@ -47,10 +47,10 @@ export function UserChip() {
   if (!who) return (
     <Link
       href={`/login?returnTo=${encodeURIComponent(pathname)}`}
-      className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-black hover:opacity-90 md:size-12 md:p-0 lg:size-auto lg:px-4 lg:py-3"
+      className="flex items-center justify-center gap-2 rounded-full bg-white px-4 py-3 text-sm font-semibold text-black hover:opacity-90 md:size-12 md:p-0 full:size-auto full:px-4 full:py-3"
     >
       <Icon name="user" />
-      <span className="md:sr-only lg:not-sr-only">Log in</span>
+      <span className="md:sr-only full:not-sr-only">Log in</span>
     </Link>
   );
 
@@ -59,17 +59,17 @@ export function UserChip() {
       <Link
         href="/profile"
         aria-label={`View profile for ${who.name}`}
-        className={`flex items-center gap-3 rounded-full p-1.5 pr-4 hover:bg-white/10 md:justify-center md:p-0 md:pr-0 lg:justify-start lg:p-1.5 lg:pr-4 ${pathname.startsWith("/profile") ? "glass-thumb" : ""}`}
+        className={`flex items-center gap-3 rounded-full p-1.5 pr-4 hover:bg-white/10 md:justify-center md:p-0 md:pr-0 full:justify-start full:p-1.5 full:pr-4 ${pathname.startsWith("/profile") ? "glass-thumb" : ""}`}
       >
         <Avatar name={who.name} url={who.avatarUrl} className="size-10" />
-        <span className="min-w-0 flex-1 md:hidden lg:block">
+        <span className="min-w-0 flex-1 md:hidden full:block">
           <span className="block truncate text-sm font-semibold text-white">{who.name}</span>
           <span className="block truncate text-xs text-white/70">{who.email || "View profile"}</span>
         </span>
       </Link>
       <button
         disabled={busy}
-        className="mt-2 flex items-center gap-2 px-3 text-xs text-white/70 hover:text-white disabled:opacity-50 md:hidden lg:flex"
+        className="mt-2 flex items-center gap-2 px-3 text-xs text-white/70 hover:text-white disabled:opacity-50 md:hidden full:flex"
         onClick={async () => {
           setBusy(true);
           setError(null);
