@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { saveGitHubToken } from "@/lib/github";
+import { saveGitHubToken, signOut as forgetGitHub } from "@/lib/github";
 import { sealHandoff } from "@/lib/desktop-handoff";
-import { githubTokenFromSession, safeReturnTo } from "@/lib/login-identity";
+import { githubTokenFromSession, hasGitHubIdentity, safeReturnTo } from "@/lib/login-identity";
 import { getSupabaseServer } from "@/lib/supabase-server";
 
 // Supabase sends the browser back here with ?code=... after GitHub or Google sign-in, and from email
@@ -18,15 +18,19 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       const token = githubTokenFromSession(searchParams.get("provider"), data.session);
-      // Desktop app: the sign-in ran in the system browser, so pass the session on to the app.
+      // Desktop app: the sign-in ran in the system browser, so pass the session on to the app, in a ticket that only the
+      // app window holding the challenge's verifier can redeem (no valid challenge = no ticket, desktop-handoff.ts).
       if (searchParams.get("desktop") === "1" && data.session) {
         const ticket = sealHandoff(
-          { accessToken: data.session.access_token, refreshToken: data.session.refresh_token, githubToken: token, next },
+          { accessToken: data.session.access_token, refreshToken: data.session.refresh_token, githubToken: token, next, challenge: searchParams.get("challenge") ?? "" },
           process.env.GITHUB_CLIENT_SECRET ?? "",
         );
         if (ticket) return NextResponse.redirect(`${origin}/auth/desktop?ticket=${ticket}`);
       }
+      // A sign-in without a GitHub token (Google, email links) drops a GitHub cookie someone else may have left here,
+      // unless this account has its own GitHub identity (then the cookie is most likely theirs).
       if (token) await saveGitHubToken(token);
+      else if (!hasGitHubIdentity(data.session?.user)) await forgetGitHub();
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

@@ -6,30 +6,18 @@ import { Icon, type IconName } from "@/components/icons";
 import { HeroDemo } from "@/components/landing/HeroDemo";
 import { DesktopRedirect, Downloads, HeroDownload } from "@/components/landing/Downloads";
 import { GetStarted } from "@/components/landing/GetStarted";
-import { LANDING_DESCRIPTION, SITE_NAME, SITE_URL, openGraphBase } from "@/lib/site";
+import { DEFINITION, FAQ, LANDING_DESCRIPTION, LANDING_TITLE, landingJsonLd, openGraphBase } from "@/lib/site";
 
 // HeroDemo's terminal reads --font-mono.
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
-  title: { absolute: "CoCommit: git, with buttons" },
+  title: { absolute: LANDING_TITLE },
   description: LANDING_DESCRIPTION,
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   // og:title / og:description and the Twitter tags are filled in from the title and description.
   openGraph: { ...openGraphBase, url: "/" },
-};
-
-// Structured data for search engines (schema.org). Only facts that are true today: free, web + desktop installers.
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: SITE_NAME,
-  url: SITE_URL,
-  description: LANDING_DESCRIPTION,
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "Web, Windows, macOS",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
 const focus = "outline-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2";
@@ -57,20 +45,10 @@ const workflow = [
   ["Re-explaining the project to every AI chat", "One shared context that every teammate’s AI agent reads"],
 ];
 
-const faq = [
-  [
-    "Do I need to know git?",
-    "No. Every action is a button with a plain name. Underneath it’s ordinary git, so your repo works with the terminal and every other git tool whenever you want them.",
-  ],
-  ["Does CoCommit replace GitHub?", "No. Your code stays in your GitHub repositories. CoCommit is a simpler way to work with them, with chat and shared context added."],
-  ["Which AI tools can read the shared context?", "Any tool that can read files in your repo. The context is plain Markdown in a COCOMMIT folder."],
-  ["Does it work on my phone?", "Yes. Open the web app in your phone’s browser and add it to your home screen."],
-];
-
 export default function Landing() {
   return (
     <div className={`${mono.variable} text-fg`}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(landingJsonLd()).replace(/</g, "\\u003c") }} />
       <DesktopRedirect />
 
       <header className="sticky top-0 z-30 px-3 pt-3 md:px-8 md:pt-5">
@@ -106,8 +84,8 @@ export default function Landing() {
           <h1 id="intro" className="rise mt-6 text-5xl font-semibold leading-[1.05] tracking-[-0.02em] md:text-7xl">
             Git, with buttons.
           </h1>
-          <p className="rise mx-auto mt-5 max-w-xl text-lg text-muted [--d:90ms] md:text-xl">
-            Commit, branch and share what you know with your team and your AI agents. No terminal needed.
+          <p className="rise mx-auto mt-5 max-w-xl text-lg text-muted [--d:90ms] md:max-w-2xl md:text-xl">
+            {DEFINITION} No terminal needed.
           </p>
           <div className="rise mt-8 flex flex-wrap justify-center gap-3 [--d:160ms]">
             <GetStarted className={blueButton} />
@@ -176,10 +154,10 @@ export default function Landing() {
 
         <section id="faq" className="reveal scroll-mt-24 pt-24 md:pt-32" aria-labelledby="faq-title">
           <h2 id="faq-title" className={heading}>
-            Questions.
+            Frequently asked questions.
           </h2>
           <div className="bg-surface mx-auto mt-10 max-w-3xl divide-y divide-black/20 rounded-2xl border border-line px-6">
-            {faq.map(([q, a]) => (
+            {FAQ.map(([q, a]) => (
               <details key={q} className="group py-5">
                 <summary className={`flex cursor-pointer list-none items-center justify-between gap-4 rounded text-lg font-semibold ${focus}`}>
                   {q}

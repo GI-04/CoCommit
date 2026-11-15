@@ -2,6 +2,34 @@
 
 <!-- Newest on top. One short entry per choice someone might later ask "why?" about. Never delete an old decision: when one changes, add a new entry and mark the old one "Superseded by <date/title>". -->
 
+## 2026-11-10 — Glass gets its own stiff springs; the Repository page keeps the bouncy ones
+- **Status:** active
+- **Decision:** `--glass-spring` (4 % overshoot) and `--glass-press` (7 %) drive every glass thumb and button with durations about half of before; `--spring` / `--spring-bouncy` (8 % / 12 %) stay as they were and are now used only by the Repository page (drawer tabs, notes, spines). Glass is clearer (blur 10 px, lens frost 8) with a hairline rim, and the rim's lip turns toward the pointer (Trin's picks q1:a q2:a q3:a, `PLAN/2026-11-10-glass-crisp.md`).
+- **Why:** Trin asked for crisper, sharper, snappier glass; the Repository page's motion was approved as it is ("it's working well"), so retuning the shared variables would have changed it without being asked.
+- **Alternatives:** retune the two shared springs (fewer variables, but changes the Repository page); no bounce at all (Trin picked a small bounce).
+- **Supersedes / superseded by:** none.
+
+## 2026-10-22 — Liquid glass bends light only in Chromium, with a per-size SVG lens
+- **Status:** active
+- **Decision:** real refraction uses an SVG filter (`feDisplacementMap` from a lens map drawn per element size, plus the frost) as `backdrop-filter: url(#…)`, switched on only when the browser reports the Chromium brand (`GlassEffects.tsx`); other engines keep the CSS glass. The canvas stays flat (Trin's pick), and bars/pills get a canvas-coloured tint for legibility over light content. Plan: `PLAN/2026-10-22-liquid-glass.md`.
+- **Why:** Chromium is the only engine that applies SVG filters to the backdrop; Safari ignores them or drops the blur. A displacement map sized to each element is what makes the bend follow the rounded rim. The tint costs nothing on the canvas and fixes unreadable white text on glass over white cards.
+- **Alternatives:** WebGL/canvas copies of the page (heavy, can't read the real backdrop), `feTurbulence` noise (looks frosted, not like a lens), colour glows behind the app (Trin kept the flat Figma canvas).
+- **Supersedes / superseded by:** none.
+
+## 2026-10-19 — Desktop sign-in ticket bound to the app window by a web-side verifier, not a Rust change
+- **Status:** active
+- **Decision:** the app window's page (`AppShell.tsx`, `src/lib/desktop-login.ts`) keeps a random verifier in its own `localStorage` and sends only its SHA-256 challenge with the sign-in; `/auth/callback` seals the challenge into the ticket; `/auth/desktop/finish` only redirects (GET) and redeems on a same-origin POST that brings the verifier (`/auth/desktop/confirm`). Plan: `PLAN/2026-10-19-security-fixes.md` item 1 (approved by Trin).
+- **Why:** the web page already starts desktop sign-in, so this ships with a normal deploy: no new installers, and installed apps keep working (Rust still opens `/auth/desktop/finish?ticket=…`). Only the window that started the sign-in can redeem its ticket.
+- **Alternatives:** a Rust command that holds the verifier and appends it in `finish_url` (equally strong, but needs new installers on both systems); server-side single-use tickets (needs a table; the verifier being deleted on use already makes a ticket single-use for its window).
+- **Supersedes / superseded by:** none.
+
+## 2026-10-23 — On a public repo, chat and call members are the people who work on it, not everyone who can read it
+- **Status:** active
+- **Decision:** `accessFromRepo` (`src/lib/repo-access.ts`): a private repo GitHub shows you = member; a public repo = member only with triage, write, maintain or admin in GitHub's `permissions`. Call rooms are named by GitHub's numeric repo id. Plan: `PLAN/2026-10-19-security-fixes.md` item 3 (approved by Trin).
+- **Why:** GitHub shows a public repo to everyone, so "can see it" let any GitHub user into a public team's chat and call (this team's own repo is public). Names made from "owner/name" could also collide between repos.
+- **Alternatives:** keep "can see" (open to the world on public repos); ask GitHub's collaborators endpoint per user (an extra request; `permissions` already comes with `GET /repos/{repo}`); count organisation members with read access (left out: on a public repo they can't be told apart from strangers by this one request).
+- **Supersedes / superseded by:** narrows `PLAN/2026-10-16-repo-members-only.md` ("only people GitHub lets see the repo").
+
 ## 2026-10-21 — First search page is a "Git for beginner teams" guide at /guide/, with Article data and its text in TypeScript
 - **Status:** active
 - **Decision:** the third indexed page is `/guide/git-for-beginner-teams`, a ~860-word plain-words guide with 8 question headings and 40-60 word answers; text in `src/lib/guide.ts`, `Article` JSON-LD, no own `openGraph`. Plan: `PLAN/2026-10-21-seo-guide-page.md` (Trin picked A a, B a, C a, D a and approved the text).
@@ -127,3 +155,10 @@
 - **Why:** Trin's pick (UX investigation, PLAN/2026-10-18-home-ux-fixes.md): first-time visitors and judges saw five "Log in with GitHub to see this." lines and a frozen loader instead of what Home does.
 - **Alternatives:** one login banner with dashes in the cards; redirecting /home to /login; per-card login links.
 - **Supersedes / superseded by:** narrows Overview's "no made-up values" rule for the signed-out case only
+
+## 2026-10-23 · Repository page: magic redesign, layout by content width
+- **Status:** active
+- **Decision:** The web Repository page is rebuilt from the "repo page idea" Figma frames: index drawer + step rail + editor with change marks + desk (sticky notes, one Save commits every edited file) + "Recent saves" commit spines. Buttons say "Save" (the envelope explains it makes a commit). The layout follows the page's own content width (container queries + a ResizeObserver), not the window: three columns from 1000 px of content, drawer + editor from 672 px with the desk docked at the bottom of the content (sticky), one column below that.
+- **Why:** Trin's picks (`q1:d q2:a q3:c q4:a q5:a q6:a q7:a`, PLAN/2026-10-22-repo-page-magic.md). In the browser at a 1024 px window the three columns left the editor 108 px wide; the sidebar width (and PR #71's resizable sidebar) changes the space, so window breakpoints can't know it.
+- **Alternatives:** window breakpoints (lg/xl); desk under the drawer; a fixed bottom dock over the whole window (covers the sidebar).
+- **Supersedes / superseded by:** the Changes / Files card and pink Commit card layout (PLAN/2026-10-16-figma-ui-polish.md)
