@@ -1,6 +1,6 @@
 # CoCommit
 
-Git without the terminal, plus team chat and one shared context for everyone's AI agents. Built for small teams of beginners who currently bounce between Discord and GitHub.
+**CoCommit is a free git app for beginner teams:** git without the terminal, plus team chat and one shared context for everyone's AI agents. Built for small teams of beginners who currently bounce between Discord and GitHub.
 
 **Live:** https://cocommit.vercel.app · **Desktop:** Windows `.msi` and macOS `.dmg` (Tauri) · Hackathon prototype, submission due 2026-10-16 14:00.
 

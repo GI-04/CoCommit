@@ -22,6 +22,11 @@
 - **Evidence:** a striped test div under the phone top bar: with only `url(#lens)` the stripes curve at the ends; with the blur too they are a flat purple.
 - **Workaround:** do the frost inside the SVG filter (`feGaussianBlur`) and composite the bent backdrop over it only along the rim (`GlassEffects.tsx`). Also: the browser pane runs hidden, so `requestAnimationFrame` never fires in test scripts; use `setTimeout`.
 
+## 2026-10-21: `gh repo edit` on GI-04/CoCommit returns 404 with the maintain role
+- **What failed:** `gh repo edit GI-04/CoCommit --homepage … --description …` → `HTTP 404: Not Found (https://api.github.com/repos/GI-04/CoCommit)`, although reads work and `.permissions` shows `maintain: true` (token scopes include `repo`).
+- **Evidence:** the same session's `PUT repos/GI-04/CoCommit/topics` succeeded; GitHub answers 404 instead of 403 when an account may not change repo settings.
+- **Workaround:** topics through `gh api -X PUT repos/<owner>/<repo>/topics`; website and description by an org admin (gear next to About on the repo page).
+
 ## 2026-10-18: A page's own `openGraph` drops the share image from `opengraph-image.tsx`
 - **What failed:** `/legal` set `openGraph: { ...title, description, url }` in its layout and its `<head>` had no `og:image` / `twitter:image`, while `/home` (no `openGraph`) had both.
 - **Evidence:** rendered `<head>` on `next start` (PLAN/2026-10-18-seo-pass.md); Next replaces a parent's `openGraph` with the child's, and the image file in the root segment is only added where no lower segment sets `openGraph`. `/` keeps it because `page.tsx` sits in the same segment as the image file.
