@@ -1,5 +1,5 @@
 // Facts about the public site used in <head> tags, structured data, robots.txt, sitemap.xml, llms.txt and the share
-// image (PLAN/2026-10-18-seo-pass.md, PLAN/2026-10-21-seo-geo.md). Only "/" and "/legal" are meant for search engines; every other page is noindex.
+// image (PLAN/2026-10-18-seo-pass.md, PLAN/2026-10-21-seo-geo.md). Only PUBLIC_PATHS are meant for search engines; every other page is noindex.
 
 export const SITE_URL = "https://cocommit.vercel.app";
 export const SITE_NAME = "CoCommit";
@@ -22,8 +22,8 @@ export const BING_SITE_VERIFICATION: string = "";
 export const LANDING_DESCRIPTION =
   "Git without the terminal: commit, push and open pull requests with buttons, plus team chat, files and shared AI context. For small teams and beginners.";
 
-// The pages listed in sitemap.xml and opted back in to indexing.
-export const PUBLIC_PATHS = ["/", "/legal"] as const;
+// The pages listed in sitemap.xml and opted back in to indexing (the guide: PLAN/2026-10-21-seo-guide-page.md).
+export const PUBLIC_PATHS = ["/", "/legal", "/guide/git-for-beginner-teams"] as const;
 
 // Same colours as globals.css (--canvas, --blue, the four colour blocks).
 export const BRAND = {

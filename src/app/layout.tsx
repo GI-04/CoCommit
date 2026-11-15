@@ -9,7 +9,7 @@ const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrai
 // The editorial serif of the Repository page (repo name, drawer tabs), from the "repo page idea" Figma frames.
 const instrument = Instrument_Serif({ subsets: ["latin"], weight: "400", variable: "--font-instrument" });
 
-// Pages are noindex unless they opt in with `robots: { index: true, follow: true }` (only "/" and "/legal" do):
+// Pages are noindex unless they opt in with `robots: { index: true, follow: true }` (only the PUBLIC_PATHS in site.ts do):
 // app pages need a login or show the demo team (PLAN/2026-10-18-seo-pass.md).
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

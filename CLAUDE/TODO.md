@@ -19,6 +19,9 @@
 - [ ] `docs/LEGAL.md`: a Thai lawyer review before commercial use (liability cap, international transfers); before marketing to EU/UK users, check the Article 27 representative and each provider's DPF/SCCs. (Trin)
 - [ ] Legal page in the app: a `/legal` page and footer/login link built from `docs/LEGAL.md` (needs a plan). Keep LEGAL.md current when data, providers, cookies or chat visibility change (e.g. `PLAN/2026-10-16-repo-members-only.md`). (Trin)
 
+- [ ] Guide page, after it deploys: open https://cocommit.vercel.app/guide/git-for-beginner-teams, run Google's Rich Results Test (Article), and inspect the URL in Search Console once the site is verified there. (Trin)
+- [ ] `src/components/Markdown.tsx`: turn off font ligatures in code spans like the guide does (GOTCHAS 2026-10-21). (Trin)
+- [ ] More guides under `/guide/` (e.g. the "CoCommit vs GitHub Desktop" idea from PLAN/2026-10-21-seo-guide-page.md) only after the first one is indexed; `AppShell` and `proxy.ts` already cover `/guide/`, each new one needs `PUBLIC_PATHS` and the same tests. (Trin)
 - [ ] Liquid glass 2 (`trin/liquid-glass`): check in a real Safari and Firefox (CSS glass only), the installed macOS/Windows apps (Windows gets the light bending), a real phone, and scrolling on a slow laptop with the lenses on. (Trin)
 - [ ] The landing page's white wordmark (`/logo.svg`, not glass) also disappears over the white hero demo when scrolled under the sticky header. (Trin)
 
