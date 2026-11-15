@@ -12,7 +12,7 @@ import { hasGitHubIdentity, safeReturnTo, sameGitHubAccount } from "./login-iden
 import { getSupabaseServer } from "./supabase-server";
 import { isMarkerPath, isSharedPath, MAX_FILE_BYTES, MAX_PARTS, PART_BYTES, partCount, splitShared } from "./files-util";
 import { cleanUsername } from "./invite";
-import { accessFromStatus, type RepoAccess } from "./repo-access";
+import { accessFromRepo, accessFromStatus, type RepoAccess, type RepoPermissions } from "./repo-access";
 import type { Change, Commit, FileEdit, GitHubActions, InviteResult, PullRequest, Repo, Session, SharedFile, SharedListing, User } from "./github-types";
 
 export type { Change, Commit, FileEdit, PullRequest, Repo, Session, SharedFile, User } from "./github-types";
@@ -218,38 +218,59 @@ async function signedInWithGitHub(): Promise<boolean> {
   }
 }
 
-/** Whether GitHub lets the signed-in user see `repo`: decides who may use its chat and call (repo-access.ts). */
-export async function canSeeRepo(repo: string): Promise<RepoAccess> {
-  if (fakeMode) return "member";
+/**
+ * Whether the signed-in user is a member of `repo` (accessFromRepo in repo-access.ts: on a public repo, readers don't
+ * count), and GitHub's numeric id for it when they are. The id names the repo's call room, so two repos never share a
+ * room and a renamed repo keeps its own (PLAN/2026-10-19-security-fixes.md, item 3).
+ */
+export async function repoAccess(repo: string): Promise<{ access: RepoAccess; id: number | null }> {
+  if (fakeMode) return { access: "member", id: fakeRepoId(repo) };
   try {
-    await gh(repoPath(repo));
-    return "member";
+    const data = await gh<{ id?: number; private?: boolean; permissions?: RepoPermissions }>(repoPath(repo));
+    const access = accessFromRepo(data);
+    return { access, id: access === "member" && Number.isSafeInteger(data.id) && (data.id as number) > 0 ? (data.id as number) : null };
   } catch (e) {
     const access = e instanceof GitHubError ? accessFromStatus(e.status) : null;
-    if (access) return access;
+    if (access) return { access, id: null };
     throw e;
   }
 }
 
+/** Whether the signed-in user is a member of `repo` (repoAccess without the id). */
+export async function canSeeRepo(repo: string): Promise<RepoAccess> {
+  return (await repoAccess(repo)).access;
+}
+
+/** A stable stand-in for GitHub's repo id in fake mode, so local calls still get one room per repo. */
+const fakeRepoId = (repo: string) => parseInt(createHash("sha256").update(repo.toLowerCase()).digest("hex").slice(0, 8), 16) + 1;
+
 /**
- * canSeeRepo for routes that act for a Supabase user (chat join, call token): the GitHub cookie must belong to that
+ * repoAccess for routes that act for a Supabase user (chat join, call token): the GitHub cookie must belong to that
  * user's own linked GitHub account. A cookie someone else left on this browser, or one kept through a desktop ticket,
  * counts as no GitHub sign-in (PLAN/2026-10-19-security-fixes.md, item 1). Without a Supabase user (a plain GitHub
  * session) the cookie is the identity, so it is used as is.
  */
-export async function canSeeRepoAs(user: Parameters<typeof sameGitHubAccount>[0] | null, repo: string): Promise<RepoAccess> {
-  if (fakeMode) return "member";
+export async function repoAccessAs(
+  user: Parameters<typeof sameGitHubAccount>[0] | null,
+  repo: string,
+): Promise<{ access: RepoAccess; id: number | null }> {
+  if (fakeMode) return repoAccess(repo);
   if (user) {
     let owner: { id: number };
     try {
       owner = await gh<{ id: number }>("/user");
     } catch (e) {
-      if (e instanceof GitHubError && e.status === 401) return "no-github";
+      if (e instanceof GitHubError && e.status === 401) return { access: "no-github", id: null };
       throw e;
     }
-    if (!sameGitHubAccount(user, owner.id)) return "no-github";
+    if (!sameGitHubAccount(user, owner.id)) return { access: "no-github", id: null };
   }
-  return canSeeRepo(repo);
+  return repoAccess(repo);
+}
+
+/** repoAccessAs without the id: decides who may use a repo's chat. */
+export async function canSeeRepoAs(user: Parameters<typeof sameGitHubAccount>[0] | null, repo: string): Promise<RepoAccess> {
+  return (await repoAccessAs(user, repo)).access;
 }
 
 /** The signed-in user's repos, most recently updated first (up to 100). */
