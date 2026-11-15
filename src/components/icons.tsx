@@ -29,6 +29,12 @@ const paths: Record<string, ReactNode> = {
   ),
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </>
+  ),
   arrow: <path d="M7 17 17 7M8 7h9v9" />,
   back: <path d="M19 12H5M11 6l-6 6 6 6" />,
   sliders: <path d="M4 7h9M17 7h3M4 17h3M11 17h9M13 5v4M7 15v4" />,

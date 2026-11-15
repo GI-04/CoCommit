@@ -2,6 +2,26 @@
 
 <!-- Failures worth not repeating. Newest on top. Each entry needs evidence (error text, command, or file) and a workaround. Remove or mark fixed when the cause is gone. -->
 
+## 2026-11-10: `feComposite operator="in"` didn't mask the bent backdrop in a Chromium `backdrop-filter`
+- **What failed:** the lens filter showed the bent backdrop only along the rim by `feComposite in=bent in2=rim operator="in"` (rim = the map's blue channel as alpha), over the frosted backdrop. In Chromium the whole bent backdrop came through, so the middle of every glass surface was sharp, not frosted: text on a card under the phone top bar read straight through. It had been like that since liquid glass 2. A second try, a white mask with only its alpha from blue (`0 0 0 0 1` rows) multiplied in, was added on top of the frost instead (washed-out grey, text still sharp).
+- **Evidence:** browser pane, phone width, `/home` scrolled so a card's text sits under the top bar: sharp text in the middle on old and new code; replacing the last composite's `in` with `soft` blurred it; showing `rim` in red drew the right ring, so the mask itself was fine.
+- **Workaround:** copy blue into all four channels (`0 0 1 0 0` × 4) and multiply: `feComposite operator="arithmetic" k1="1"` (`GlassEffects.tsx`). To check the frost, put text, not flat colour, under the glass.
+
+## 2026-10-22: Figma drops the opacity of a paint bound to a colour variable
+- **What failed:** through the Figma MCP (`use_figma`), `{ ...setBoundVariableForPaint(paint, "color", whiteVar), opacity: 0.2 }` was stored with `opacity: 1`, so glass pills and the editor panel came out solid white; a bound paint built with the default `color {0,0,0}` also rendered black on one instance ("CoCommit app" tab).
+- **Evidence:** reading back the editor's fills on "Repo · Magic · Edit" (page "repo page idea") showed `opacity: 1` with `boundVariables.color`; the existing file's glass uses unbound `#FFFFFF` at 20 % (`80:423`).
+- **Workaround:** bind only solid colours, and set the paint's `color` to the variable's real value before binding; for see-through colours use a plain unbound paint with `opacity` (as the existing frames do).
+
+## 2026-10-22: A spring overshoot inside a scrollable tab track flashes a scrollbar
+- **What failed:** the glass tab thumb overshot past the last tab by ~14-28 px (8 % of the move), beyond the track's 6-8 px padding; the track has `overflow-x: auto`, so the transformed thumb added scrollable overflow for a moment (a visible scrollbar on Windows).
+- **Evidence:** pausing the transition at 300 ms put the thumb's right edge at 1142 px vs the track's inner edge at 1122 px (`PLAN/2026-10-22-liquid-glass.md`).
+- **Workaround:** wrap the thumb in `.slide-clip` (`position:absolute; inset:0; overflow:clip`): clipped content doesn't count as scrollable overflow; `track.scrollWidth` stayed equal to `clientWidth` during the overshoot.
+
+## 2026-10-22: CSS blur after an SVG lens in `backdrop-filter` smears the bend away
+- **What failed:** `backdrop-filter: blur(12px) saturate(160%) url(#lens)` bent the rim but the stripes under it were already blurred to one colour, so the bend was invisible.
+- **Evidence:** a striped test div under the phone top bar: with only `url(#lens)` the stripes curve at the ends; with the blur too they are a flat purple.
+- **Workaround:** do the frost inside the SVG filter (`feGaussianBlur`) and composite the bent backdrop over it only along the rim (`GlassEffects.tsx`). Also: the browser pane runs hidden, so `requestAnimationFrame` never fires in test scripts; use `setTimeout`.
+
 ## 2026-10-18: A page's own `openGraph` drops the share image from `opengraph-image.tsx`
 - **What failed:** `/legal` set `openGraph: { ...title, description, url }` in its layout and its `<head>` had no `og:image` / `twitter:image`, while `/home` (no `openGraph`) had both.
 - **Evidence:** rendered `<head>` on `next start` (PLAN/2026-10-18-seo-pass.md); Next replaces a parent's `openGraph` with the child's, and the image file in the root segment is only added where no lower segment sets `openGraph`. `/` keeps it because `page.tsx` sits in the same segment as the image file.
