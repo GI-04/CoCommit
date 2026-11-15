@@ -8,7 +8,7 @@ import { cookies } from "next/headers";
 import type { Activity } from "./context";
 import type { CommitDate } from "./heatmap";
 import { GitModeError, modesByPath, treeEntries, type TreeListing } from "./git-modes";
-import { hasGitHubIdentity } from "./login-identity";
+import { hasGitHubIdentity, safeReturnTo, sameGitHubAccount } from "./login-identity";
 import { getSupabaseServer } from "./supabase-server";
 import { isMarkerPath, isSharedPath, MAX_FILE_BYTES, MAX_PARTS, PART_BYTES, partCount, splitShared } from "./files-util";
 import { cleanUsername } from "./invite";
@@ -104,10 +104,6 @@ export async function signOut(): Promise<void> {
  */
 export async function saveGitHubToken(accessToken: string): Promise<void> {
   (await cookies()).set(TOKEN_COOKIE, seal(accessToken), { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 });
-}
-
-function safeReturnTo(path: string | null | undefined): string {
-  return path && path.startsWith("/") && !path.startsWith("//") && !path.startsWith("/\\") ? path : "/repo";
 }
 
 function readState(value: string | undefined): { state: string; returnTo: string } | null {
@@ -240,13 +236,42 @@ export async function repoAccess(repo: string): Promise<{ access: RepoAccess; id
   }
 }
 
-/** Whether the signed-in user is a member of `repo`: decides who may use its chat (repoAccess without the id). */
+/** Whether the signed-in user is a member of `repo` (repoAccess without the id). */
 export async function canSeeRepo(repo: string): Promise<RepoAccess> {
   return (await repoAccess(repo)).access;
 }
 
 /** A stable stand-in for GitHub's repo id in fake mode, so local calls still get one room per repo. */
 const fakeRepoId = (repo: string) => parseInt(createHash("sha256").update(repo.toLowerCase()).digest("hex").slice(0, 8), 16) + 1;
+
+/**
+ * repoAccess for routes that act for a Supabase user (chat join, call token): the GitHub cookie must belong to that
+ * user's own linked GitHub account. A cookie someone else left on this browser, or one kept through a desktop ticket,
+ * counts as no GitHub sign-in (PLAN/2026-10-19-security-fixes.md, item 1). Without a Supabase user (a plain GitHub
+ * session) the cookie is the identity, so it is used as is.
+ */
+export async function repoAccessAs(
+  user: Parameters<typeof sameGitHubAccount>[0] | null,
+  repo: string,
+): Promise<{ access: RepoAccess; id: number | null }> {
+  if (fakeMode) return repoAccess(repo);
+  if (user) {
+    let owner: { id: number };
+    try {
+      owner = await gh<{ id: number }>("/user");
+    } catch (e) {
+      if (e instanceof GitHubError && e.status === 401) return { access: "no-github", id: null };
+      throw e;
+    }
+    if (!sameGitHubAccount(user, owner.id)) return { access: "no-github", id: null };
+  }
+  return repoAccess(repo);
+}
+
+/** repoAccessAs without the id: decides who may use a repo's chat. */
+export async function canSeeRepoAs(user: Parameters<typeof sameGitHubAccount>[0] | null, repo: string): Promise<RepoAccess> {
+  return (await repoAccessAs(user, repo)).access;
+}
 
 /** The signed-in user's repos, most recently updated first (up to 100). */
 export async function listRepos(): Promise<Repo[]> {
@@ -379,7 +404,7 @@ export async function inviteMember(repo: string, username: string): Promise<Invi
 
 /** A text file's contents, or null if it doesn't exist. `branch: null` means the default branch. */
 export async function readFile(repo: string, branch: string | null, path: string): Promise<string | null> {
-  if (fakeMode) return path === CONTEXT_PATH ? fake.context(repo) : path === "COCOMMIT/COLLAB.md" ? fake.collab : `// ${path} (fake file)\n`;
+  if (fakeMode) return path === CONTEXT_PATH ? fake.context(repo) : path === "COCOMMIT/COLLAB.md" ? fake.collab : fake.text(path);
   const ref = branch ? `?ref=${encodeURIComponent(branch)}` : "";
   try {
     const file = await gh<{ type?: string; content?: string }>(`${repoPath(repo)}/contents/${seg(path)}${ref}`);
@@ -500,12 +525,17 @@ export async function writeContext(repo: string, text: string, message: string):
 
 const clampLimit = (limit: unknown) => Math.min(Math.max(Math.trunc(Number(limit)) || 10, 1), 100);
 
-/** The latest commits on the default branch, newest first, as activity items for COCOMMIT/LOG.md (see addActivity in context.ts). */
-export async function listCommits(repo: string, limit = 10): Promise<Activity[]> {
+/**
+ * The latest commits on `branch` (the default branch when left out), newest first, as activity items for COCOMMIT/LOG.md
+ * (see addActivity in context.ts) and the Repository page's "Recent saves" shelf.
+ */
+export async function listCommits(repo: string, limit = 10, branch?: string | null): Promise<Activity[]> {
   const n = clampLimit(limit);
-  if (fakeMode) return fake.commits(repo).slice(0, n);
+  if (fakeMode) return fake.commits(repo, branch).slice(0, n);
+  const query = new URLSearchParams({ per_page: String(n) });
+  if (branch) query.set("sha", branch);
   const data = await gh<{ author: { login: string } | null; commit: { message: string; author: { name: string; date: string } | null } }[]>(
-    `${repoPath(repo)}/commits?per_page=${n}`,
+    `${repoPath(repo)}/commits?${query}`,
   );
   return data.map((c) => ({
     kind: "commit",
@@ -586,6 +616,27 @@ export async function listFileCommits(repo: string, path: string, limit = 10, si
     text: c.commit.message.split("\n")[0],
     at: c.commit.author?.date ?? new Date(0).toISOString(),
   }));
+}
+
+/** At most this many files per lastChanges call: the drawer asks for one open folder at a time (q6:a). */
+export const LAST_CHANGES_MAX = 30;
+
+/**
+ * Who last changed each file on `branch`, and when: one GitHub request per file, run together, for the files of the
+ * folder open in the Repository page's drawer. Files GitHub has no commit for are left out.
+ */
+export async function lastChanges(repo: string, branch: string, paths: string[]): Promise<Record<string, { author: string; at: string }>> {
+  if (!Array.isArray(paths) || paths.some((p) => typeof p !== "string")) throw new GitHubError(400, "paths must be a list of file paths.");
+  const wanted = [...new Set(paths)].slice(0, LAST_CHANGES_MAX);
+  const out: Record<string, { author: string; at: string }> = {};
+  if (fakeMode) {
+    const people = ["demo-user", "teammate"];
+    wanted.forEach((p, i) => (out[p] = { author: people[p.length % 2], at: minutesAgo(30 + ((p.length * 97 + i * 13) % 20000)) }));
+    return out;
+  }
+  const found = await Promise.all(wanted.map((p) => listFileCommits(repo, p, 1, undefined, branch).then((c) => [p, c[0]] as const)));
+  for (const [p, c] of found) if (c) out[p] = { author: c.author, at: c.at };
+  return out;
 }
 
 export type IssueState = "open" | "closed" | "all";
@@ -708,13 +759,15 @@ export const actions: GitHubActions = {
   listMergedPulls,
   listCommitDates,
   inviteMember,
+  lastChanges,
 };
 
 // ---------- Fake mode: used while GITHUB_CLIENT_ID is empty, so the screens work before the keys exist.
 
 const fakeContexts = ((globalThis as { __cocommitFakeContexts?: Map<string, string> }).__cocommitFakeContexts ??=
   new Map<string, string>());
-// Fake commits made on "main" during this dev server's life, newest first, so listCommits shows them.
+// Fake commits made during this dev server's life, newest first, so listCommits shows them: "main" under the repo's
+// name, other branches under "repo#branch".
 const fakeLog = ((globalThis as { __cocommitFakeLog?: Map<string, Activity[]> }).__cocommitFakeLog ??= new Map<string, Activity[]>());
 // Fake pieces of big shared files (uploadPart): blob id → base64.
 const fakeParts = ((globalThis as { __cocommitFakeParts?: Map<string, string> }).__cocommitFakeParts ??= new Map<string, string>());
@@ -732,7 +785,19 @@ const fake = {
     { fullName: "demo/todo-app", defaultBranch: "main", private: true, updatedAt: "2026-10-14T18:30:00Z" },
   ] as Repo[],
   branches: ["main", "add-login-page"],
-  files: ["COCOMMIT.md", "README.md", "src/app/page.tsx", "src/app/login/page.tsx"],
+  files: [
+    "COCOMMIT.md",
+    "README.md",
+    "package.json",
+    "src/app/page.tsx",
+    "src/app/login/page.tsx",
+    "src/app/globals.css",
+    "src/components/Nav.tsx",
+    "src/components/Button.tsx",
+    "src/lib/todos.ts",
+    "public/logo.svg",
+    "docs/setup.md",
+  ],
   changes: [
     {
       path: "src/app/login/page.tsx",
@@ -825,14 +890,23 @@ Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in .env.local.
         store.set(f.path, Buffer.concat(pieces.map((p) => Buffer.from(p!, "base64"))).toString("base64"));
       } else store.set(f.path, f.encoding === "base64" ? f.content : Buffer.from(f.content).toString("base64"));
     }
-    if (branch === "main") {
-      const item: Activity = { kind: "commit", author: fake.user.login, text: message.split("\n")[0], at: new Date().toISOString() };
-      fakeLog.set(repo, [item, ...(fakeLog.get(repo) ?? [])]);
-    }
+    const item: Activity = { kind: "commit", author: fake.user.login, text: message.split("\n")[0], at: new Date().toISOString() };
+    const key = branch === "main" ? repo : `${repo}#${branch}`;
+    fakeLog.set(key, [item, ...(fakeLog.get(key) ?? [])]);
     const sha = randomBytes(20).toString("hex");
     return { sha, url: `https://github.com/${repo}/commit/${sha}`, branch };
   },
-  commits: (repo: string): Activity[] => [
+  // A fake file's text: a short README, a few lines of code for code files (so editing shows line marks), else one line.
+  text(path: string): string {
+    if (/(^|\/)readme\.md$/i.test(path)) return "# Demo app\n\nA to-do app for small teams: sign in, add tasks, tick them off. Start with `src/app/page.tsx`.\n\n## Setup\n\nRun `npm install`, then `npm run dev`.\n";
+    if (/\.(tsx?|jsx?)$/.test(path)) {
+      const name = (path.split("/").pop() ?? "File").replace(/\.\w+$/, "").replace(/^\w/, (c) => c.toUpperCase()).replace(/\W/g, "") || "File";
+      return `// ${path} (fake file)\nimport { useState } from "react";\n\nexport default function ${name}() {\n  const [done, setDone] = useState(false);\n  return (\n    <main>\n      <h1>${name}</h1>\n      <button onClick={() => setDone(!done)}>{done ? "Done" : "Not done"}</button>\n    </main>\n  );\n}\n`;
+    }
+    return `// ${path} (fake file)\n`;
+  },
+  commits: (repo: string, branch?: string | null): Activity[] => [
+    ...(branch && branch !== "main" ? (fakeLog.get(`${repo}#${branch}`) ?? []) : []),
     ...(fakeLog.get(repo) ?? []),
     { kind: "commit", author: "demo-user", text: "Add login page", at: minutesAgo(25) },
     { kind: "commit", author: "teammate", text: "Fix chat time format", at: minutesAgo(90) },
