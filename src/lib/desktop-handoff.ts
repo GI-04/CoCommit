@@ -1,19 +1,33 @@
 // Hands a GitHub sign-in done in the system browser over to the desktop app (PLAN/2026-10-16-desktop-github-login.md).
 // The browser seals the session into a short-lived ticket; the app opens it at /auth/desktop/finish.
+// A ticket is bound to the app window that started the sign-in (PLAN/2026-10-19-security-fixes.md, item 1): that
+// window keeps a random verifier and sends only its hash, the challenge, which goes into the ticket. Redeeming needs
+// the verifier, so a ticket opened anywhere else (another browser, a link from a website) is useless.
 // Server only. Pure apart from node:crypto, so tests can load this file on its own.
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
-export const TICKET_TTL_MS = 5 * 60 * 1000;
+export const TICKET_TTL_MS = 2 * 60 * 1000;
 
-export type Handoff = { accessToken: string; refreshToken: string; githubToken: string | null; next: string };
+export type Handoff = { accessToken: string; refreshToken: string; githubToken: string | null; next: string; challenge: string };
+
+/** A challenge is base64url(sha256(verifier)): 43 characters (src/lib/desktop-login.ts makes it in the app window). */
+export const isChallenge = (value: unknown): value is string => typeof value === "string" && /^[A-Za-z0-9_-]{43}$/.test(value);
+
+export const challengeFor = (verifier: string): string => createHash("sha256").update(verifier).digest("base64url");
+
+/** Whether `verifier` is the secret behind `challenge`, i.e. the caller is the app window that started this sign-in. */
+export function verifierMatches(verifier: unknown, challenge: string): boolean {
+  if (typeof verifier !== "string" || !/^[A-Za-z0-9_-]{43,128}$/.test(verifier) || !isChallenge(challenge)) return false;
+  return timingSafeEqual(Buffer.from(challengeFor(verifier)), Buffer.from(challenge));
+}
 
 function key(secret: string): Buffer {
   return createHash("sha256").update(`cocommit-desktop-handoff:${secret}`).digest();
 }
 
-/** Encrypts the session into a URL-safe ticket that stops working after TICKET_TTL_MS. Null if there is no secret. */
+/** Encrypts the session into a URL-safe ticket that stops working after TICKET_TTL_MS. Null without a secret or challenge. */
 export function sealHandoff(data: Handoff, secret: string, now = Date.now()): string | null {
-  if (!secret) return null;
+  if (!secret || !isChallenge(data.challenge)) return null;
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key(secret), iv);
   const body = Buffer.concat([cipher.update(JSON.stringify({ ...data, exp: now + TICKET_TTL_MS }), "utf8"), cipher.final()]);
@@ -30,11 +44,13 @@ export function openHandoff(ticket: string | null | undefined, secret: string, n
     const parsed = JSON.parse(Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString("utf8"));
     if (typeof parsed.exp !== "number" || parsed.exp < now) return null;
     if (typeof parsed.accessToken !== "string" || typeof parsed.refreshToken !== "string" || typeof parsed.next !== "string") return null;
+    if (!isChallenge(parsed.challenge)) return null;
     return {
       accessToken: parsed.accessToken,
       refreshToken: parsed.refreshToken,
       githubToken: typeof parsed.githubToken === "string" ? parsed.githubToken : null,
       next: parsed.next,
+      challenge: parsed.challenge,
     };
   } catch {
     return null;

@@ -25,10 +25,13 @@ test("liveKitKeys needs all three values", () => {
   });
 });
 
-test("roomForRepo makes one safe room per repo and rejects anything else", () => {
-  assert.equal(lk.roomForRepo("GI-04/CoCommit"), "cocommit-gi-04-cocommit");
-  assert.equal(lk.roomForRepo("me/my.repo_1"), "cocommit-me-my-repo-1");
-  for (const bad of [undefined, 42, "", "norepo", "a/b/c", "a/b c", "../x"]) assert.equal(lk.roomForRepo(bad), null, String(bad));
+test("roomForRepo names the room by GitHub's repo id and rejects anything else", () => {
+  assert.equal(lk.roomForRepo(869245913), "cocommit-repo-869245913");
+  assert.equal(lk.roomForRepo(1), "cocommit-repo-1");
+  // Names are refused: "acme/my-app" and "acme-my/app" used to make the same room (PLAN/2026-10-19-security-fixes.md, item 3).
+  for (const bad of [undefined, null, 0, -1, 1.5, NaN, Infinity, 2 ** 53, "123", "GI-04/CoCommit", {}]) {
+    assert.equal(lk.roomForRepo(bad), null, String(bad));
+  }
 });
 
 test("createToken signs a LiveKit join token", () => {

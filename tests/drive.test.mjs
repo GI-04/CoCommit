@@ -35,7 +35,7 @@ function setup() {
       "node:crypto": crypto,
       "next/headers": { cookies: async () => ({ get: () => undefined }) },
       "./git-modes": gitModes,
-      "./login-identity": { hasGitHubIdentity: () => false },
+      "./login-identity": { hasGitHubIdentity: () => false, safeReturnTo: (p, fallback = "/repo") => p || fallback },
       "./supabase-server": { getSupabaseServer: async () => null },
       "./repo-access": { accessFromStatus: () => null },
       "./invite": { cleanUsername: (v) => String(v ?? "").trim().replace(/^@/, "") || null },

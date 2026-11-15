@@ -14,10 +14,13 @@ export function liveKitKeys(env: Record<string, string | undefined> = process.en
   return url && apiKey && apiSecret ? { url, apiKey, apiSecret } : null;
 }
 
-/** One call room per repo: "owner/name" → "cocommit-owner-name". Null if it isn't a repo name. */
-export function roomForRepo(repo: unknown): string | null {
-  if (typeof repo !== "string" || !/^\w[\w.-]*\/\w[\w.-]*$/.test(repo)) return null;
-  return `cocommit-${repo.toLowerCase().replace(/[^a-z0-9-]/g, "-")}`;
+/**
+ * One call room per repo, named by GitHub's numeric repo id: 123 → "cocommit-repo-123". Names made from "owner/name"
+ * could collide ("acme/my-app" and "acme-my/app") and changed on a rename; an id does neither
+ * (PLAN/2026-10-19-security-fixes.md, item 3). Null if it isn't an id.
+ */
+export function roomForRepo(repoId: unknown): string | null {
+  return typeof repoId === "number" && Number.isSafeInteger(repoId) && repoId > 0 ? `cocommit-repo-${repoId}` : null;
 }
 
 const base64url = (data: string | Buffer) => Buffer.from(data).toString("base64url");
